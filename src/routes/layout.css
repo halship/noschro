@@ -1,0 +1,16 @@
+@import 'tailwindcss';
+
+#main {
+    color: #000000;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0.5em;
+}
+
+h1 {
+    font-size: 2em;
+}
+
+a {
+    text-decoration: underline;
+}
