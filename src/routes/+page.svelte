@@ -110,7 +110,7 @@
     }
 
     function formatContent(content: string) {
-        return content.replace(/(http.+)/g, '<a href="$1">$1</a>')
+        return content.replace(/(http[^\s]+)/g, '<a href="$1">$1</a>')
             .replaceAll('\n', '<br>\n');
     }
 </script>
