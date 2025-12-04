@@ -4,6 +4,7 @@
     import { verifier } from "@rx-nostr/crypto";
     import { onMount } from "svelte";
     import type { NostrEvent, NostrProfile } from "$lib/types/nostr";
+    import DOMPurify from "isomorphic-dompurify";
     
     const relayUrls: string[] = [
         'wss://yabu.me',
@@ -110,7 +111,8 @@
     }
 
     function formatContent(content: string) {
-        return content.replace(/(http[^\s]+)/g, '<a href="$1">$1</a>')
+        return DOMPurify.sanitize(content)
+            .replace(/(http[^\s]+)/g, '<a href="$1">$1</a>')
             .replaceAll('\n', '<br>\n');
     }
 </script>
