@@ -21,9 +21,45 @@
 
     // イベント内容を表示用に整形する
     function formatContent(content: string) {
-        return DOMPurify.sanitize(content)
-            .replace(/(http[^\s]+)/g, '<a href="$1" target="_blank" class="underline">$1</a>')
-            .replaceAll('\n', '<br>\n');
+        content = DOMPurify.sanitize(content);
+
+        const result: string[] = [];
+        let i: number = 0
+
+        while (i < content.length) {
+            const urlResult = content.slice(i).match(/^https?:\/\/([\w!?/+\-_~;.,*&@#$%()'[\]]+)/);
+            
+            if (urlResult) {
+                // URL文字列の場合
+                const url: string = urlResult[0];
+                const urlBase: string = urlResult[1];
+
+                result.push('<a href="');
+                result.push(url);
+                result.push('" target="_blank" class="underline">');
+
+                if (urlBase.length > 100) {
+                    result.push(urlBase.slice(0, 100 - 3));
+                    result.push('...');
+                } else {
+                    result.push(urlBase);
+                }
+
+                result.push('</a>');
+                
+                i += url.length;
+            } else if (content.slice(i).startsWith('\n')) {
+                // 改行の場合
+                result.push('<br>');
+                i++;
+            } else {
+                // その他の場合
+                result.push(content.slice(i).charAt(0));
+                i++;
+            }
+        }
+
+        return result.join('');
     }
 </script>
 
