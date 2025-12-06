@@ -2,17 +2,17 @@
     import DOMPurify from "isomorphic-dompurify";
 
     // イベントID
-    export let id: string = '';
+    export let id: string;
     // 公開鍵
-    export let pubkey: string = '';
+    export let pubkey: string;
     // イベント作成日
-    export let createdAt: number = 0;
+    export let createdAt: number;
     // イベント内容
-    export let content: string = '';
+    export let content: string;
     // ユーザ表示名
-    export let userDisplayName: string | undefined = undefined;
+    export let userDisplayName: string | undefined;
     // ユーザ名
-    export let userName: string | undefined = undefined;
+    export let userName: string | undefined;
 
     // 整数で表現された日時を表示用に整形する
     function formatTime(ts: number) {
