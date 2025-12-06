@@ -26,6 +26,7 @@
         const timelineSub = rxNostr.use(rxReqTimeline).subscribe({
             next: ({ event }) => {
                 if (event.kind !== 1) return;
+                if (events.find((ev) => ev.id == event.id)) return;
 
                 if (!(event.pubkey in profiles)) {
                     rxReqProfile.emit({
@@ -35,12 +36,8 @@
                     });
                 }
 
-                if (events.find((ev) => ev.id == event.id)) {
-                    return;
-                }
-
                 if (events.length == 100) {
-                    events = events.slice(0, -1);
+                    events.pop();
                 }
 
                 events = [
@@ -53,7 +50,7 @@
                         content: event.content,
                     },
                     ...events,
-                ].sort((a, b) => b.created_at - a.created_at);
+                ].toSorted((a, b) => b.created_at - a.created_at);
             },
             error: (err) => {
                 console.error(err);
