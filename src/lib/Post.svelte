@@ -22,14 +22,14 @@
     // イベント内容を表示用に整形する
     function formatContent(content: string) {
         return DOMPurify.sanitize(content)
-            .replace(/(http[^\s]+)/g, '<a href="$1" target="_blank">$1</a>')
+            .replace(/(http[^\s]+)/g, '<a href="$1" target="_blank" class="underline">$1</a>')
             .replaceAll('\n', '<br>\n');
     }
 </script>
 
-<div id={id} class="post">
-    <div class="post-header">
-        <span class="user-display-name">
+<div id={id} class="post border-gray-500 border rounded-md p-2 mt-2">
+    <div class="post-header mb-1 flex">
+        <span class="user-display-name font-bold grow-0 shrink basis-auto min-w-0 whitespace-nowrap overflow-hidden mr-1">
             {#if userDisplayName}
                 {userDisplayName}
             {:else if userName}
@@ -39,56 +39,14 @@
             {/if}
         </span>
         
-        <span class="user-name">
+        <span class="user-name text-gray-500 grow shrink min-w-0 whitespace-nowrap overflow-hidden mr-1">
             {#if userDisplayName && userName && userDisplayName!==userName}
                 @{userName}
             {/if}
         </span>
 
-        <span class="post-created-at">{formatTime(createdAt)}</span>
+        <span class="post-created-at text-gray-500 grow-0 shrink-0 basis-auto wrap-break-word">{formatTime(createdAt)}</span>
     </div>
 
     <div class="post-content">{@html formatContent(content)}</div>
 </div>
-
-<style>
-    .post {
-        border: 1px solid #aaaaaa;
-        border-radius: 8px;
-        padding: 0.5em;
-        margin-top: 1em;
-    }
-
-    .post-header {
-        margin-bottom: 0.5em;
-        display: flex;
-    }
-
-    .user-display-name {
-        font-weight: bold;
-        flex: 0 1 auto;
-        min-width: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        margin-right: 0.5em;
-    }
-
-    .user-name {
-        color: #aaaaaa;
-        flex: 1 1;
-        min-width: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        margin-right: 0.5em;
-    }
-
-    .post-created-at {
-        color: #aaaaaa;
-        flex: 0 0 auto;
-        text-align: right;
-    }
-
-    .post-content {
-        overflow-wrap: break-word;
-    }
-</style>
