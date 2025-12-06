@@ -38,11 +38,12 @@
                 {pubkey.substring(0, 9)}
             {/if}
         </span>
-        {#if userDisplayName && userName}
-            <span class="user-name">
+        
+        <span class="user-name">
+            {#if userDisplayName && userName && userDisplayName!==userName}
                 @{userName}
-            </span>
-        {/if}
+            {/if}
+        </span>
 
         <span class="post-created-at">{formatTime(createdAt)}</span>
     </div>
