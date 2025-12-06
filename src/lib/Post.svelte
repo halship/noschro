@@ -45,8 +45,8 @@
             {/if}
         </span>
 
-        <span class="post-created-at text-thin grow-0 shrink-0 basis-auto wrap-break-word">{formatTime(createdAt)}</span>
+        <span class="post-created-at text-thin grow-0 shrink-0 basis-auto">{formatTime(createdAt)}</span>
     </div>
 
-    <div class="post-content">{@html formatContent(content)}</div>
+    <div class="post-content wrap-break-word">{@html formatContent(content)}</div>
 </div>
