@@ -4,7 +4,7 @@
     import { verifier } from "@rx-nostr/crypto";
     import { onMount } from "svelte";
     import type { NostrEvent, NostrProfile } from "$lib/types/nostr";
-    import DOMPurify from "isomorphic-dompurify";
+    import Post from "$lib/Post.svelte";
     
     const relayUrls: string[] = [
         'wss://yabu.me',
@@ -102,78 +102,12 @@
             profileSub.unsubscribe();
         };
     });
-
-    function formatTime(ts: number) {
-        return new Date(ts * 1000).toLocaleString();
-    }
-
-    function formatContent(content: string) {
-        return DOMPurify.sanitize(content)
-            .replace(/(http[^\s]+)/g, '<a href="$1" target="_blank">$1</a>')
-            .replaceAll('\n', '<br>\n');
-    }
 </script>
 
 <div id="posts">
     {#each events as ev (ev.id)}
-        <div id={ev.id} class="post">
-            <div class="post-header">
-                <div class="user-display-name">
-                    {#if !(ev.pubkey in profiles)}
-                        {ev.pubkey}
-                    {:else if profiles[ev.pubkey]?.display_name}
-                        {profiles[ev.pubkey]?.display_name}
-                    {:else if profiles[ev.pubkey]?.name}
-                        {profiles[ev.pubkey]?.name}
-                    {/if}
-                </div>
-                <div class="user-name">
-                    {#if (ev.pubkey in profiles) && profiles[ev.pubkey]?.display_name && profiles[ev.pubkey]?.name}
-                        @{profiles[ev.pubkey]?.name}
-                    {/if}
-                </div>
-
-                <div class="post-created-at">{formatTime(ev.created_at)}</div>
-            </div>
-
-            <div class="post-content">{@html formatContent(ev.content)}</div>
-        </div>
+        <Post id={ev.id} pubkey={ev.pubkey} createdAt={ev.created_at} content={ev.content}
+            userDisplayName={profiles[ev.pubkey]?.display_name}
+            userName={profiles[ev.pubkey]?.name} />
     {/each}
 </div>
-
-<style>
-    .post {
-        border: 1px solid #aaaaaa;
-        border-radius: 8px;
-        padding: 0.5em;
-        margin-top: 1em;
-        overflow-wrap: break-word;
-    }
-
-    .post-header {
-        margin-bottom: 0.5em;
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-    }
-
-    .user-display-name {
-        font-weight: bold;
-        min-width: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        margin-right: 0.5em;
-    }
-
-    .user-name {
-        color: #aaaaaa;
-        min-width: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        margin-right: 0.5em;
-    }
-
-    .post-created-at {
-        color: #aaaaaa;
-        text-align: right;
-    }
-</style>
