@@ -1,13 +1,16 @@
 <script lang="ts">
     import { Sun, Moon } from '@lucide/svelte';
     import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
 
-    let theme = 'light';
+    let theme = $state('light');
 
-    if (browser) {
-        theme = localStorage.getItem('theme') ?? 'light';
-        document.documentElement.classList.toggle('dark', localStorage.getItem('theme') === 'dark');
-    }
+    onMount(() => {
+        if (browser) {
+            theme = localStorage.getItem('theme') ?? 'light';
+            document.documentElement.classList.toggle('dark', localStorage.getItem('theme') === 'dark');
+        }
+    });
 
     function toggleTheme() {
         if (browser) {
