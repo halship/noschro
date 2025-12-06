@@ -27,7 +27,7 @@
     }
 </script>
 
-<div id={id} class="post border-gray-500 border rounded-md p-2 mt-2">
+<div id={id} class="post border-thin border rounded-md p-2 mt-2">
     <div class="post-header mb-1 flex">
         <span class="user-display-name font-bold grow-0 shrink basis-auto min-w-0 whitespace-nowrap overflow-hidden mr-1">
             {#if userDisplayName}
@@ -39,13 +39,13 @@
             {/if}
         </span>
         
-        <span class="user-name text-gray-500 grow shrink min-w-0 whitespace-nowrap overflow-hidden mr-1">
+        <span class="user-name text-thin grow shrink min-w-0 whitespace-nowrap overflow-hidden mr-1">
             {#if userDisplayName && userName && userDisplayName!==userName}
                 @{userName}
             {/if}
         </span>
 
-        <span class="post-created-at text-gray-500 grow-0 shrink-0 basis-auto wrap-break-word">{formatTime(createdAt)}</span>
+        <span class="post-created-at text-thin grow-0 shrink-0 basis-auto wrap-break-word">{formatTime(createdAt)}</span>
     </div>
 
     <div class="post-content">{@html formatContent(content)}</div>

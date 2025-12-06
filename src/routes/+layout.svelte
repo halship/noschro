@@ -8,12 +8,12 @@
 	<title>ノスクロ -noschro-</title>
 </svelte:head>
 
-<header class="bg-white border-gray-500 text-black border-b p-1 inset-x-0 top-0 sticky">
+<header class="bg-light border-thin text-dark border-b p-1 inset-x-0 top-0 sticky">
 	<h1 class="text-3xl">
 		<a href="/">ノスクロ</a>
 	</h1>
 </header>
 
-<div id="main" class="bg-white text-black max-w-3xl mx-auto p-2">
+<div id="main" class="bg-light text-dark max-w-3xl mx-auto p-2">
 	{@render children()}
 </div>
