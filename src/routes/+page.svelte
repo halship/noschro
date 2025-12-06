@@ -1,6 +1,6 @@
 <script lang="ts">
     import { bufferTime } from "rxjs";
-	import { batch, createRxForwardReq, createRxNostr } from "rx-nostr";
+	import { batch, createRxForwardReq, createRxNostr, latest, sortEvents } from "rx-nostr";
     import { verifier } from "@rx-nostr/crypto";
     import { onMount } from "svelte";
     import type { NostrEvent, NostrProfile } from "$lib/types/nostr";
@@ -23,7 +23,7 @@
         const rxReqProfile = createRxForwardReq();
 
         // タイムライン購読
-        const timelineSub = rxNostr.use(rxReqTimeline).subscribe({
+        const timelineSub = rxNostr.use(rxReqTimeline).pipe(sortEvents(3 * 1000)).subscribe({
             next: ({ event }) => {
                 if (event.kind !== 1) return;
                 if (events.find((ev) => ev.id == event.id)) return;
@@ -50,7 +50,7 @@
                         content: event.content,
                     },
                     ...events,
-                ].toSorted((a, b) => b.created_at - a.created_at);
+                ];
             },
             error: (err) => {
                 console.error(err);
