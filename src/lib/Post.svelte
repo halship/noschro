@@ -38,11 +38,11 @@
                 {pubkey}
             {/if}
         </div>
-        <div class="user-name">
-            {#if userDisplayName && userName}
+        {#if userDisplayName && userName}
+            <div class="user-name">
                 @{userName}
-            {/if}
-        </div>
+            </div>
+        {/if}
 
         <div class="post-created-at">{formatTime(createdAt)}</div>
     </div>
@@ -84,5 +84,6 @@
     .post-created-at {
         color: #aaaaaa;
         text-align: right;
+        margin-left: auto;
     }
 </style>
