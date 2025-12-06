@@ -29,22 +29,22 @@
 
 <div id={id} class="post">
     <div class="post-header">
-        <div class="user-display-name">
+        <span class="user-display-name">
             {#if userDisplayName}
                 {userDisplayName}
             {:else if userName}
                 {userName}
             {:else}
-                {pubkey}
+                {pubkey.substring(0, 9)}
             {/if}
-        </div>
+        </span>
         {#if userDisplayName && userName}
-            <div class="user-name">
+            <span class="user-name">
                 @{userName}
-            </div>
+            </span>
         {/if}
 
-        <div class="post-created-at">{formatTime(createdAt)}</div>
+        <span class="post-created-at">{formatTime(createdAt)}</span>
     </div>
 
     <div class="post-content">{@html formatContent(content)}</div>
@@ -56,17 +56,16 @@
         border-radius: 8px;
         padding: 0.5em;
         margin-top: 1em;
-        overflow-wrap: break-word;
     }
 
     .post-header {
         margin-bottom: 0.5em;
-        display: grid;
-        grid-template-columns: auto 1fr auto;
+        display: flex;
     }
 
     .user-display-name {
         font-weight: bold;
+        flex: 0 1 auto;
         min-width: 0;
         white-space: nowrap;
         overflow: hidden;
@@ -75,6 +74,7 @@
 
     .user-name {
         color: #aaaaaa;
+        flex: 1 1;
         min-width: 0;
         white-space: nowrap;
         overflow: hidden;
@@ -83,7 +83,11 @@
 
     .post-created-at {
         color: #aaaaaa;
+        flex: 0 0 auto;
         text-align: right;
-        margin-left: auto;
+    }
+
+    .post-content {
+        overflow-wrap: break-word;
     }
 </style>
