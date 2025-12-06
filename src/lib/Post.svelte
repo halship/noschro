@@ -27,7 +27,7 @@
         let i: number = 0
 
         while (i < content.length) {
-            const urlResult = content.slice(i).match(/^https?:\/\/([\w!?/+\-_~;.,*&@#$%()'[\]]+)/);
+            const urlResult = content.slice(i).match(/^https?:\/\/([\w!?/+\-=_~;.,*&@#$%()'[\]]+)/);
             
             if (urlResult) {
                 // URL文字列の場合
