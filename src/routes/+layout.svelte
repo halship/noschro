@@ -2,12 +2,13 @@
 	import './layout.css';
 	import { House } from '@lucide/svelte';
 	import ThemeButton from '$lib/ThemeButton.svelte';
+	import { page } from '$app/state';
 
 	let { children } = $props();
 </script>
 
 <svelte:head>
-	<title>ノスクロ</title>
+	<title>ノスクロ - {page.data.title}</title>
 </svelte:head>
 
 <header class="bg-light dark:bg-dark border-thin text-dark dark:text-light border-b p-1 inset-x-0 top-0 sticky flex">

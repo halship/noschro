@@ -5,15 +5,16 @@
     import { onMount } from "svelte";
     import type { NostrEvent, NostrProfile } from "$lib/types/nostr";
     import Post from "$lib/Post.svelte";
-    
-    const relayUrls: string[] = ['wss://yabu.me'];
+    import type { PageProps } from "./$types";
+
+    let { data }: PageProps = $props();
 
     let profiles: Record<string, NostrProfile> = $state({});
     let events: NostrEvent[] = $state([]);
     
     onMount(() => {
         const rxNostr = createRxNostr({ verifier });
-        rxNostr.setDefaultRelays(relayUrls);
+        rxNostr.setDefaultRelays(data.default_relays);
 
         const rxReqTimeline = createRxForwardReq();
         const rxReqProfile = createRxForwardReq();
