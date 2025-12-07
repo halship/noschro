@@ -6,11 +6,7 @@
     import type { NostrEvent, NostrProfile } from "$lib/types/nostr";
     import Post from "$lib/Post.svelte";
     
-    const relayUrls: string[] = [
-        'wss://yabu.me',
-        'wss://relay-jp.nostr.wirednet.jp',
-        'wss://nrelay-jp.c-stellar.net',
-    ];
+    const relayUrls: string[] = ['wss://yabu.me'];
 
     let profiles: Record<string, NostrProfile> = $state({});
     let events: NostrEvent[] = $state([]);
