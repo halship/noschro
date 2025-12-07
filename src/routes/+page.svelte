@@ -13,8 +13,9 @@
     let events: NostrEvent[] = $state([]);
     
     onMount(() => {
+        const defaultRelays = ['wss://yabu.me'];
         const rxNostr = createRxNostr({ verifier });
-        rxNostr.setDefaultRelays(data.default_relays);
+        rxNostr.setDefaultRelays(defaultRelays);
 
         const rxReqTimeline = createRxForwardReq();
         const rxReqProfile = createRxForwardReq();
