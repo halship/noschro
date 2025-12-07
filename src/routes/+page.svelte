@@ -1,25 +1,28 @@
 <script lang="ts">
     import { bufferTime } from "rxjs";
-	import { batch, createRxForwardReq, createRxNostr, sortEvents } from "rx-nostr";
-    import { verifier } from "@rx-nostr/crypto";
+	import { batch, createRxForwardReq, sortEvents } from "rx-nostr";
     import { onMount } from "svelte";
-    import type { NostrEvent, NostrProfile } from "$lib/types/nostr";
+    import type { NostrEvent, NostrProfile, NostrClient } from "$lib/types/nostr";
     import Post from "$lib/Post.svelte";
+    import { getNostrClient } from '$lib/types/nostr';
 
     let profiles: Record<string, NostrProfile> = $state({});
     let events: NostrEvent[] = $state([]);
+
+    const rxReqTimeline = createRxForwardReq();
+    const rxReqProfile = createRxForwardReq();
+    const rxReqDelete = createRxForwardReq();
+
+    let client: NostrClient | null = null;
+    let timelineSub: any = null;
+    let profileSub: any = null;
+    let deleteSub: any = null;
     
     onMount(() => {
-        const defaultRelays = ['wss://yabu.me'];
-        const rxNostr = createRxNostr({ verifier });
-        rxNostr.setDefaultRelays(defaultRelays);
-
-        const rxReqTimeline = createRxForwardReq();
-        const rxReqProfile = createRxForwardReq();
-        const rxReqDelete = createRxForwardReq();
+        client = getNostrClient();
 
         // タイムライン購読
-        const timelineSub = rxNostr.use(rxReqTimeline).pipe(sortEvents(500)).subscribe({
+        timelineSub = client.rx_nostr.use(rxReqTimeline).pipe(sortEvents(500)).subscribe({
             next: ({ event }) => {
                 if (event.kind !== 1) return;
                 if (events.find((ev) => ev.id == event.id)) return;
@@ -50,7 +53,7 @@
 
         // プロフィール購読
         const rxReqBatched = rxReqProfile.pipe(bufferTime(500), batch());
-        const profileSub = rxNostr.use(rxReqBatched).subscribe({
+        profileSub = client.rx_nostr.use(rxReqBatched).subscribe({
             next: ({ event }) => {
                 if (event.kind !== 0) return;
 
@@ -84,7 +87,7 @@
         });
 
         // 削除イベント購読
-        const deleteSub = rxNostr.use(rxReqDelete).subscribe({
+        deleteSub = client.rx_nostr.use(rxReqDelete).subscribe({
             next: ({ event }) => {
                 if (event.kind != 5) return;
 

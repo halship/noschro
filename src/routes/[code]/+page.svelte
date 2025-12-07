@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
+	import type { NostrClient, NostrEvent, NostrProfile } from '$lib/types/nostr';
+    import { getNostrClient } from '$lib/types/nostr';
     import Post from '$lib/Post.svelte';
-    import { verifier } from "@rx-nostr/crypto";
 	import { onMount } from 'svelte';
-	import { createRxForwardReq, createRxNostr } from 'rx-nostr';
+	import { createRxForwardReq } from 'rx-nostr';
 
 	let { data } = $props();
 
@@ -11,16 +11,18 @@
     let events: NostrEvent[] = $state([]);
     let profiles: Record<string, NostrProfile> = $state({});
 
-    onMount(() => {
-        const defaultRelays = ['wss://yabu.me'];
-        const rxNostr = createRxNostr({ verifier });
-        rxNostr.setDefaultRelays(defaultRelays);
+    const rxReqTimeline = createRxForwardReq();
+    const rxReqProfile = createRxForwardReq();
 
-        const rxReqTimeline = createRxForwardReq();
-        const rxReqProfile = createRxForwardReq();
+    let client: NostrClient | null = null;
+    let timelineSub: any = null;
+    let profileSub: any = null;
+
+    onMount(() => {
+        client = getNostrClient();
 
         // タイムライン購読
-        const timelineSub = rxNostr.use(rxReqTimeline).subscribe({
+        timelineSub = client.rx_nostr.use(rxReqTimeline).subscribe({
             next: ({ event }) => {
                 if (event.kind !== 1) return;
 
@@ -49,7 +51,7 @@
         });
 
         // プロフィール購読
-        const profileSub = rxNostr.use(rxReqProfile).subscribe({
+        profileSub = client.rx_nostr.use(rxReqProfile).subscribe({
             next: ({ event }) => {
                 if (event.kind !== 0) return;
 
@@ -82,24 +84,37 @@
             },
         });
 
-        if (data.result.type === 'nevent') {
-            kind = 'nevent';
-            rxReqTimeline.emit({
-                kinds: [1],
-                ids: [data.result.data.id],
-                limit: 1,
-            });
-        }
-
         return () => {
             timelineSub.unsubscribe();
             profileSub.unsubscribe();
         };
     });
+
+    $effect(() => {
+        if (!client) return;
+
+        if (data.result.type === 'nevent') {
+            kind = 'nevent';
+            events = [];
+            rxReqTimeline.emit({
+                kinds: [1],
+                ids: [data.result.data.id],
+                limit: 1,
+            });
+        } else {
+            kind = null;
+            events = [];
+        }
+    });
+
+    function goBack(event: MouseEvent) {
+        event.preventDefault();
+        history.back();
+    }
 </script>
 
 <div class="navigation">
-    <a href="/" class="underline">← Back</a>
+    <a href="/" class="underline" onclick={goBack}>← Back</a>
 </div>
 
 {#if kind === 'nevent'}
