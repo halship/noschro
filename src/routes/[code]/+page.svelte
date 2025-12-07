@@ -108,6 +108,16 @@
                 ids: [data.result.data.id],
                 limit: 1,
             });
+        } else if (data.result.type === 'note') {
+            kind = 'note';
+            nostrEvent = null;
+            profile = null;
+            nostrRef = null;
+            rxReqTimeline.emit({
+                kinds: [1],
+                ids: [data.result.data],
+                limit: 1,
+            });
         } else if (data.result.type === 'npub') {
             kind = 'npub';
             nostrEvent = null;
@@ -137,6 +147,8 @@
 </div>
 
 {#if kind === 'nevent' && nostrEvent}
+    <Post event={nostrEvent!!} profile={profile} nostr_ref={nostrRef} />
+{:else if kind === 'note' && nostrEvent}
     <Post event={nostrEvent!!} profile={profile} nostr_ref={nostrRef} />
 {:else if kind === 'npub' && profile}
     <Profile profile={profile!!} />

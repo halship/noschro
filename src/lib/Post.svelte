@@ -67,6 +67,10 @@
                     result.push('<a href="/');
                     result.push(code);
                     result.push('" class="underline">[引用]</a>');
+                } else if (code.startsWith('note')) {
+                    result.push('<a href="/');
+                    result.push(code);
+                    result.push('" class="underline">[引用]</a>');
                 } else {
                     result.push(codeResult[0]);
                 }
