@@ -20,6 +20,7 @@
 
         while (i < content.length) {
             const urlResult = content.slice(i).match(/^https?:\/\/([\w!?/+\-=_~;.,*&@#$%()'[\]]+)/);
+            const codeResult = content.slice(i).match(/^nostr:[a-z0-9]+/);
             
             if (urlResult) {
                 // URL文字列の場合
@@ -58,6 +59,18 @@
                 // 改行の場合
                 result.push('<br>');
                 i++;
+            } else if (codeResult) {
+                const code = codeResult[0].slice(6);
+
+                if (code.startsWith('nevent')) {
+                    result.push('<a href="/');
+                    result.push(code);
+                    result.push('" class="underline">[引用]</a>');
+                } else {
+                    result.push(codeResult[0]);
+                }
+
+                i += codeResult[0].length;
             } else {
                 // その他の場合
                 result.push(content.slice(i).charAt(0));
