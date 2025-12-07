@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { bufferTime } from "rxjs";
-	import { batch, createRxForwardReq, sortEvents } from "rx-nostr";
+    import { bufferTime, Subject } from "rxjs";
+	import { batch, createRxForwardReq, sortEvents, uniq } from "rx-nostr";
     import { onMount } from "svelte";
     import type { NostrEvent, NostrProfile, NostrClient, NostrRef } from "$lib/types/nostr";
     import Post from "$lib/Post.svelte";
@@ -13,6 +13,9 @@
     const rxReqTimeline = createRxForwardReq();
     const rxReqProfile = createRxForwardReq();
     const rxReqDelete = createRxForwardReq();
+    const flushesTimeline$ = new Subject<void>();
+    const flushesProfile$ = new Subject<void>();
+    const flushesDelete$ = new Subject<void>();
 
     let client: NostrClient | null = null;
     let timelineSub: any = null;
@@ -23,7 +26,10 @@
         client = getNostrClient();
 
         // タイムライン購読
-        timelineSub = client.rx_nostr.use(rxReqTimeline).pipe(sortEvents(500)).subscribe({
+        timelineSub = client.rx_nostr.use(rxReqTimeline)
+            .pipe(uniq(flushesTimeline$))
+            .pipe(sortEvents(500))
+            .subscribe({
             next: ({ event }) => {
                 if (event.kind !== 1) return;
                 if (events.find((ev) => ev.id == event.id)) return;
@@ -63,10 +69,13 @@
                 console.error(err);
             },
         });
+        flushesTimeline$.next();
 
         // プロフィール購読
         const rxReqBatched = rxReqProfile.pipe(bufferTime(500), batch());
-        profileSub = client.rx_nostr.use(rxReqBatched).subscribe({
+        profileSub = client.rx_nostr.use(rxReqBatched)
+            .pipe(uniq(flushesProfile$))
+            .subscribe({
             next: ({ event }) => {
                 if (event.kind !== 0) return;
 
@@ -98,9 +107,12 @@
                 console.error(err);
             },
         });
+        flushesProfile$.next();
 
         // 削除イベント購読
-        deleteSub = client.rx_nostr.use(rxReqDelete).subscribe({
+        deleteSub = client.rx_nostr.use(rxReqDelete)
+            .pipe(uniq(flushesDelete$))
+            .subscribe({
             next: ({ event }) => {
                 if (event.kind != 5) return;
 
@@ -114,7 +126,8 @@
             error: (err) => {
                 console.error(err);
             },
-        })
+        });
+        flushesDelete$.next();
 
         rxReqTimeline.emit({
             kinds: [1],
