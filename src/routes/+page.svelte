@@ -23,7 +23,7 @@
         const rxReqProfile = createRxForwardReq();
 
         // タイムライン購読
-        const timelineSub = rxNostr.use(rxReqTimeline).pipe(sortEvents(3 * 1000)).subscribe({
+        const timelineSub = rxNostr.use(rxReqTimeline).pipe(sortEvents(1000)).subscribe({
             next: ({ event }) => {
                 if (event.kind !== 1) return;
                 if (events.find((ev) => ev.id == event.id)) return;
