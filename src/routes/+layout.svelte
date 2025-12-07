@@ -2,7 +2,6 @@
 	import './layout.css';
 	import { House } from '@lucide/svelte';
 	import ThemeButton from '$lib/ThemeButton.svelte';
-	import { page } from '$app/state';
 
 	let { children } = $props();
 </script>

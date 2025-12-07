@@ -5,6 +5,7 @@
     import type { NostrEvent, NostrProfile, NostrClient, NostrRef } from "$lib/types/nostr";
     import Post from "$lib/Post.svelte";
     import { getNostrClient } from '$lib/types/nostr';
+    import { MoveUp } from "@lucide/svelte";
 
     let profiles: Record<string, NostrProfile> = $state({});
     let events: NostrEvent[] = $state([]);
@@ -144,10 +145,30 @@
             deleteSub.unsubscribe();
         };
     });
+
+    function scrollUp() {
+        window.scroll({
+            top: 0,
+            behavior: 'instant',
+        });
+    }
+
+    function switchScrollUpButton() {
+        const element = document.getElementById('scroll-up-btn');;
+        element?.classList.toggle('hidden', window.scrollY <= 0);
+    }
 </script>
+
+<svelte:window onscroll={switchScrollUpButton} />
 
 <div id="posts">
     {#each events as ev (ev.id)}
         <Post event={ev} profile={profiles[ev.pubkey]} nostr_ref={nostrRefs[ev.id]} />
     {/each}
 </div>
+
+<button id="scroll-up-btn"
+    class="bg-light dark:bg-dark border-dark dark:border-light border p-2 fixed bottom-5 right-5"
+    onclick={scrollUp}>
+    <MoveUp />
+</button>
