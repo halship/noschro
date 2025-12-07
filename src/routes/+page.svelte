@@ -18,6 +18,7 @@
 
         const rxReqTimeline = createRxForwardReq();
         const rxReqProfile = createRxForwardReq();
+        const rxReqDelete = createRxForwardReq();
 
         // タイムライン購読
         const timelineSub = rxNostr.use(rxReqTimeline).pipe(sortEvents(1000)).subscribe({
@@ -33,21 +34,16 @@
                     });
                 }
 
-                if (events.length == 100) {
-                    events.pop();
-                }
+                const nostrEvent: NostrEvent = {
+                    id: event.id,
+                    pubkey: event.pubkey,
+                    kind: event.kind,
+                    created_at: event.created_at,
+                    tags: event.tags,
+                    content: event.content,
+                };
 
-                events = [
-                    {
-                        id: event.id,
-                        pubkey: event.pubkey,
-                        kind: event.kind,
-                        created_at: event.created_at,
-                        tags: event.tags,
-                        content: event.content,
-                    },
-                    ...events,
-                ];
+                events = [nostrEvent, ...events].slice(0, 100);
             },
             error: (err) => {
                 console.error(err);
@@ -89,14 +85,36 @@
             },
         });
 
+        // 削除イベント購読
+        const deleteSub = rxNostr.use(rxReqDelete).subscribe({
+            next: ({ event }) => {
+                if (event.kind != 5) return;
+
+                const ids = event.tags.filter((tag) => tag[0] === 'e')
+                    .map((tag) => tag[1]);
+
+                if (ids.length == 0) return;
+
+                events = events.filter((ev) => ev.id !== ids[0]);
+            },
+            error: (err) => {
+                console.error(err);
+            },
+        })
+
         rxReqTimeline.emit({
             kinds: [1],
+            limit: 20,
+        });
+        rxReqDelete.emit({
+            kinds: [5],
             limit: 20,
         });
 
         return () => {
             timelineSub.unsubscribe();
             profileSub.unsubscribe();
+            deleteSub.unsubscribe();
         };
     });
 </script>
