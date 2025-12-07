@@ -11,7 +11,7 @@
 </script>
 
 <div class="profile border-thin border rounded-md p-2 mt-2">
-    <div class="user-display-name font-bold text-lg">{profile.display_name}</div>
-    <div class="user-name text-thin">@{profile.name}</div>
-    <div class="user-about mt-5">{@html formatAbout(profile.about)}</div>
+    <div class="user-display-name font-bold text-lg wrap-break-word">{profile.display_name}</div>
+    <div class="user-name text-thin wrap-break-word">@{profile.name}</div>
+    <div class="user-about mt-5 wrap-break-word">{@html formatAbout(profile.about)}</div>
 </div>
