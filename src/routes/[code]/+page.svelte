@@ -1,14 +1,16 @@
 <script lang="ts">
-    import { bufferTime } from "rxjs";
-	import { batch, createRxForwardReq, createRxNostr, sortEvents } from "rx-nostr";
+	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
+    import Post from '$lib/Post.svelte';
     import { verifier } from "@rx-nostr/crypto";
-    import { onMount } from "svelte";
-    import type { NostrEvent, NostrProfile } from "$lib/types/nostr";
-    import Post from "$lib/Post.svelte";
+	import { onMount } from 'svelte';
+	import { createRxForwardReq, createRxNostr } from 'rx-nostr';
 
-    let profiles: Record<string, NostrProfile> = $state({});
+	let { data } = $props();
+
+    let kind: string | null = $state(null);
     let events: NostrEvent[] = $state([]);
-    
+    let profiles: Record<string, NostrProfile> = $state({});
+
     onMount(() => {
         const defaultRelays = ['wss://yabu.me'];
         const rxNostr = createRxNostr({ verifier });
@@ -16,13 +18,11 @@
 
         const rxReqTimeline = createRxForwardReq();
         const rxReqProfile = createRxForwardReq();
-        const rxReqDelete = createRxForwardReq();
 
         // タイムライン購読
-        const timelineSub = rxNostr.use(rxReqTimeline).pipe(sortEvents(500)).subscribe({
+        const timelineSub = rxNostr.use(rxReqTimeline).subscribe({
             next: ({ event }) => {
                 if (event.kind !== 1) return;
-                if (events.find((ev) => ev.id == event.id)) return;
 
                 if (!(event.pubkey in profiles)) {
                     rxReqProfile.emit({
@@ -41,7 +41,7 @@
                     content: event.content,
                 };
 
-                events = [nostrEvent, ...events].slice(0, 100);
+                events = [nostrEvent, ...events];
             },
             error: (err) => {
                 console.error(err);
@@ -49,8 +49,7 @@
         });
 
         // プロフィール購読
-        const rxReqBatched = rxReqProfile.pipe(bufferTime(500), batch());
-        const profileSub = rxNostr.use(rxReqBatched).subscribe({
+        const profileSub = rxNostr.use(rxReqProfile).subscribe({
             next: ({ event }) => {
                 if (event.kind !== 0) return;
 
@@ -83,42 +82,30 @@
             },
         });
 
-        // 削除イベント購読
-        const deleteSub = rxNostr.use(rxReqDelete).subscribe({
-            next: ({ event }) => {
-                if (event.kind != 5) return;
-
-                const ids = event.tags.filter((tag) => tag[0] === 'e')
-                    .map((tag) => tag[1]);
-
-                if (ids.length == 0) return;
-
-                events = events.filter((ev) => ev.id !== ids[0]);
-            },
-            error: (err) => {
-                console.error(err);
-            },
-        })
-
-        rxReqTimeline.emit({
-            kinds: [1],
-            limit: 10,
-        });
-        rxReqDelete.emit({
-            kinds: [5],
-            limit: 10,
-        });
+        if (data.result.type === 'nevent') {
+            kind = 'nevent';
+            rxReqTimeline.emit({
+                kinds: [1],
+                ids: [data.result.data.id],
+                limit: 1,
+            });
+        }
 
         return () => {
             timelineSub.unsubscribe();
             profileSub.unsubscribe();
-            deleteSub.unsubscribe();
         };
     });
 </script>
 
-<div id="posts">
-    {#each events as ev (ev.id)}
-        <Post event={ev} profiles={profiles} />
-    {/each}
+<div class="navigation">
+    <a href="/" class="underline">← Back</a>
 </div>
+
+{#if kind === 'nevent'}
+    <div id="posts">
+        {#each events as ev (ev.id)}
+            <Post event={ev} profiles={profiles} />
+        {/each}
+    </div>
+{/if}

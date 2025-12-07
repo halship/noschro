@@ -1,6 +1,7 @@
 <script lang="ts">
     import DOMPurify from "isomorphic-dompurify";
 	import type { NostrEvent, NostrProfile } from "$lib/types/nostr";
+	import { neventEncode } from "nostr-tools/nip19";
 
     export let event: NostrEvent;
     export let profiles: Record<string, NostrProfile>;
@@ -66,6 +67,13 @@
 
         return result.join('');
     }
+
+    function getEventCode(ev: NostrEvent): string {
+        return neventEncode({
+            id: ev.id,
+            author: ev.pubkey,
+        });
+    }
 </script>
 
 <div id={event.id} class="post border-thin border rounded-md p-2 mt-2">
@@ -86,7 +94,7 @@
             {/if}
         </span>
 
-        <span class="post-created-at text-thin grow-0 shrink-0 basis-auto">{formatTime(event.created_at)}</span>
+        <span class="post-created-at text-thin grow-0 shrink-0 basis-auto"><a href="/{getEventCode(event)}" class="underline">{formatTime(event.created_at)}</a></span>
     </div>
 
     <div class="post-content wrap-break-word">{@html formatContent(event.content)}</div>

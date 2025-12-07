@@ -8,7 +8,7 @@
 </script>
 
 <svelte:head>
-	<title>ノスクロ - {page.data.title}</title>
+	<title>ノスクロ</title>
 </svelte:head>
 
 <header class="bg-light dark:bg-dark border-thin text-dark dark:text-light border-b p-1 inset-x-0 top-0 sticky flex">
