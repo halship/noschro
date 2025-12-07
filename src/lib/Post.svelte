@@ -1,18 +1,9 @@
 <script lang="ts">
     import DOMPurify from "isomorphic-dompurify";
+	import type { NostrEvent, NostrProfile } from "$lib/types/nostr";
 
-    // イベントID
-    export let id: string;
-    // 公開鍵
-    export let pubkey: string;
-    // イベント作成日
-    export let createdAt: number;
-    // イベント内容
-    export let content: string;
-    // ユーザ表示名
-    export let userDisplayName: string | undefined;
-    // ユーザ名
-    export let userName: string | undefined;
+    export let event: NostrEvent;
+    export let profiles: Record<string, NostrProfile>;
 
     // 整数で表現された日時を表示用に整形する
     function formatTime(ts: number) {
@@ -77,26 +68,26 @@
     }
 </script>
 
-<div id={id} class="post border-thin border rounded-md p-2 mt-2">
+<div id={event.id} class="post border-thin border rounded-md p-2 mt-2">
     <div class="post-header mb-1 flex">
         <span class="user-display-name font-bold grow-0 shrink basis-auto min-w-0 whitespace-nowrap overflow-hidden mr-1">
-            {#if userDisplayName}
-                {userDisplayName}
-            {:else if userName}
-                {userName}
+            {#if profiles[event.pubkey]?.display_name}
+                {profiles[event.pubkey]?.display_name}
+            {:else if profiles[event.pubkey]?.name}
+                {profiles[event.pubkey]?.name}
             {:else}
-                {pubkey.substring(0, 9)}
+                {event.pubkey.substring(0, 9)}
             {/if}
         </span>
         
         <span class="user-name text-thin grow shrink min-w-0 whitespace-nowrap overflow-hidden mr-1">
-            {#if userDisplayName && userName && userDisplayName!==userName}
-                @{userName}
+            {#if profiles[event.pubkey]?.display_name && profiles[event.pubkey]?.name && profiles[event.pubkey]?.display_name!==profiles[event.pubkey]?.name}
+                @{profiles[event.pubkey]?.name}
             {/if}
         </span>
 
-        <span class="post-created-at text-thin grow-0 shrink-0 basis-auto">{formatTime(createdAt)}</span>
+        <span class="post-created-at text-thin grow-0 shrink-0 basis-auto">{formatTime(event.created_at)}</span>
     </div>
 
-    <div class="post-content wrap-break-word">{@html formatContent(content)}</div>
+    <div class="post-content wrap-break-word">{@html formatContent(event.content)}</div>
 </div>

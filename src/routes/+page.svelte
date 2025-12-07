@@ -12,7 +12,7 @@
         'wss://nrelay-jp.c-stellar.net',
     ];
 
-    let profiles: Record<string, NostrProfile | undefined> = $state({});
+    let profiles: Record<string, NostrProfile> = $state({});
     let events: NostrEvent[] = $state([]);
     
     onMount(() => {
@@ -106,8 +106,6 @@
 
 <div id="posts">
     {#each events as ev (ev.id)}
-        <Post id={ev.id} pubkey={ev.pubkey} createdAt={ev.created_at} content={ev.content}
-            userDisplayName={profiles[ev.pubkey]?.display_name}
-            userName={profiles[ev.pubkey]?.name} />
+        <Post event={ev} profiles={profiles} />
     {/each}
 </div>
