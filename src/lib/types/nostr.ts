@@ -27,6 +27,11 @@ export type NostrProfile = {
     about?: string;
 };
 
+export type NostrRef = {
+    id: string;
+    pubkey: string;
+}
+
 export function getNostrClient(): NostrClient {
     if (!client) {
         const rxNostr = createRxNostr({ verifier });

@@ -2,12 +2,13 @@
     import { bufferTime } from "rxjs";
 	import { batch, createRxForwardReq, sortEvents } from "rx-nostr";
     import { onMount } from "svelte";
-    import type { NostrEvent, NostrProfile, NostrClient } from "$lib/types/nostr";
+    import type { NostrEvent, NostrProfile, NostrClient, NostrRef } from "$lib/types/nostr";
     import Post from "$lib/Post.svelte";
     import { getNostrClient } from '$lib/types/nostr';
 
     let profiles: Record<string, NostrProfile> = $state({});
     let events: NostrEvent[] = $state([]);
+    let nostrRefs: Record<string, NostrRef> = $state({});
 
     const rxReqTimeline = createRxForwardReq();
     const rxReqProfile = createRxForwardReq();
@@ -45,6 +46,18 @@
                 };
 
                 events = [nostrEvent, ...events].slice(0, 100);
+
+                const refId = event.tags.filter((tag) => tag[0] === 'e');
+                const refPubkey = event.tags.filter((tag) => tag[0] === 'p');
+
+                if (refId.length !== 0 && refPubkey.length !== 0) {
+                    const nostrRef = {
+                        id: refId[0][1],
+                        pubkey: refPubkey[0][1],
+                    };
+
+                    nostrRefs = {...nostrRefs, [nostrEvent.id]: nostrRef};
+                }
             },
             error: (err) => {
                 console.error(err);
@@ -122,6 +135,6 @@
 
 <div id="posts">
     {#each events as ev (ev.id)}
-        <Post event={ev} profile={profiles[ev.pubkey]} />
+        <Post event={ev} profile={profiles[ev.pubkey]} nostr_ref={nostrRefs[ev.id]} />
     {/each}
 </div>

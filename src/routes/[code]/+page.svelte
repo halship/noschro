@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { NostrClient, NostrEvent, NostrProfile } from '$lib/types/nostr';
+	import type { NostrClient, NostrEvent, NostrProfile, NostrRef } from '$lib/types/nostr';
     import { getNostrClient } from '$lib/types/nostr';
     import Post from '$lib/Post.svelte';
 	import { onMount } from 'svelte';
@@ -11,6 +11,7 @@
     let kind: string | null = $state(null);
     let nostrEvent: NostrEvent | null = $state(null);
     let profile: NostrProfile | null = $state(null);
+    let nostrRef: NostrRef | null = $state(null);
 
     const rxReqTimeline = createRxForwardReq();
     const rxReqProfile = createRxForwardReq();
@@ -43,6 +44,16 @@
                     tags: event.tags,
                     content: event.content,
                 };
+
+                const refId = event.tags.filter((tag) => tag[0] === 'e');
+                const refPubkey = event.tags.filter((tag) => tag[0] === 'p');
+
+                if (refId.length !== 0 && refPubkey.length !== 0) {
+                    nostrRef = {
+                        id: refId[0][1],
+                        pubkey: refPubkey[0][1],
+                    };
+                }
             },
             error: (err) => {
                 console.error(err);
@@ -91,6 +102,7 @@
             kind = 'nevent';
             nostrEvent = null;
             profile = null;
+            nostrRef = null;
             rxReqTimeline.emit({
                 kinds: [1],
                 ids: [data.result.data.id],
@@ -100,6 +112,7 @@
             kind = 'npub';
             nostrEvent = null;
             profile = null;
+            nostrRef = null;
             rxReqProfile.emit({
                 kinds: [0],
                 authors: [data.result.data],
@@ -109,6 +122,7 @@
             kind = null;
             nostrEvent = null;
             profile = null;
+            nostrRef = null;
         }
     });
 
@@ -123,7 +137,7 @@
 </div>
 
 {#if kind === 'nevent' && nostrEvent}
-    <Post event={nostrEvent!!} profile={profile} />
+    <Post event={nostrEvent!!} profile={profile} nostr_ref={nostrRef} />
 {:else if kind === 'npub' && profile}
     <Profile profile={profile!!} />
 {/if}

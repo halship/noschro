@@ -1,10 +1,11 @@
 <script lang="ts">
     import DOMPurify from "isomorphic-dompurify";
-	import type { NostrEvent, NostrProfile } from "$lib/types/nostr";
+	import type { NostrEvent, NostrProfile, NostrRef } from "$lib/types/nostr";
 	import { neventEncode, npubEncode } from "nostr-tools/nip19";
 
     export let event: NostrEvent;
     export let profile: NostrProfile | null;
+    export let nostr_ref: NostrRef | null;
 
     // 整数で表現された日時を表示用に整形する
     function formatTime(ts: number) {
@@ -87,6 +88,13 @@
             author: ev.pubkey,
         });
     }
+
+    function getRefEventCode(ev:NostrEvent, nf: NostrRef): string {
+        return neventEncode({
+            id: nf.id,
+            author: nf.pubkey,
+        });
+    }
 </script>
 
 <div id={event.id} class="post border-thin border rounded-md p-2 mt-2">
@@ -111,6 +119,12 @@
 
         <span class="post-created-at text-thin grow-0 shrink-0 basis-auto"><a href="/{getEventCode(event)}" class="underline">{formatTime(event.created_at)}</a></span>
     </div>
+
+    {#if nostr_ref}
+        <div class="ref-link underline">
+            <a href="/{getRefEventCode(event, nostr_ref)}">[参照]</a>
+        </div>
+    {/if}
 
     <div class="post-content wrap-break-word">{@html formatContent(event.content)}</div>
 </div>
