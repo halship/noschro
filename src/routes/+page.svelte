@@ -168,7 +168,7 @@
 </div>
 
 <button id="scroll-up-btn"
-    class="bg-light dark:bg-dark border-dark dark:border-light border p-2 fixed bottom-5 right-5"
+    class="hidden bg-light dark:bg-dark border-dark dark:border-light border p-2 fixed bottom-5 right-5"
     onclick={scrollUp}>
     <MoveUp />
 </button>
