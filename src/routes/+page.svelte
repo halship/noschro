@@ -122,6 +122,6 @@
 
 <div id="posts">
     {#each events as ev (ev.id)}
-        <Post event={ev} profiles={profiles} />
+        <Post event={ev} profile={profiles[ev.pubkey]} />
     {/each}
 </div>

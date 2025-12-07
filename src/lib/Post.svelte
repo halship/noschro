@@ -1,10 +1,10 @@
 <script lang="ts">
     import DOMPurify from "isomorphic-dompurify";
 	import type { NostrEvent, NostrProfile } from "$lib/types/nostr";
-	import { neventEncode } from "nostr-tools/nip19";
+	import { neventEncode, npubEncode } from "nostr-tools/nip19";
 
     export let event: NostrEvent;
-    export let profiles: Record<string, NostrProfile>;
+    export let profile: NostrProfile | null;
 
     // 整数で表現された日時を表示用に整形する
     function formatTime(ts: number) {
@@ -92,18 +92,20 @@
 <div id={event.id} class="post border-thin border rounded-md p-2 mt-2">
     <div class="post-header mb-1 flex">
         <span class="user-display-name font-bold grow-0 shrink basis-auto min-w-0 whitespace-nowrap overflow-hidden mr-1">
-            {#if profiles[event.pubkey]?.display_name}
-                {profiles[event.pubkey]?.display_name}
-            {:else if profiles[event.pubkey]?.name}
-                {profiles[event.pubkey]?.name}
-            {:else}
-                {event.pubkey.substring(0, 9)}
-            {/if}
+            <a href="/{npubEncode(event.pubkey)}">
+                {#if profile?.display_name}
+                    {profile?.display_name}
+                {:else if profile?.name}
+                    {profile?.name}
+                {:else}
+                    {event.pubkey.substring(0, 9)}
+                {/if}
+            </a>
         </span>
         
         <span class="user-name text-thin grow shrink min-w-0 whitespace-nowrap overflow-hidden mr-1">
-            {#if profiles[event.pubkey]?.display_name && profiles[event.pubkey]?.name && profiles[event.pubkey]?.display_name!==profiles[event.pubkey]?.name}
-                @{profiles[event.pubkey]?.name}
+            {#if profile?.display_name && profile?.name && profile?.display_name!==profile?.name}
+                @{profile?.name}
             {/if}
         </span>
 

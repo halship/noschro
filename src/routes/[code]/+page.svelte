@@ -4,12 +4,13 @@
     import Post from '$lib/Post.svelte';
 	import { onMount } from 'svelte';
 	import { createRxForwardReq } from 'rx-nostr';
+	import Profile from '$lib/Profile.svelte';
 
 	let { data } = $props();
 
     let kind: string | null = $state(null);
-    let events: NostrEvent[] = $state([]);
-    let profiles: Record<string, NostrProfile> = $state({});
+    let nostrEvent: NostrEvent | null = $state(null);
+    let profile: NostrProfile | null = $state(null);
 
     const rxReqTimeline = createRxForwardReq();
     const rxReqProfile = createRxForwardReq();
@@ -26,7 +27,7 @@
             next: ({ event }) => {
                 if (event.kind !== 1) return;
 
-                if (!(event.pubkey in profiles)) {
+                if (!profile) {
                     rxReqProfile.emit({
                         kinds: [0],
                         authors: [event.pubkey],
@@ -34,7 +35,7 @@
                     });
                 }
 
-                const nostrEvent: NostrEvent = {
+                nostrEvent = {
                     id: event.id,
                     pubkey: event.pubkey,
                     kind: event.kind,
@@ -42,8 +43,6 @@
                     tags: event.tags,
                     content: event.content,
                 };
-
-                events = [nostrEvent, ...events];
             },
             error: (err) => {
                 console.error(err);
@@ -63,17 +62,12 @@
                         about?: string;
                     };
 
-                    const profile: NostrProfile = {
+                    profile = {
                         pubkey: event.pubkey,
                         name: meta.name,
                         display_name: meta.display_name,
                         picture: meta.picture,
                         about: meta.about,
-                    };
-
-                    profiles = {
-                        ...profiles,
-                        [event.pubkey]: profile,
                     };
                 } catch (e) {
                     console.warn('Failed to parse profile metadata', e);
@@ -95,15 +89,26 @@
 
         if (data.result.type === 'nevent') {
             kind = 'nevent';
-            events = [];
+            nostrEvent = null;
+            profile = null;
             rxReqTimeline.emit({
                 kinds: [1],
                 ids: [data.result.data.id],
                 limit: 1,
             });
+        } else if (data.result.type === 'npub') {
+            kind = 'npub';
+            nostrEvent = null;
+            profile = null;
+            rxReqProfile.emit({
+                kinds: [0],
+                authors: [data.result.data],
+                limit: 1,
+            });
         } else {
             kind = null;
-            events = [];
+            nostrEvent = null;
+            profile = null;
         }
     });
 
@@ -117,10 +122,8 @@
     <a href="/" class="underline" onclick={goBack}>← Back</a>
 </div>
 
-{#if kind === 'nevent'}
-    <div id="posts">
-        {#each events as ev (ev.id)}
-            <Post event={ev} profiles={profiles} />
-        {/each}
-    </div>
+{#if kind === 'nevent' && nostrEvent}
+    <Post event={nostrEvent!!} profile={profile} />
+{:else if kind === 'npub' && profile}
+    <Profile profile={profile!!} />
 {/if}
