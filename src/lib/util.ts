@@ -1,8 +1,8 @@
 import DOMPurify from "isomorphic-dompurify";
 import { decodeNostrURI } from "nostr-tools/nip19";
-import type { NostrProfile } from "./types/nostr";
+import { nostrState } from "./state.svelte";
 
-export function formatContent(content: string, profiles: Record<string, NostrProfile>): string {
+export function formatContent(content: string): string {
     content = DOMPurify.sanitize(content);
 
     const result: string[] = [];
@@ -62,11 +62,11 @@ export function formatContent(content: string, profiles: Record<string, NostrPro
                     result.push('<a href="/');
                     result.push(code);
                     result.push('">@');
-                    
-                    if (profiles[decoded.data]?.name) {
-                        result.push(profiles[decoded.data]?.name!!);
-                    } else if (profiles[decoded.data]?.display_name) {
-                        result.push(profiles[decoded.data]?.display_name!!);
+
+                    if (nostrState.profiles[decoded.data]?.name) {
+                        result.push(nostrState.profiles[decoded.data]?.name!);
+                    } else if (nostrState.profiles[decoded.data]?.display_name) {
+                        result.push(nostrState.profiles[decoded.data]?.display_name!);
                     } else {
                         result.push(decoded.data.slice(9));
                     }

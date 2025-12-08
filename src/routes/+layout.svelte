@@ -4,8 +4,26 @@
 	import ThemeButton from '$lib/ThemeButton.svelte';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
+	import { connectNostr, disconnectNostr } from '$lib/subscription';
 
 	let { children } = $props();
+
+	onMount(() => {
+		if (!connectNostr()) {
+			goto('/login');
+		}
+
+		const logoutBtn = document.getElementById('logout-btn');
+		logoutBtn?.classList.toggle('hidden', !localStorage.getItem('login'));
+
+		const homeBtn = document.getElementById('home-btn');
+		homeBtn?.classList.toggle('hidden', !localStorage.getItem('login'));
+
+		return () => {
+			disconnectNostr();
+		};
+	});
 
 	function logout() {
 		if (browser) {
@@ -17,7 +35,9 @@
 			const homeBtn = document.getElementById('home-btn');
 			homeBtn?.classList.toggle('hidden', !localStorage.getItem('login'));
 
-			goto('/login');
+			disconnectNostr();
+
+			setTimeout(() => goto('/login'), 0);
 		}
 	}
 </script>
