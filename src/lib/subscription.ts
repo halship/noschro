@@ -1,9 +1,8 @@
-import { batch, createRxForwardReq, createRxNostr, sortEvents, uniq, type LazyFilter, type RxNostr, type RxReq, type RxReqStrategy } from "rx-nostr";
+import { batch, createRxForwardReq, createRxNostr, sortEvents, uniq, type LazyFilter, type RxNostr } from "rx-nostr";
 import { seckeySigner, verifier } from "@rx-nostr/crypto";
 import { bufferTime, Subject, Subscription } from "rxjs";
 import { browser } from "$app/environment";
 import type { NostrEvent, NostrProfile, NostrRef } from "$lib/types/nostr";
-import { get } from "svelte/store";
 import { nostrState } from "./state.svelte";
 
 let rxNostr: RxNostr | null = null;

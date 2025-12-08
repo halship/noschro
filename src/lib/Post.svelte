@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { NostrEvent, NostrProfile, NostrRef } from '$lib/types/nostr';
+	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
 	import { neventEncode, npubEncode } from 'nostr-tools/nip19';
 	import { formatContent } from '$lib/util';
 	import { emitEvent, emitProfile } from './subscription';

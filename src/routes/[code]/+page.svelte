@@ -1,10 +1,6 @@
 <script lang="ts">
 	import Post from '$lib/Post.svelte';
 	import Profile from '$lib/Profile.svelte';
-	import { emitProfile, emitEvent } from '$lib/subscription.js';
-	import { get } from 'svelte/store';
-	import type { NostrEvent, NostrProfile } from '$lib/types/nostr.js';
-	import { nostrState } from '$lib/state.svelte.js';
 
 	let { data } = $props();
 
