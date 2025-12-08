@@ -163,7 +163,7 @@
 
 <div id="posts">
     {#each events as ev (ev.id)}
-        <Post event={ev} profile={profiles[ev.pubkey]} nostr_ref={nostrRefs[ev.id]} />
+        <Post event={ev} profiles={profiles} nostr_ref={nostrRefs[ev.id]} />
     {/each}
 </div>
 

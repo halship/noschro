@@ -1,6 +1,8 @@
 import DOMPurify from "isomorphic-dompurify";
+import { decodeNostrURI } from "nostr-tools/nip19";
+import type { NostrProfile } from "./types/nostr";
 
-export function formatContent(content: string): string {
+export function formatContent(content: string, profiles: Record<string, NostrProfile>): string {
     content = DOMPurify.sanitize(content);
 
     const result: string[] = [];
@@ -50,14 +52,27 @@ export function formatContent(content: string): string {
         } else if (codeResult) {
             const code = codeResult[0].slice(6);
 
-            if (code.startsWith('nevent')) {
+            if (code.startsWith('nevent') || code.startsWith('note')) {
                 result.push('<a href="/');
                 result.push(code);
                 result.push('" class="underline">[引用]</a>');
-            } else if (code.startsWith('note')) {
-                result.push('<a href="/');
-                result.push(code);
-                result.push('" class="underline">[引用]</a>');
+            } else if (code.startsWith('npub')) {
+                const decoded = decodeNostrURI(code);
+                if (decoded.type === 'npub') {
+                    result.push('<a href="/');
+                    result.push(code);
+                    result.push('">@');
+                    
+                    if (profiles[decoded.data]?.name) {
+                        result.push(profiles[decoded.data]?.name!!);
+                    } else if (profiles[decoded.data]?.display_name) {
+                        result.push(profiles[decoded.data]?.display_name!!);
+                    } else {
+                        result.push(decoded.data.slice(9));
+                    }
+
+                    result.push('</a>');
+                }
             } else {
                 result.push(codeResult[0]);
             }

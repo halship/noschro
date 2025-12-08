@@ -3,18 +3,23 @@
     import { getNostrClient } from '$lib/types/nostr';
     import Post from '$lib/Post.svelte';
 	import { onMount } from 'svelte';
-	import { createRxForwardReq } from 'rx-nostr';
+	import { batch, createRxForwardReq, uniq } from 'rx-nostr';
 	import Profile from '$lib/Profile.svelte';
+	import { bufferTime, Subject } from 'rxjs';
+	import { decodeNostrURI } from 'nostr-tools/nip19';
 
 	let { data } = $props();
 
     let kind: string | null = $state(null);
     let nostrEvent: NostrEvent | null = $state(null);
-    let profile: NostrProfile | null = $state(null);
+    let profiles: Record<string, NostrProfile> = $state({});
     let nostrRef: NostrRef | null = $state(null);
+    let pubkey: string | null = $state(null);
 
     const rxReqTimeline = createRxForwardReq();
     const rxReqProfile = createRxForwardReq();
+    const flushesTimeline$ = new Subject<void>();
+    const flushesProfile$ = new Subject<void>();
 
     let client: NostrClient | null = null;
     let timelineSub: any = null;
@@ -24,11 +29,13 @@
         client = getNostrClient();
 
         // タイムライン購読
-        timelineSub = client.rx_nostr.use(rxReqTimeline).subscribe({
+        timelineSub = client.rx_nostr.use(rxReqTimeline)
+            .pipe(uniq(flushesTimeline$))
+            .subscribe({
             next: ({ event }) => {
                 if (event.kind !== 1) return;
 
-                if (!profile) {
+                if (!(event.pubkey in profiles)) {
                     rxReqProfile.emit({
                         kinds: [0],
                         authors: [event.pubkey],
@@ -59,9 +66,13 @@
                 console.error(err);
             },
         });
+        flushesTimeline$.next();
 
         // プロフィール購読
-        profileSub = client.rx_nostr.use(rxReqProfile).subscribe({
+        const rxReqBatched = rxReqProfile.pipe(bufferTime(500), batch());
+        profileSub = client.rx_nostr.use(rxReqBatched)
+            .pipe(uniq(flushesProfile$))
+            .subscribe({
             next: ({ event }) => {
                 if (event.kind !== 0) return;
 
@@ -73,13 +84,27 @@
                         about?: string;
                     };
 
-                    profile = {
+                    const profile: NostrProfile = {
                         pubkey: event.pubkey,
                         name: meta.name,
                         display_name: meta.display_name,
                         picture: meta.picture,
                         about: meta.about,
                     };
+
+                    profiles = {...profiles, [event.pubkey]: profile};
+
+                    const npubResult = profile.about?.match(/nostr:[a-z0-9]+/g);
+                    const pubkeys = npubResult?.map((npub) => decodeNostrURI(npub))
+                        .filter((pdata) => pdata.type === 'npub')
+                        .map((pdata) => pdata.data);
+                    if (pubkeys) {
+                        rxReqProfile.emit({
+                            kinds: [0],
+                            authors: pubkeys,
+                            limit: pubkeys.length,
+                        });
+                    }
                 } catch (e) {
                     console.warn('Failed to parse profile metadata', e);
                 }
@@ -88,6 +113,7 @@
                 console.error(err);
             },
         });
+        flushesProfile$.next();
 
         return () => {
             timelineSub.unsubscribe();
@@ -101,8 +127,9 @@
         if (data.result.type === 'nevent') {
             kind = 'nevent';
             nostrEvent = null;
-            profile = null;
             nostrRef = null;
+            profiles = {};
+            pubkey = null;
             rxReqTimeline.emit({
                 kinds: [1],
                 ids: [data.result.data.id],
@@ -111,8 +138,9 @@
         } else if (data.result.type === 'note') {
             kind = 'note';
             nostrEvent = null;
-            profile = null;
             nostrRef = null;
+            profiles = {};
+            pubkey = null;
             rxReqTimeline.emit({
                 kinds: [1],
                 ids: [data.result.data],
@@ -121,8 +149,9 @@
         } else if (data.result.type === 'npub') {
             kind = 'npub';
             nostrEvent = null;
-            profile = null;
             nostrRef = null;
+            profiles = {};
+            pubkey = data.result.data;
             rxReqProfile.emit({
                 kinds: [0],
                 authors: [data.result.data],
@@ -131,8 +160,9 @@
         } else {
             kind = null;
             nostrEvent = null;
-            profile = null;
             nostrRef = null;
+            profiles = {};
+            pubkey = null;
         }
     });
 
@@ -147,9 +177,9 @@
 </div>
 
 {#if kind === 'nevent' && nostrEvent}
-    <Post event={nostrEvent!!} profile={profile} nostr_ref={nostrRef} />
+    <Post event={nostrEvent!!} profiles={profiles} nostr_ref={nostrRef} />
 {:else if kind === 'note' && nostrEvent}
-    <Post event={nostrEvent!!} profile={profile} nostr_ref={nostrRef} />
-{:else if kind === 'npub' && profile}
-    <Profile profile={profile!!} />
+    <Post event={nostrEvent!!} profiles={profiles} nostr_ref={nostrRef} />
+{:else if kind === 'npub' && pubkey}
+    <Profile pubkey={pubkey} profiles={profiles} />
 {/if}

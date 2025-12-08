@@ -4,7 +4,7 @@
     import { formatContent } from "$lib/util";
 
     export let event: NostrEvent;
-    export let profile: NostrProfile | null;
+    export let profiles: Record<string, NostrProfile>;
     export let nostr_ref: NostrRef | null;
 
     // 整数で表現された日時を表示用に整形する
@@ -31,10 +31,10 @@
     <div class="post-header mb-1 flex">
         <span class="user-display-name font-bold grow-0 shrink basis-auto min-w-0 whitespace-nowrap overflow-hidden mr-1">
             <a href="/{npubEncode(event.pubkey)}">
-                {#if profile?.display_name}
-                    {profile?.display_name}
-                {:else if profile?.name}
-                    {profile?.name}
+                {#if profiles[event.pubkey]?.display_name}
+                    {profiles[event.pubkey]?.display_name}
+                {:else if profiles[event.pubkey]?.name}
+                    {profiles[event.pubkey]?.name}
                 {:else}
                     {event.pubkey.substring(0, 9)}
                 {/if}
@@ -42,8 +42,8 @@
         </span>
         
         <span class="user-name text-thin grow shrink min-w-0 whitespace-nowrap overflow-hidden mr-1">
-            {#if profile?.display_name && profile?.name && profile?.display_name!==profile?.name}
-                @{profile?.name}
+            {#if profiles[event.pubkey]?.display_name && profiles[event.pubkey]?.name && profiles[event.pubkey]?.display_name!==profiles[event.pubkey]?.name}
+                @{profiles[event.pubkey]?.name}
             {/if}
         </span>
 
@@ -56,5 +56,5 @@
         </div>
     {/if}
 
-    <div class="post-content wrap-break-word">{@html formatContent(event.content)}</div>
+    <div class="post-content wrap-break-word">{@html formatContent(event.content, profiles)}</div>
 </div>
