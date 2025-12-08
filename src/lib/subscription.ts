@@ -57,7 +57,7 @@ export function connectNostr(): boolean {
             // タイムライン購読
             timelineSub = rxNostr.use(rxReqTimeline)
                 .pipe(uniq(flushesTimeline$))
-                .pipe(sortEvents(500))
+                .pipe(sortEvents(1000))
                 .subscribe({
                     next: ({ event }) => {
                         if (event.kind !== 1) return;
@@ -92,7 +92,7 @@ export function connectNostr(): boolean {
             flushesTimeline$.next();
 
             // プロフィール購読
-            const rxReqProfileBatched = rxReqProfile.pipe(bufferTime(500), batch());
+            const rxReqProfileBatched = rxReqProfile.pipe(bufferTime(1000), batch());
             profileSub = rxNostr
                 .use(rxReqProfileBatched)
                 .pipe(uniq(flushesProfile$))
@@ -163,7 +163,7 @@ export function connectNostr(): boolean {
             flushesRelay$.next();
 
             // 個別投稿取得
-            const rxReqEventBatched = rxReqEvent.pipe(bufferTime(500), batch());
+            const rxReqEventBatched = rxReqEvent.pipe(bufferTime(1000), batch());
             eventSub = rxNostr
                 .use(rxReqEventBatched)
                 .pipe(uniq(flushesEvent$))
