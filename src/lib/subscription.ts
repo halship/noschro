@@ -1,4 +1,4 @@
-import { batch, createRxForwardReq, createRxNostr, sortEvents, uniq, type LazyFilter, type RxNostr } from "rx-nostr";
+import { batch, createRxForwardReq, createRxNostr, filterBy, sortEvents, uniq, type LazyFilter, type RxNostr } from "rx-nostr";
 import { seckeySigner, verifier } from "@rx-nostr/crypto";
 import { bufferTime, Subject, Subscription } from "rxjs";
 import { browser } from "$app/environment";
@@ -12,21 +12,24 @@ let rxReqProfile: any | null = null;
 let rxReqDelete: any | null = null;
 let rxReqRelay: any | null = null;
 let rxReqEvent: any | null = null;
+let rxReqFollow: any | null = null;
 
 const flushesTimeline$ = new Subject<void>();
 const flushesProfile$ = new Subject<void>();
 const flushesDelete$ = new Subject<void>();
 const flushesRelay$ = new Subject<void>();
 const flushesEvent$ = new Subject<void>();
+const flushesFollow$ = new Subject<void>();
 
 let timelineSub: Subscription | null = null;
 let profileSub: Subscription | null = null;
 let deleteSub: Subscription | null = null;
 let relaySub: Subscription | null = null;
 let eventSub: Subscription | null = null;
+let followSub: Subscription | null = null;
 
 export function connectNostr(): boolean {
-    if (!!rxNostr) return true;
+    if (rxNostr) return true;
 
     if (browser) {
         const savedLogin = localStorage.getItem('login');
@@ -49,6 +52,7 @@ export function connectNostr(): boolean {
             rxReqDelete = createRxForwardReq();
             rxReqRelay = createRxForwardReq();
             rxReqEvent = createRxForwardReq();
+            rxReqFollow = createRxForwardReq();
 
             // タイムライン購読
             timelineSub = rxNostr.use(rxReqTimeline)
@@ -153,8 +157,6 @@ export function connectNostr(): boolean {
                         const relays = event.tags.filter((tag) => tag[0] === 'r')
                             .map((tag) => tag[1]);
 
-                        console.log(relays);
-
                         rxNostr?.setDefaultRelays(relays);
                     }
                 });
@@ -190,28 +192,56 @@ export function connectNostr(): boolean {
                             };
                             nostrState.nostrRefs = { ...nostrState.nostrRefs, [event.id]: nostrRef };
                         }
+                    },
+                    error: (err) => {
+                        console.error(err);
                     }
                 });
             flushesEvent$.next();
 
-            rxReqTimeline.emit({
-                kinds: [1],
-                limit: 20
-            });
+            // フォローリスト購読
+            followSub = rxNostr.use(rxReqFollow)
+                .pipe(uniq(flushesFollow$))
+                .subscribe({
+                    next: ({ event }) => {
+                        if (event.kind !== 3) return;
+
+                        const follows = event.tags
+                            .filter((tag) => tag[0] === 'p')
+                            .map((tag) => tag[1]);
+
+                        rxReqTimeline.emit({
+                            kinds: [1],
+                            authors: follows,
+                            limit: 20
+                        });
+                    },
+                    error: (err) => {
+                        console.error(err);
+                    },
+                });
+            flushesFollow$.next();
+
             rxReqDelete.emit({
                 kinds: [5],
                 limit: 10
             });
-            rxReqRelay.emit({
-                kinds: [10002],
-                authors: [signer.getPublicKey()],
-                limit: 1
+
+            setTimeout(async () => {
+                rxReqRelay.emit({
+                    kinds: [10002],
+                    authors: [await signer.getPublicKey()],
+                    limit: 1
+                });
+                rxReqFollow.emit({
+                    kinds: [3],
+                    authors: [await signer.getPublicKey()],
+                    limit: 1,
+                });
             });
 
             return true;
         }
-
-
     }
 
     return false;
@@ -223,6 +253,7 @@ export function disconnectNostr() {
     deleteSub?.unsubscribe();
     relaySub?.unsubscribe();
     eventSub?.unsubscribe();
+    followSub?.unsubscribe();
     rxNostr?.dispose();
 
     timelineSub = null;
@@ -233,6 +264,7 @@ export function disconnectNostr() {
     rxReqDelete = null;
     rxReqRelay = null;
     rxReqEvent = null;
+    rxReqFollow = null;
     rxNostr = null;
 
     nostrState.events = [];
