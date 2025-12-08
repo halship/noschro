@@ -1,6 +1,7 @@
 import DOMPurify from "isomorphic-dompurify";
 import { decodeNostrURI } from "nostr-tools/nip19";
 import { nostrState } from "./state.svelte";
+import { emitProfile } from "./subscription";
 
 export function formatContent(content: string): string {
     content = DOMPurify.sanitize(content);
@@ -63,11 +64,19 @@ export function formatContent(content: string): string {
                     result.push(code);
                     result.push('">@');
 
-                    if (nostrState.profiles[decoded.data]?.name) {
-                        result.push(nostrState.profiles[decoded.data]?.name!);
-                    } else if (nostrState.profiles[decoded.data]?.display_name) {
-                        result.push(nostrState.profiles[decoded.data]?.display_name!);
+                    if (decoded.data in nostrState.profiles) {
+                        if (nostrState.profiles[decoded.data]?.name) {
+                            result.push(nostrState.profiles[decoded.data]?.name!);
+                        } else if (nostrState.profiles[decoded.data]?.display_name) {
+                            result.push(nostrState.profiles[decoded.data]?.display_name!);
+                        }
                     } else {
+                        emitProfile({
+                            kinds: [0],
+                            authors: [decoded.data],
+                            limit: 1,
+                        });
+
                         result.push(decoded.data.slice(9));
                     }
 

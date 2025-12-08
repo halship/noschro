@@ -20,7 +20,7 @@
 
 <div id="posts">
 	{#each nostrState.events as ev (ev.id)}
-		<Post event_id={ev.id} />
+		<Post nostr_event={ev} profiles={nostrState.profiles} nostr_refs={nostrState.nostrRefs} />
 	{/each}
 </div>
 
