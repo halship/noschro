@@ -46,17 +46,9 @@
 </div>
 
 {#if data.result.type === 'nevent' && data.result.data.id in nostrState.eventsById}
-	<Post
-		nostr_event={nostrState.eventsById[data.result.data.id]}
-		profiles={nostrState.profiles}
-		nostr_refs={nostrState.nostrRefs}
-	/>
+	<Post event={nostrState.eventsById[data.result.data.id]} profiles={nostrState.profiles} />
 {:else if data.result.type === 'note' && data.result.data in nostrState.eventsById}
-	<Post
-		nostr_event={nostrState.eventsById[data.result.data]}
-		profiles={nostrState.profiles}
-		nostr_refs={nostrState.nostrRefs}
-	/>
+	<Post event={nostrState.eventsById[data.result.data]} profiles={nostrState.profiles} />
 {:else if data.result.type === 'npub' && data.result.data in nostrState.profiles}
 	<Profile profile={nostrState.profiles[data.result.data]} />
 {/if}

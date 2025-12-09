@@ -1,7 +1,6 @@
 export type NostrState = {
     events: NostrEvent[],
     eventsById: Record<string, NostrEvent>,
-    nostrRefs: Record<string, NostrRef>,
     profiles: Record<string, NostrProfile>,
 };
 
@@ -12,6 +11,8 @@ export type NostrEvent = {
     created_at: number;
     tags: string[][];
     content: string;
+    reference?: NostrRef;
+    repost?: NostrEvent;
 };
 
 export type NostrProfile = {

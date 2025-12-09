@@ -4,26 +4,24 @@ import { bufferTime, Subject, Subscription } from "rxjs";
 import { browser } from "$app/environment";
 import type { NostrEvent, NostrProfile, NostrRef } from "$lib/types/nostr";
 import { nostrState } from "./state.svelte";
+import type { Event } from "nostr-tools";
 
 let rxNostr: RxNostr | null = null;
 
 let rxReqTimeline: any | null = null;
 let rxReqProfile: any | null = null;
-let rxReqDelete: any | null = null;
 let rxReqRelay: any | null = null;
 let rxReqEvent: any | null = null;
 let rxReqFollow: any | null = null;
 
 const flushesTimeline$ = new Subject<void>();
 const flushesProfile$ = new Subject<void>();
-const flushesDelete$ = new Subject<void>();
 const flushesRelay$ = new Subject<void>();
 const flushesEvent$ = new Subject<void>();
 const flushesFollow$ = new Subject<void>();
 
 let timelineSub: Subscription | null = null;
 let profileSub: Subscription | null = null;
-let deleteSub: Subscription | null = null;
 let relaySub: Subscription | null = null;
 let eventSub: Subscription | null = null;
 let followSub: Subscription | null = null;
@@ -42,14 +40,12 @@ export function connectNostr(): boolean {
             rxNostr = createRxNostr({
                 verifier,
                 signer,
-                connectionStrategy: "lazy-keep",
             });
 
             rxNostr.setDefaultRelays(['wss://yabu.me']);
 
             rxReqTimeline = createRxForwardReq();
             rxReqProfile = createRxForwardReq();
-            rxReqDelete = createRxForwardReq();
             rxReqRelay = createRxBackwardReq();
             rxReqEvent = createRxBackwardReq();
             rxReqFollow = createRxBackwardReq();
@@ -59,31 +55,12 @@ export function connectNostr(): boolean {
                 .pipe(uniq(flushesTimeline$))
                 .subscribe({
                     next: ({ event }) => {
-                        if (event.kind !== 1) return;
+                        if (event.kind !== 1 && event.kind !== 5 && event.kind !== 6) return;
                         if (event.id in nostrState.eventsById) return;
 
-                        if (!(event.pubkey in nostrState.profiles)) {
-                            rxReqProfile?.emit({
-                                kinds: [0],
-                                authors: [event.pubkey],
-                                limit: 1
-                            });
-                        }
-
-                        const nostrEvent: NostrEvent = { ...event };
-                        nostrState.events = [nostrEvent, ...nostrState.events]
-                            .toSorted((a, b) => b.created_at - a.created_at);
-                        nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
-
-                        const refId = event.tags.filter((tag) => tag[0] === 'e');
-                        const refPubkey = event.tags.filter((tag) => tag[0] === 'p');
-                        if (refId.length !== 0 && refPubkey.length !== 0) {
-                            const nostrRef: NostrRef = {
-                                id: refId[0][1],
-                                pubkey: refPubkey[0][1],
-                            };
-                            nostrState.nostrRefs = { ...nostrState.nostrRefs, [event.id]: nostrRef };
-                        }
+                        if (event.kind === 1) processNote(event);
+                        if (event.kind === 5) processDelete(event);
+                        if (event.kind === 6) processRepost(event);
                     },
                     error: (err) => {
                         console.log(err);
@@ -127,25 +104,6 @@ export function connectNostr(): boolean {
                 });
             flushesProfile$.next();
 
-            // 削除イベント購読
-            deleteSub = rxNostr
-                .use(rxReqDelete)
-                .pipe(uniq(flushesDelete$))
-                .subscribe({
-                    next: ({ event }) => {
-                        if (event.kind !== 5) return;
-
-                        const ids = event.tags.filter((tag) => tag[0] === 'e').map((tag) => tag[1]);
-                        if (ids.length == 0) return;
-
-                        nostrState.events = nostrState.events.filter((ev) => ev.id !== ids[0]);
-                    },
-                    error: (err) => {
-                        console.error(err);
-                    }
-                });
-            flushesDelete$.next();
-
             // リレー情報購読
             relaySub = rxNostr
                 .use(rxReqRelay)
@@ -181,17 +139,14 @@ export function connectNostr(): boolean {
                         }
 
                         const nostrEvent: NostrEvent = { ...event };
-                        nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
 
                         const refId = event.tags.filter((tag) => tag[0] === 'e');
                         const refPubkey = event.tags.filter((tag) => tag[0] === 'p');
                         if (refId.length !== 0 && refPubkey.length !== 0) {
-                            const nostrRef: NostrRef = {
-                                id: refId[0][1],
-                                pubkey: refPubkey[0][1],
-                            };
-                            nostrState.nostrRefs = { ...nostrState.nostrRefs, [event.id]: nostrRef };
+                            nostrEvent.reference = { id: refId[0][1], pubkey: refPubkey[0][1] };
                         }
+
+                        nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
                     },
                     error: (err) => {
                         console.error(err);
@@ -211,7 +166,7 @@ export function connectNostr(): boolean {
                             .map((tag) => tag[1]);
 
                         rxReqTimeline.emit({
-                            kinds: [1],
+                            kinds: [1, 5, 6],
                             authors: follows,
                             limit: 20
                         });
@@ -221,11 +176,6 @@ export function connectNostr(): boolean {
                     },
                 });
             flushesFollow$.next();
-
-            rxReqDelete.emit({
-                kinds: [5],
-                limit: 20
-            });
 
             setTimeout(async () => {
                 rxReqRelay.emit({
@@ -250,7 +200,6 @@ export function connectNostr(): boolean {
 export function disconnectNostr() {
     timelineSub?.unsubscribe();
     profileSub?.unsubscribe();
-    deleteSub?.unsubscribe();
     relaySub?.unsubscribe();
     eventSub?.unsubscribe();
     followSub?.unsubscribe();
@@ -258,10 +207,8 @@ export function disconnectNostr() {
 
     timelineSub = null;
     profileSub = null;
-    deleteSub = null;
     rxReqTimeline = null;
     rxReqProfile = null;
-    rxReqDelete = null;
     rxReqRelay = null;
     rxReqEvent = null;
     rxReqFollow = null;
@@ -269,7 +216,6 @@ export function disconnectNostr() {
 
     nostrState.events = [];
     nostrState.eventsById = {};
-    nostrState.nostrRefs = {};
     nostrState.profiles = {};
 }
 
@@ -281,6 +227,52 @@ export function emitProfile(filter: LazyFilter) {
     rxReqProfile?.emit(filter);
 }
 
-export function emitDelete(filter: LazyFilter) {
-    rxReqDelete?.emit(filter);
+function processNote(event: Event) {
+    if (!(event.pubkey in nostrState.profiles)) {
+        rxReqProfile?.emit({
+            kinds: [0],
+            authors: [event.pubkey],
+            limit: 1
+        });
+    }
+
+    const nostrEvent: NostrEvent = { ...event };
+    const refId = event.tags.filter((tag) => tag[0] === 'e');
+    const refPubkey = event.tags.filter((tag) => tag[0] === 'p');
+    if (refId.length !== 0 && refPubkey.length !== 0) {
+        nostrEvent.reference = { id: refId[0][1], pubkey: refPubkey[0][1] };
+    }
+
+    nostrState.events = [nostrEvent, ...nostrState.events]
+        .toSorted((a, b) => b.created_at - a.created_at);
+    nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
+}
+
+function processDelete(event: Event) {
+    const ids = event.tags
+        .filter((tag) => tag[0] === 'e')
+        .map((tag) => tag[1]);
+
+    if (ids.length == 0) return;
+
+    nostrState.events = nostrState.events.filter((ev) => ev.id !== ids[0]);
+}
+
+function processRepost(event: Event) {
+    if (!(event.pubkey in nostrState.profiles)) {
+        rxReqProfile?.emit({
+            kinds: [0],
+            authors: [event.pubkey],
+            limit: 1
+        });
+    }
+
+    const nostrEvent: NostrEvent = { ...event };
+
+    const repostEvent: NostrEvent = JSON.parse(event.content);
+    nostrEvent.repost = repostEvent;
+
+    nostrState.events = [nostrEvent, ...nostrState.events]
+        .toSorted((a, b) => b.created_at - a.created_at);
+    nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
 }
