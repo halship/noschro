@@ -1,4 +1,4 @@
-import { batch, createRxForwardReq, createRxNostr, sortEvents, uniq, type LazyFilter, type RxNostr } from "rx-nostr";
+import { batch, createRxBackwardReq, createRxForwardReq, createRxNostr, now, uniq, type LazyFilter, type RxNostr } from "rx-nostr";
 import { seckeySigner, verifier } from "@rx-nostr/crypto";
 import { bufferTime, Subject, Subscription } from "rxjs";
 import { browser } from "$app/environment";
@@ -50,14 +50,13 @@ export function connectNostr(): boolean {
             rxReqTimeline = createRxForwardReq();
             rxReqProfile = createRxForwardReq();
             rxReqDelete = createRxForwardReq();
-            rxReqRelay = createRxForwardReq();
-            rxReqEvent = createRxForwardReq();
-            rxReqFollow = createRxForwardReq();
+            rxReqRelay = createRxBackwardReq();
+            rxReqEvent = createRxBackwardReq();
+            rxReqFollow = createRxBackwardReq();
 
             // タイムライン購読
             timelineSub = rxNostr.use(rxReqTimeline)
                 .pipe(uniq(flushesTimeline$))
-                .pipe(sortEvents(3000))
                 .subscribe({
                     next: ({ event }) => {
                         if (event.kind !== 1) return;
@@ -72,7 +71,8 @@ export function connectNostr(): boolean {
                         }
 
                         const nostrEvent: NostrEvent = { ...event };
-                        nostrState.events = [nostrEvent, ...nostrState.events];
+                        nostrState.events = [nostrEvent, ...nostrState.events]
+                            .toSorted((a, b) => b.created_at - a.created_at);
                         nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
 
                         const refId = event.tags.filter((tag) => tag[0] === 'e');
@@ -224,7 +224,7 @@ export function connectNostr(): boolean {
 
             rxReqDelete.emit({
                 kinds: [5],
-                limit: 10
+                limit: 20
             });
 
             setTimeout(async () => {
