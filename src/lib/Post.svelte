@@ -155,7 +155,7 @@
 		</div>
 
 		{#if event.reference}
-			<div class="ref-link underline">
+			<div class="ref-link underline mb-1">
 				<a href="/{getRefEventCode(event)}">[参照]</a>
 			</div>
 		{/if}
