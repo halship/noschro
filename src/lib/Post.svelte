@@ -120,7 +120,7 @@
 				</div>
 			{/if}
 
-			<div class="post-content wrap-break-word">
+			<div class="post-content wrap-break-word leading-none">
 				{@html formatContent(getRepostEvent(event).content, getRepostEvent(event).tags)}
 			</div>
 		{/if}
