@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
 	import { neventEncode, npubEncode } from 'nostr-tools/nip19';
-	import { formatContent } from '$lib/util';
+	import { formatContent, formatDisplayName } from '$lib/util';
 	import { Repeat2 } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { nostrState } from './state.svelte';
@@ -58,7 +58,10 @@
 				>
 					<a href="/{npubEncode(event.pubkey)}">
 						{#if profiles[event.pubkey]?.display_name}
-							{profiles[event.pubkey]?.display_name!}
+							{formatDisplayName(
+								profiles[event.pubkey]?.display_name!,
+								profiles[event.pubkey]?.tags!
+							)}
 						{:else if profiles[event.pubkey]?.name}
 							{profiles[event.pubkey]?.name!}
 						{:else}
@@ -84,7 +87,10 @@
 				>
 					<a href="/{npubEncode(getRepostEvent(event).pubkey)}">
 						{#if profiles[getRepostEvent(event).pubkey]?.display_name}
-							{profiles[getRepostEvent(event).pubkey]?.display_name!}
+							{formatDisplayName(
+								profiles[getRepostEvent(event).pubkey]?.display_name!,
+								profiles[getRepostEvent(event).pubkey]?.tags!
+							)}
 						{:else if profiles[getRepostEvent(event).pubkey]?.name}
 							{profiles[getRepostEvent(event).pubkey]?.name!}
 						{:else}
@@ -125,7 +131,10 @@
 			>
 				<a href="/{npubEncode(event.pubkey)}">
 					{#if profiles[event.pubkey]?.display_name}
-						{profiles[event.pubkey]?.display_name!}
+						{formatDisplayName(
+							profiles[event.pubkey]?.display_name!,
+							profiles[event.pubkey]?.tags!
+						)}
 					{:else if profiles[event.pubkey]?.name}
 						{profiles[event.pubkey]?.name!}
 					{:else}

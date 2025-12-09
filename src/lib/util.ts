@@ -115,3 +115,40 @@ export function formatContent(content: string, tags: string[][]): string {
 
     return result.join('');
 }
+
+export function formatDisplayName(displayName: string, tags: string[][]): string {
+    let emojis: Record<string, string> = {};
+    tags.filter((tag) => tag[0] === 'emoji')
+        .forEach((tag) => {
+            emojis = { ...emojis, [tag[1]]: tag[2] };
+        });
+
+    displayName = DOMPurify.sanitize(displayName);
+
+    const result: string[] = [];
+    let i: number = 0
+
+    while (i < displayName.length) {
+        const emojiResult = displayName.slice(i).match(/^:[a-zA-Z0-9_]+:/);
+
+        if (emojiResult) {
+            const emojiCode = emojiResult[0].slice(1, -1);
+
+            if (emojiCode in emojis) {
+                result.push('<img src="');
+                result.push(emojis[emojiCode]);
+                result.push('" class="inline-block max-w-4">');
+            } else {
+                result.push(emojiResult[0]);
+            }
+
+            i += emojiResult[0].length;
+        } else {
+            // その他の場合
+            result.push(displayName.slice(i).charAt(0));
+            i++;
+        }
+    }
+
+    return result.join('');
+}
