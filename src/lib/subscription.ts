@@ -1,4 +1,4 @@
-import { batch, createRxBackwardReq, createRxForwardReq, createRxNostr, now, uniq, type LazyFilter, type RxNostr } from "rx-nostr";
+import { batch, createRxBackwardReq, createRxForwardReq, createRxNostr, now, sortEvents, uniq, type LazyFilter, type RxNostr } from "rx-nostr";
 import { seckeySigner, verifier } from "@rx-nostr/crypto";
 import { bufferTime, Subject, Subscription } from "rxjs";
 import { browser } from "$app/environment";
@@ -52,7 +52,7 @@ export function connectNostr(): boolean {
 
             // タイムライン購読
             timelineSub = rxNostr.use(rxReqTimeline)
-                .pipe(uniq(flushesTimeline$))
+                .pipe(uniq(flushesTimeline$), sortEvents(3000))
                 .subscribe({
                     next: ({ event }) => {
                         if (event.kind !== 1 && event.kind !== 5 && event.kind !== 6) return;
@@ -243,8 +243,7 @@ function processNote(event: Event) {
         nostrEvent.reference = { id: refId[0][1], pubkey: refPubkey[0][1] };
     }
 
-    nostrState.events = [nostrEvent, ...nostrState.events]
-        .toSorted((a, b) => b.created_at - a.created_at);
+    nostrState.events = [nostrEvent, ...nostrState.events];
     nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
 }
 
