@@ -272,7 +272,7 @@ function processRepost(event: Event) {
     nostrEvent.repost_id = repostId;
 
     if (!(repostId in nostrState.eventsById)) {
-        rxReqProfile?.emit({
+        rxReqEvent?.emit({
             kinds: [1],
             ids: [repostId],
             limit: 1

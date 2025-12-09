@@ -11,7 +11,7 @@
 	export let profiles: Record<string, NostrProfile>;
 
 	onMount(() => {
-		if ((event.kind === 6 || event.kind === 16) && getRepostEvent(event)) {
+		if (event.kind === 6 || event.kind === 16) {
 			const pubkey = getRepostEvent(event).pubkey;
 
 			if (!(pubkey in nostrState.profiles)) {
