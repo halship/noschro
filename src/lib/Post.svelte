@@ -115,7 +115,7 @@
 			{/if}
 
 			<div class="post-content wrap-break-word">
-				{@html formatContent(getRepostEvent(event).content)}
+				{@html formatContent(getRepostEvent(event).content, getRepostEvent(event).tags)}
 			</div>
 		{/if}
 	{:else}
@@ -151,8 +151,8 @@
 			</div>
 		{/if}
 
-		<div class="post-content wrap-break-word">
-			{@html formatContent(event.content)}
+		<div class="post-content wrap-break-word leading-none">
+			{@html formatContent(event.content, event.tags)}
 		</div>
 	{/if}
 </div>

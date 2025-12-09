@@ -21,6 +21,7 @@ export type NostrProfile = {
     display_name?: string,
     picture?: string;
     about?: string;
+    tags: string[][];
 };
 
 export type NostrRef = {

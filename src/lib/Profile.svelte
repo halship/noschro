@@ -15,6 +15,6 @@
 	{/if}
 
 	<div class="user-about mt-5 wrap-break-word">
-		{@html formatContent(profile.about ?? '')}
+		{@html formatContent(profile.about ?? '', profile.tags)}
 	</div>
 </div>

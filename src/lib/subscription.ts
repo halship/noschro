@@ -83,6 +83,7 @@ export function connectNostr(): boolean {
                                 display_name?: string;
                                 picture?: string;
                                 about?: string;
+                                tags?: string[][];
                             };
 
                             const profile: NostrProfile = {
@@ -90,7 +91,8 @@ export function connectNostr(): boolean {
                                 name: meta.name,
                                 display_name: meta.display_name,
                                 picture: meta.picture,
-                                about: meta.about
+                                about: meta.about,
+                                tags: meta.tags ?? [],
                             };
 
                             nostrState.profiles = { ...nostrState.profiles, [event.pubkey]: profile };

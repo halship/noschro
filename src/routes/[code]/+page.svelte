@@ -4,7 +4,6 @@
 	import { nostrState } from '$lib/state.svelte.js';
 	import { emitEvent, emitProfile } from '$lib/subscription.js';
 	import type { NostrEvent, NostrProfile } from '$lib/types/nostr.js';
-	import { onMount } from 'svelte';
 
 	let { data } = $props();
 

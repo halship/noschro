@@ -3,7 +3,13 @@ import { decodeNostrURI } from "nostr-tools/nip19";
 import { nostrState } from "./state.svelte";
 import { emitProfile } from "./subscription";
 
-export function formatContent(content: string): string {
+export function formatContent(content: string, tags: string[][]): string {
+    let emojis: Record<string, string> = {};
+    tags.filter((tag) => tag[0] === 'emoji')
+        .forEach((tag) => {
+            emojis = { ...emojis, [tag[1]]: tag[2] };
+        });
+
     content = DOMPurify.sanitize(content);
 
     const result: string[] = [];
@@ -12,6 +18,7 @@ export function formatContent(content: string): string {
     while (i < content.length) {
         const urlResult = content.slice(i).match(/^https?:\/\/([\w!?/+\-=_~;.,*&@#$%()'[\]]+)/);
         const codeResult = content.slice(i).match(/^nostr:[a-z0-9]+/);
+        const emojiResult = content.slice(i).match(/^:[a-zA-Z0-9_]+:/);
 
         if (urlResult) {
             // URL文字列の場合
@@ -87,6 +94,18 @@ export function formatContent(content: string): string {
             }
 
             i += codeResult[0].length;
+        } else if (emojiResult) {
+            const emojiCode = emojiResult[0].slice(1, -1);
+
+            if (emojiCode in emojis) {
+                result.push('<img src="');
+                result.push(emojis[emojiCode]);
+                result.push('" class="inline-block max-w-4">');
+            } else {
+                result.push(emojiResult[0]);
+            }
+
+            i += emojiResult[0].length;
         } else {
             // その他の場合
             result.push(content.slice(i).charAt(0));
