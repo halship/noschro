@@ -44,6 +44,7 @@
 
 <svelte:head>
 	<title>ノスクロ</title>
+	<link rel="shortcut icon" href="/favicon.svg" />
 </svelte:head>
 
 <header

@@ -11,8 +11,8 @@
 	export let profiles: Record<string, NostrProfile>;
 
 	onMount(() => {
-		if (event.kind === 6 || event.kind === 16) {
-			const pubkey = getRepostEvent(event).pubkey;
+		if ((event.kind === 6 || event.kind === 16) && getRepostEvent(event)) {
+			const pubkey = getRepostEvent(event)!.pubkey;
 
 			if (!(pubkey in nostrState.profiles)) {
 				emitProfile({
@@ -43,7 +43,7 @@
 		});
 	}
 
-	function getRepostEvent(ev: NostrEvent): NostrEvent {
+	function getRepostEvent(ev: NostrEvent): NostrEvent | undefined {
 		return nostrState.eventsById[ev.repost_id!];
 	}
 </script>
@@ -85,16 +85,16 @@
 				<span
 					class="user-display-name font-bold grow-0 shrink basis-auto min-w-0 whitespace-nowrap overflow-hidden mr-1"
 				>
-					<a href="/{npubEncode(getRepostEvent(event).pubkey)}">
-						{#if profiles[getRepostEvent(event).pubkey]?.display_name}
+					<a href="/{npubEncode(getRepostEvent(event)!.pubkey)}">
+						{#if profiles[getRepostEvent(event)!.pubkey]?.display_name}
 							{formatDisplayName(
-								profiles[getRepostEvent(event).pubkey]?.display_name!,
-								profiles[getRepostEvent(event).pubkey]?.tags!
+								profiles[getRepostEvent(event)!.pubkey]?.display_name!,
+								profiles[getRepostEvent(event)!.pubkey]?.tags!
 							)}
-						{:else if profiles[getRepostEvent(event).pubkey]?.name}
-							{profiles[getRepostEvent(event).pubkey]?.name!}
+						{:else if profiles[getRepostEvent(event)!.pubkey]?.name}
+							{profiles[getRepostEvent(event)!.pubkey]?.name!}
 						{:else}
-							{getRepostEvent(event).pubkey.substring(0, 9)}
+							{getRepostEvent(event)!.pubkey.substring(0, 9)}
 						{/if}
 					</a>
 				</span>
@@ -102,26 +102,26 @@
 				<span
 					class="user-name text-thin grow shrink min-w-0 whitespace-nowrap overflow-hidden mr-1"
 				>
-					{#if profiles[getRepostEvent(event).pubkey]?.display_name && profiles[getRepostEvent(event).pubkey]?.name && profiles[getRepostEvent(event).pubkey]?.display_name !== profiles[getRepostEvent(event).pubkey]?.name}
-						@{profiles[getRepostEvent(event).pubkey]?.name!}
+					{#if profiles[getRepostEvent(event)!.pubkey]?.display_name && profiles[getRepostEvent(event)!.pubkey]?.name && profiles[getRepostEvent(event)!.pubkey]?.display_name !== profiles[getRepostEvent(event)!.pubkey]?.name}
+						@{profiles[getRepostEvent(event)!.pubkey]?.name!}
 					{/if}
 				</span>
 
 				<span class="post-created-at text-thin grow-0 shrink-0 basis-auto"
-					><a href="/{getEventCode(getRepostEvent(event))}" class="underline"
-						>{formatTime(getRepostEvent(event).created_at)}</a
+					><a href="/{getEventCode(getRepostEvent(event)!)}" class="underline"
+						>{formatTime(getRepostEvent(event)!.created_at)}</a
 					></span
 				>
 			</div>
 
-			{#if getRepostEvent(event).reference}
+			{#if getRepostEvent(event)!.reference}
 				<div class="ref-link underline">
-					<a href="/{getRefEventCode(getRepostEvent(event))}">[参照]</a>
+					<a href="/{getRefEventCode(getRepostEvent(event)!)}">[参照]</a>
 				</div>
 			{/if}
 
 			<div class="post-content wrap-break-word leading-none">
-				{@html formatContent(getRepostEvent(event).content, getRepostEvent(event).tags)}
+				{@html formatContent(getRepostEvent(event)!.content, getRepostEvent(event)!.tags)}
 			</div>
 		{/if}
 	{:else}
