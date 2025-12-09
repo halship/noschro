@@ -55,12 +55,12 @@ export function connectNostr(): boolean {
                 .pipe(uniq(flushesTimeline$), sortEvents(3000))
                 .subscribe({
                     next: ({ event }) => {
-                        if (event.kind !== 1 && event.kind !== 5 && event.kind !== 6) return;
+                        if (event.kind !== 1 && event.kind !== 5 && event.kind !== 6 && event.kind !== 16) return;
                         if (event.id in nostrState.eventsById) return;
 
                         if (event.kind === 1) processNote(event);
                         if (event.kind === 5) processDelete(event);
-                        if (event.kind === 6) processRepost(event);
+                        if (event.kind === 6 || event.kind === 16) processRepost(event);
                     },
                     error: (err) => {
                         console.log(err);
@@ -166,7 +166,7 @@ export function connectNostr(): boolean {
                             .map((tag) => tag[1]);
 
                         rxReqTimeline.emit({
-                            kinds: [1, 5, 6],
+                            kinds: [1, 5, 6, 16],
                             authors: follows,
                             limit: 20
                         });
@@ -243,7 +243,7 @@ function processNote(event: Event) {
         nostrEvent.reference = { id: refId[0][1], pubkey: refPubkey[0][1] };
     }
 
-    nostrState.events = [nostrEvent, ...nostrState.events];
+    nostrState.events = [nostrEvent, ...nostrState.events].slice(0, 100);
     nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
 }
 
@@ -267,11 +267,17 @@ function processRepost(event: Event) {
     }
 
     const nostrEvent: NostrEvent = { ...event };
+    const repostId = nostrEvent.tags.filter((tag) => tag[0] === 'e')
+        .map((tag) => tag[1])[0];
+    nostrEvent.repost_id = repostId;
 
-    const repostEvent: NostrEvent = JSON.parse(event.content);
-    nostrEvent.repost = repostEvent;
+    if (!(repostId in nostrState.eventsById)) {
+        rxReqProfile?.emit({
+            kinds: [1],
+            ids: [repostId],
+            limit: 1
+        });
+    }
 
-    nostrState.events = [nostrEvent, ...nostrState.events]
-        .toSorted((a, b) => b.created_at - a.created_at);
-    nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
+    nostrState.events = [nostrEvent, ...nostrState.events].slice(0, 100);
 }

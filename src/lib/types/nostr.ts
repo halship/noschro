@@ -12,7 +12,7 @@ export type NostrEvent = {
     tags: string[][];
     content: string;
     reference?: NostrRef;
-    repost?: NostrEvent;
+    repost_id?: string;
 };
 
 export type NostrProfile = {

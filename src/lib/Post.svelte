@@ -11,8 +11,8 @@
 	export let profiles: Record<string, NostrProfile>;
 
 	onMount(() => {
-		if (event.kind === 6 && event.repost) {
-			const pubkey = event.repost.pubkey;
+		if ((event.kind === 6 || event.kind === 16) && getRepostEvent(event)) {
+			const pubkey = getRepostEvent(event).pubkey;
 
 			if (!(pubkey in nostrState.profiles)) {
 				emitProfile({
@@ -42,10 +42,14 @@
 			author: ev.reference!.pubkey
 		});
 	}
+
+	function getRepostEvent(ev: NostrEvent): NostrEvent {
+		return nostrState.eventsById[ev.repost_id!];
+	}
 </script>
 
 <div id={event.id} class="post border-thin border rounded-md p-2 mt-2">
-	{#if event.kind === 6 && event.repost}
+	{#if (event.kind === 6 || event.kind === 16) && event.repost_id}
 		<div class="repost border-thin border-b mb-2">
 			<div class="repost-header mb-1 flex">
 				<span class="grow-0 shrink mr-1"><Repeat2 /></span>
@@ -73,43 +77,47 @@
 			</div>
 		</div>
 
-		<div class="post-header mb-1 flex">
-			<span
-				class="user-display-name font-bold grow-0 shrink basis-auto min-w-0 whitespace-nowrap overflow-hidden mr-1"
-			>
-				<a href="/{npubEncode(event.repost.pubkey)}">
-					{#if profiles[event.repost.pubkey]?.display_name}
-						{profiles[event.repost.pubkey]?.display_name!}
-					{:else if profiles[event.repost.pubkey]?.name}
-						{profiles[event.repost.pubkey]?.name!}
-					{:else}
-						{event.repost.pubkey.substring(0, 9)}
+		{#if event.repost_id in nostrState.eventsById}
+			<div class="post-header mb-1 flex">
+				<span
+					class="user-display-name font-bold grow-0 shrink basis-auto min-w-0 whitespace-nowrap overflow-hidden mr-1"
+				>
+					<a href="/{npubEncode(getRepostEvent(event).pubkey)}">
+						{#if profiles[getRepostEvent(event).pubkey]?.display_name}
+							{profiles[getRepostEvent(event).pubkey]?.display_name!}
+						{:else if profiles[getRepostEvent(event).pubkey]?.name}
+							{profiles[getRepostEvent(event).pubkey]?.name!}
+						{:else}
+							{getRepostEvent(event).pubkey.substring(0, 9)}
+						{/if}
+					</a>
+				</span>
+
+				<span
+					class="user-name text-thin grow shrink min-w-0 whitespace-nowrap overflow-hidden mr-1"
+				>
+					{#if profiles[getRepostEvent(event).pubkey]?.display_name && profiles[getRepostEvent(event).pubkey]?.name && profiles[getRepostEvent(event).pubkey]?.display_name !== profiles[getRepostEvent(event).pubkey]?.name}
+						@{profiles[getRepostEvent(event).pubkey]?.name!}
 					{/if}
-				</a>
-			</span>
+				</span>
 
-			<span class="user-name text-thin grow shrink min-w-0 whitespace-nowrap overflow-hidden mr-1">
-				{#if profiles[event.repost.pubkey]?.display_name && profiles[event.repost.pubkey]?.name && profiles[event.repost.pubkey]?.display_name !== profiles[event.repost.pubkey]?.name}
-					@{profiles[event.repost.pubkey]?.name!}
-				{/if}
-			</span>
+				<span class="post-created-at text-thin grow-0 shrink-0 basis-auto"
+					><a href="/{getEventCode(getRepostEvent(event))}" class="underline"
+						>{formatTime(getRepostEvent(event).created_at)}</a
+					></span
+				>
+			</div>
 
-			<span class="post-created-at text-thin grow-0 shrink-0 basis-auto"
-				><a href="/{getEventCode(event.repost)}" class="underline"
-					>{formatTime(event.repost.created_at)}</a
-				></span
-			>
-		</div>
+			{#if getRepostEvent(event).reference}
+				<div class="ref-link underline">
+					<a href="/{getRefEventCode(getRepostEvent(event))}">[参照]</a>
+				</div>
+			{/if}
 
-		{#if event.repost.reference}
-			<div class="ref-link underline">
-				<a href="/{getRefEventCode(event.repost)}">[参照]</a>
+			<div class="post-content wrap-break-word">
+				{@html formatContent(getRepostEvent(event).content)}
 			</div>
 		{/if}
-
-		<div class="post-content wrap-break-word">
-			{@html formatContent(event.repost.content)}
-		</div>
 	{:else}
 		<div class="post-header mb-1 flex">
 			<span
