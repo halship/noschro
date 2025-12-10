@@ -36,6 +36,22 @@
 			}
 		}
 	}
+
+	function loginNip07() {
+		if (browser) {
+			localStorage.setItem('login', 'NIP07');
+
+			const logoutBtn = document.getElementById('logout-btn');
+			logoutBtn?.classList.toggle('hidden', !localStorage.getItem('login'));
+
+			const homeBtn = document.getElementById('home-btn');
+			homeBtn?.classList.toggle('hidden', !localStorage.getItem('login'));
+
+			connectNostr();
+
+			setTimeout(() => goto('/'), 0);
+		}
+	}
 </script>
 
 {#if message}
@@ -57,4 +73,13 @@
 	<button class="rounded border border-dark dark:border-light p-1 mt-2" onclick={loginNsec}
 		>ログイン</button
 	>
+
+	{#if window.nostr}
+		<hr class="my-5" />
+
+		<h2 class="text-lg">■ 拡張機能でログイン</h2>
+		<button class="rounded border border-dark dark:border-light p-1 mt-2" onclick={loginNip07}
+			>ログイン</button
+		>
+	{/if}
 </div>

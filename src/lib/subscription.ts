@@ -1,4 +1,4 @@
-import { batch, createRxBackwardReq, createRxForwardReq, createRxNostr, now, sortEvents, uniq, type LazyFilter, type RxNostr } from "rx-nostr";
+import { batch, createRxBackwardReq, createRxForwardReq, createRxNostr, nip07Signer, now, sortEvents, uniq, type LazyFilter, type RxNostr } from "rx-nostr";
 import { seckeySigner, verifier } from "@rx-nostr/crypto";
 import { bufferTime, Subject, Subscription } from "rxjs";
 import { browser } from "$app/environment";
@@ -38,6 +38,8 @@ export function connectNostr(): boolean {
 
         if (savedLogin!.startsWith('nsec')) {
             signer = seckeySigner(savedLogin);
+        } else if (savedLogin! === 'NIP07') {
+            signer = nip07Signer();
         }
 
         if (signer) {
