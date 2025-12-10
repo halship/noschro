@@ -18,11 +18,15 @@
 
 <svelte:window onscroll={switchScrollUpButton} />
 
-<div id="posts">
-	{#each nostrState.events as ev (ev.id)}
-		<Post event={ev} profiles={nostrState.profiles} />
-	{/each}
-</div>
+{#if nostrState.events.length === 0}
+	<p class="text-center">loading...</p>
+{:else}
+	<div id="posts">
+		{#each nostrState.events as ev (ev.id)}
+			<Post event={ev} profiles={nostrState.profiles} />
+		{/each}
+	</div>
+{/if}
 
 <button
 	id="scroll-up-btn"
