@@ -1,10 +1,7 @@
 <script lang="ts">
 	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
-	import { npubEncode } from 'nostr-tools/nip19';
-	import { Repeat2 } from '@lucide/svelte';
-	import { nostrState } from './state.svelte';
 	import PostMain from './PostMain.svelte';
-	import { formatDisplayName, formatReaction, getRefIds } from './util';
+	import { getRefIds } from './util';
 	import ReactionHeader from './ReactionHeader.svelte';
 
 	export let event: NostrEvent;
@@ -18,6 +15,8 @@
 
 		{#if getRefIds(event)[0] in eventsById}
 			<PostMain event={eventsById[getRefIds(event)[0]]} {profiles} />
+		{:else}
+			<p>loading...</p>
 		{/if}
 	{:else}
 		<PostMain {event} {profiles} />

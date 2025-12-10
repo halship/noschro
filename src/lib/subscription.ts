@@ -1,4 +1,4 @@
-import { batch, createRxBackwardReq, createRxForwardReq, createRxNostr, latest, nip07Signer, now, sortEvents, uniq, type LazyFilter, type RxNostr } from "rx-nostr";
+import { batch, createRxBackwardReq, createRxForwardReq, createRxNostr, latest, nip07Signer, now, uniq, type RxNostr } from "rx-nostr";
 import { seckeySigner, verifier } from "@rx-nostr/crypto";
 import { bufferTime, Subject, Subscription } from "rxjs";
 import { browser } from "$app/environment";
@@ -7,11 +7,12 @@ import { nostrState } from "./state.svelte";
 import type { Event } from "nostr-tools";
 import type { EventSigner } from "@rx-nostr/crypto/src";
 import { getRefIds, getRefPubkeys } from "./util";
-import { loadLimit, maxTimeline } from "./consts";
+import { loadBufferTime, loadLimit, maxTimeline } from "./consts";
 
 let signer: EventSigner | null = null;
 let rxNostr: RxNostr | null = null;
 let pubkey: string | null = null;
+let followees: string[] = [];
 
 let rxReqTimeline: any | null = null;
 let rxReqProfile: any | null = null;
@@ -75,7 +76,7 @@ export async function connectNostr(): Promise<boolean> {
             timelineSub = rxNostr!.use(rxReqTimeline)
                 .pipe(uniq(flushesTimeline$))
                 .subscribe({
-                    next: ({ event }) => processHomeTimeline(event, pubkey!),
+                    next: ({ event }) => processHomeTimeline(event),
                     error: (err) => {
                         console.log(err);
                     },
@@ -83,10 +84,10 @@ export async function connectNostr(): Promise<boolean> {
             flushesTimeline$.next();
 
             // プロフィール購読
-            const rxReqProfileBatched = rxReqProfile.pipe(bufferTime(1000), batch());
+            const rxReqProfileBatched = rxReqProfile.pipe(bufferTime(loadBufferTime), batch());
             profileSub = rxNostr!
                 .use(rxReqProfileBatched)
-                .pipe(uniq(flushesProfile$), sortEvents(3000))
+                .pipe(uniq(flushesProfile$))
                 .subscribe({
                     next: ({ event }) => {
                         if (event.kind !== 0) return;
@@ -106,9 +107,13 @@ export async function connectNostr(): Promise<boolean> {
                                 picture: meta.picture,
                                 about: meta.about,
                                 tags: event.tags,
+                                created_at: event.created_at,
                             };
 
-                            nostrState.profiles = { ...nostrState.profiles, [event.pubkey]: profile };
+                            if (!(event.pubkey in nostrState) ||
+                                (nostrState.profiles[event.pubkey].created_at < profile.created_at)) {
+                                nostrState.profiles = { ...nostrState.profiles, [event.pubkey]: profile };
+                            }
                         } catch (e) {
                             console.warn('Failed to parse profile metadata', e);
                         }
@@ -135,7 +140,7 @@ export async function connectNostr(): Promise<boolean> {
                 });
 
             // 個別投稿取得
-            const rxReqEventBatched = rxReqEvent.pipe(bufferTime(1000), batch());
+            const rxReqEventBatched = rxReqEvent.pipe(bufferTime(loadBufferTime), batch());
             eventSub = rxNostr!
                 .use(rxReqEventBatched)
                 .pipe(uniq(flushesEvent$))
@@ -159,11 +164,11 @@ export async function connectNostr(): Promise<boolean> {
                     next: ({ event }) => {
                         if (event.kind !== 3) return;
 
-                        let pubkeys = event.tags
+                        followees = event.tags
                             .filter((tag) => tag[0] === 'p')
                             .map((tag) => tag[1]);
 
-                        subscribeTimeline(pubkeys, pubkey!);
+                        subscribeTimeline();
                     },
                     error: (err) => {
                         console.error(err);
@@ -173,12 +178,11 @@ export async function connectNostr(): Promise<boolean> {
             // 古いイベントの購読
             olderTimelineSub = rxNostr!
                 .use(rxReqOlderTimeline)
-                .pipe(uniq(flushesOlderTimeline$), sortEvents(3000))
+                .pipe(uniq(flushesOlderTimeline$))
                 .subscribe({
-                    next: ({ event }) => processHomeTimeline(event, pubkey!),
+                    next: ({ event }) => processHomeTimeline(event),
                     complete: () => {
                         console.log('Complete load old event');
-                        nostrState.tlLoading = false;
                     },
                     error: (err) => {
                         console.error(err);
@@ -189,7 +193,7 @@ export async function connectNostr(): Promise<boolean> {
             // 古いリアクションの購読
             olderReactionSub = rxNostr!
                 .use(rxReqOlderReaction)
-                .pipe(uniq(flushesOlderReaction$), sortEvents(3000))
+                .pipe(uniq(flushesOlderReaction$))
                 .subscribe({
                     next: ({ event }) => processOlderReaction(event),
                     complete: () => {
@@ -252,6 +256,8 @@ export function disconnectNostr() {
     rxReqOlderReaction = null;
     rxNostr = null;
     signer = null;
+    pubkey = null;
+    followees = [];
 
     nostrState.events = [];
     nostrState.eventsById = {};
@@ -306,31 +312,33 @@ export function emitOlderReaction() {
     }
 }
 
+export function emitOlderTimeline() {
+    let limit = loadLimit;
+    if (maxTimeline - nostrState.events.length < loadLimit) {
+        limit = maxTimeline - nostrState.events.length;
+    }
+
+    rxReqOlderTimeline.emit({
+        kinds: [1, 5, 6, 16],
+        authors: followees,
+        until: nostrState.events.at(-1)?.created_at ?? now(),
+        limit: limit,
+    });
+}
+
 export function getSigner(): EventSigner | null {
     return signer;
 }
 
-function processEvent(event: Event, mypubkey: string) {
+function processEvent(event: Event) {
     const nostrEvent: NostrEvent = { ...event };
 
-    if (nostrState.events.length === 0) {
-        nostrState.events = [nostrEvent];
-    } else if (nostrState.events[0].created_at < nostrEvent.created_at) {
-        nostrState.events = [nostrEvent, ...nostrState.events].slice(0, maxTimeline);
-    } else {
-        nostrState.events = [...nostrState.events, nostrEvent].slice(0, maxTimeline);
-    }
+    addEvent(nostrEvent);
     nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
 
-    const isReferenceMe = getRefPubkeys(event).filter((key) => key === mypubkey).length > 0;
+    const isReferenceMe = getRefPubkeys(event).filter((key) => key === pubkey!).length > 0;
     if (isReferenceMe) {
-        if (nostrState.notifications.length === 0) {
-            nostrState.notifications = [nostrEvent];
-        } else if (nostrState.notifications[0].created_at < nostrEvent.created_at) {
-            nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, maxTimeline);
-        } else {
-            nostrState.notifications = [...nostrState.notifications, nostrEvent].slice(0, maxTimeline);
-        }
+        addNotification(nostrEvent);
     }
 }
 
@@ -344,13 +352,13 @@ function processDelete(event: Event) {
 function processReaction(event: Event) {
     const nostrEvent: NostrEvent = { ...event };
 
-    nostrState.events = [nostrEvent, ...nostrState.events].slice(0, maxTimeline);
-    nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, maxTimeline);
+    addEvent(nostrEvent);
+    addNotification(nostrEvent);
 }
 
-function processHomeTimeline(event: Event, mypubkey: string) {
+function processHomeTimeline(event: Event) {
     analyzeEvent(event);
-    if (event.kind === 1 || event.kind === 6 || event.kind === 16) processEvent(event, mypubkey);
+    if (event.kind === 1 || event.kind === 6 || event.kind === 16) processEvent(event);
     else if (event.kind === 5) processDelete(event);
     else if (event.kind === 7) processReaction(event);
 }
@@ -359,23 +367,11 @@ function processOlderReaction(event: Event) {
     analyzeEvent(event);
 
     const nostrEvent: NostrEvent = { ...event };
-
-    if (nostrState.notifications.length === 0) {
-        nostrState.notifications = [nostrEvent];
-    } else if (nostrState.notifications[0].created_at < nostrEvent.created_at) {
-        nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, maxTimeline);
-    } else {
-        nostrState.notifications = [...nostrState.notifications, nostrEvent].slice(0, maxTimeline);
-    }
+    addNotification(nostrEvent);
 }
 
-function subscribeTimeline(followees: string[], mypubkey: string) {
-    rxReqOlderTimeline.emit({
-        kinds: [1, 5, 6, 16],
-        authors: followees,
-        until: nostrState.events.at(-1)?.created_at ?? now(),
-        limit: 25,
-    });
+function subscribeTimeline() {
+    emitOlderTimeline();
 
     rxReqTimeline.emit([
         {
@@ -385,7 +381,7 @@ function subscribeTimeline(followees: string[], mypubkey: string) {
         },
         {
             kinds: [7],
-            '#p': [mypubkey],
+            '#p': [pubkey!],
             since: now,
         },
     ]);
@@ -401,4 +397,22 @@ function analyzeEvent(event: Event) {
 
     if (refIds.length > 0) emitEvent(refIds);
     if (refPubkeys.length > 0) emitProfile(refPubkeys);
+}
+
+function addNotification(event: NostrEvent) {
+    const index = nostrState.notifications.findIndex((ev) => ev.created_at < event.created_at);
+    if (index < 0) {
+        nostrState.notifications = [...nostrState.notifications, event].slice(0, maxTimeline);
+    } else {
+        nostrState.notifications = nostrState.notifications.toSpliced(index, 0, event).slice(0, maxTimeline);
+    }
+}
+
+function addEvent(event: NostrEvent) {
+    const index = nostrState.events.findIndex((ev) => ev.created_at < event.created_at);
+    if (index < 0) {
+        nostrState.events = [...nostrState.events, event].slice(0, maxTimeline);
+    } else {
+        nostrState.events = nostrState.events.toSpliced(index, 0, event).slice(0, maxTimeline);
+    }
 }

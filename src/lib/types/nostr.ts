@@ -1,6 +1,5 @@
 export type NostrState = {
     authoricated: boolean,
-    tlLoading: boolean,
     events: NostrEvent[],
     eventsById: Record<string, NostrEvent>,
     profiles: Record<string, NostrProfile>,
@@ -23,6 +22,7 @@ export type NostrProfile = {
     picture?: string;
     about?: string;
     tags: string[][];
+    created_at: number;
 };
 
 export type NotifyType = 'all' | 'mentions' | 'reposts' | 'reactions';
