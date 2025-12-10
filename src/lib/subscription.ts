@@ -1,4 +1,4 @@
-import { batch, createRxBackwardReq, createRxForwardReq, createRxNostr, nip07Signer, now, sortEvents, uniq, type LazyFilter, type RxNostr } from "rx-nostr";
+import { batch, createRxBackwardReq, createRxForwardReq, createRxNostr, latest, nip07Signer, now, sortEvents, uniq, type LazyFilter, type RxNostr } from "rx-nostr";
 import { seckeySigner, verifier } from "@rx-nostr/crypto";
 import { bufferTime, Subject, Subscription } from "rxjs";
 import { browser } from "$app/environment";
@@ -6,7 +6,7 @@ import type { NostrEvent, NostrProfile, NostrRef } from "$lib/types/nostr";
 import { nostrState } from "./state.svelte";
 import type { Event } from "nostr-tools";
 import type { EventSigner } from "@rx-nostr/crypto/src";
-import { getRefIds, getRefPubkeys } from "./util";
+import { getRefPubkeys } from "./util";
 
 let signer: EventSigner | null = null;
 let rxNostr: RxNostr | null = null;
@@ -16,18 +16,19 @@ let rxReqProfile: any | null = null;
 let rxReqRelay: any | null = null;
 let rxReqEvent: any | null = null;
 let rxReqFollow: any | null = null;
+let rxReqOlderTimeline: any | null = null;
 
 const flushesTimeline$ = new Subject<void>();
 const flushesProfile$ = new Subject<void>();
-const flushesRelay$ = new Subject<void>();
 const flushesEvent$ = new Subject<void>();
-const flushesFollow$ = new Subject<void>();
+const flushesOlderTimeline$ = new Subject<void>();
 
 let timelineSub: Subscription | undefined = undefined;
 let profileSub: Subscription | undefined = undefined;
 let relaySub: Subscription | undefined = undefined;
 let eventSub: Subscription | undefined = undefined;
 let followSub: Subscription | undefined = undefined;
+let olderTimelineSub: Subscription | undefined = undefined;
 
 export function connectNostr(): boolean {
     if (rxNostr) return true;
@@ -56,17 +57,13 @@ export function connectNostr(): boolean {
             rxReqRelay = createRxBackwardReq();
             rxReqEvent = createRxBackwardReq();
             rxReqFollow = createRxBackwardReq();
+            rxReqOlderTimeline = createRxBackwardReq();
 
             // タイムライン購読
             timelineSub = rxNostr!.use(rxReqTimeline)
-                .pipe(uniq(flushesTimeline$), sortEvents(3000))
+                .pipe(uniq(flushesTimeline$))
                 .subscribe({
-                    next: ({ event }) => {
-                        if (event.kind === 1) processNote(event);
-                        if (event.kind === 5) processDelete(event);
-                        if (event.kind === 6 || event.kind === 16) processRepost(event);
-                        if (event.kind === 7) processReaction(event);
-                    },
+                    next: ({ event }) => processHomeTimeline(event),
                     error: (err) => {
                         console.log(err);
                     },
@@ -113,7 +110,7 @@ export function connectNostr(): boolean {
             // リレー情報購読
             relaySub = rxNostr!
                 .use(rxReqRelay)
-                .pipe(uniq(flushesRelay$))
+                .pipe(latest())
                 .subscribe({
                     next: ({ event }) => {
                         if (event.kind !== 10002) return;
@@ -124,7 +121,6 @@ export function connectNostr(): boolean {
                         rxNostr?.setDefaultRelays(relays);
                     }
                 });
-            flushesRelay$.next();
 
             // 個別投稿取得
             const rxReqEventBatched = rxReqEvent.pipe(bufferTime(1000), batch());
@@ -151,40 +147,64 @@ export function connectNostr(): boolean {
                         console.error(err);
                     }
                 });
-            flushesEvent$.next();
 
             // フォローリスト購読
             followSub = rxNostr!.use(rxReqFollow)
-                .pipe(uniq(flushesFollow$))
+                .pipe(latest())
                 .subscribe({
                     next: ({ event }) => {
                         if (event.kind !== 3) return;
 
-                        const follows = event.tags
+                        let pubkeys = event.tags
                             .filter((tag) => tag[0] === 'p')
                             .map((tag) => tag[1]);
 
+                        nostrState.followees = pubkeys;
+
+                        rxReqOlderTimeline.emit({
+                            kinds: [1, 5, 6, 7, 16],
+                            authors: nostrState.followees,
+                            until: nostrState.events.at(-1)?.created_at ?? now(),
+                            limit: 25,
+                        });
                         rxReqTimeline.emit({
                             kinds: [1, 5, 6, 7, 16],
-                            authors: follows,
-                            limit: 20
+                            authors: nostrState.followees,
+                            since: now,
                         });
                     },
                     error: (err) => {
                         console.error(err);
                     },
                 });
-            flushesFollow$.next();
+
+            // 古いイベントの購読
+            olderTimelineSub = rxNostr!
+                .use(rxReqOlderTimeline)
+                .pipe(uniq(flushesOlderTimeline$), sortEvents(3000))
+                .subscribe({
+                    next: ({ event }) => processHomeTimeline(event),
+                    complete: () => {
+                        nostrState.events = nostrState.events.toSorted((a, b) => b.created_at - a.created_at);
+                        nostrState.notifications = nostrState.notifications.toSorted((a, b) => b.created_at - a.created_at);
+                    },
+                    error: (err) => {
+                        console.error(err);
+                    },
+                });
+            flushesOlderTimeline$.next();
 
             setTimeout(async () => {
                 rxReqRelay.emit({
                     kinds: [10002],
                     authors: [await signer!.getPublicKey()],
+                    until: now,
                     limit: 1
                 });
                 rxReqFollow.emit({
                     kinds: [3],
                     authors: [await signer!.getPublicKey()],
+                    until: now,
                     limit: 1,
                 });
             });
@@ -202,6 +222,7 @@ export function disconnectNostr() {
     relaySub?.unsubscribe();
     eventSub?.unsubscribe();
     followSub?.unsubscribe();
+    olderTimelineSub?.unsubscribe();
     rxNostr?.dispose();
 
     timelineSub = undefined;
@@ -211,12 +232,16 @@ export function disconnectNostr() {
     rxReqRelay = null;
     rxReqEvent = null;
     rxReqFollow = null;
+    rxReqOlderTimeline = null;
     rxNostr = null;
     signer = null;
 
     nostrState.events = [];
     nostrState.eventsById = {};
     nostrState.profiles = {};
+    nostrState.authoricated = false;
+    nostrState.followees = [];
+    nostrState.notifications = [];
 }
 
 export function emitEvent(ids: string[]) {
@@ -288,4 +313,11 @@ function processReaction(event: Event) {
             nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, 100);
         }
     }, 0);
+}
+
+function processHomeTimeline(event: Event) {
+    if (event.kind === 1) processNote(event);
+    if (event.kind === 5) processDelete(event);
+    if (event.kind === 6 || event.kind === 16) processRepost(event);
+    if (event.kind === 7) processReaction(event);
 }

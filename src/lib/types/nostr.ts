@@ -1,5 +1,6 @@
 export type NostrState = {
     authoricated: boolean,
+    followees: string[],
     events: NostrEvent[],
     eventsById: Record<string, NostrEvent>,
     profiles: Record<string, NostrProfile>,
