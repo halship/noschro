@@ -3,11 +3,12 @@
 	import type { NostrEvent, NostrProfile } from './types/nostr';
 
 	export let events: NostrEvent[];
+	export let eventsById: Record<string, NostrEvent>;
 	export let profiles: Record<string, NostrProfile>;
 </script>
 
 <div id="notifications">
 	{#each events as ev (ev.id)}
-		<Post event={ev} {profiles} />
+		<Post event={ev} {eventsById} {profiles} />
 	{/each}
 </div>

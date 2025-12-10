@@ -235,9 +235,11 @@ export function disconnectNostr() {
 }
 
 export function emitEvent(ids: string[]) {
+    if (ids.length === 0) return;
+
     if (rxNostr) {
         rxReqEvent?.emit({
-            kinds: [1],
+            kinds: [1, 5, 6, 16],
             ids,
             limit: ids.length,
         });
@@ -247,6 +249,8 @@ export function emitEvent(ids: string[]) {
 }
 
 export function emitProfile(authors: string[]) {
+    if (authors.length === 0) return;
+
     if (rxNostr) {
         rxReqProfile?.emit({
             kinds: [0],

@@ -48,20 +48,27 @@
 </ul>
 
 {#if notifyType === 'all'}
-	<Notifications events={nostrState.notifications} profiles={nostrState.profiles} />
+	<Notifications
+		events={nostrState.notifications}
+		eventsById={nostrState.eventsById}
+		profiles={nostrState.profiles}
+	/>
 {:else if notifyType === 'mentions'}
 	<Notifications
 		events={nostrState.notifications.filter((ev) => ev.kind === 1)}
+		eventsById={nostrState.eventsById}
 		profiles={nostrState.profiles}
 	/>
 {:else if notifyType === 'reposts'}
 	<Notifications
 		events={nostrState.notifications.filter((ev) => ev.kind === 6 || ev.kind === 16)}
+		eventsById={nostrState.eventsById}
 		profiles={nostrState.profiles}
 	/>
 {:else if notifyType === 'reactions'}
 	<Notifications
 		events={nostrState.notifications.filter((ev) => ev.kind === 7)}
+		eventsById={nostrState.eventsById}
 		profiles={nostrState.profiles}
 	/>
 {/if}

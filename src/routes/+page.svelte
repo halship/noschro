@@ -25,7 +25,7 @@
 {:else}
 	<div id="posts">
 		{#each nostrState.events as ev (ev.id)}
-			<Post event={ev} profiles={nostrState.profiles} />
+			<Post event={ev} eventsById={nostrState.eventsById} profiles={nostrState.profiles} />
 		{/each}
 	</div>
 {/if}
