@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
-	import { neventEncode, npubEncode } from 'nostr-tools/nip19';
-	import { formatDisplayName } from '$lib/util';
+	import { npubEncode } from 'nostr-tools/nip19';
 	import { Repeat2 } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { nostrState } from './state.svelte';
@@ -40,10 +39,7 @@
 				>
 					<a href="/{npubEncode(event.pubkey)}">
 						{#if profiles[event.pubkey]?.display_name}
-							{formatDisplayName(
-								profiles[event.pubkey]?.display_name!,
-								profiles[event.pubkey]?.tags!
-							)}
+							{profiles[event.pubkey]?.display_name!}
 						{:else if profiles[event.pubkey]?.name}
 							{profiles[event.pubkey]?.name!}
 						{:else}
