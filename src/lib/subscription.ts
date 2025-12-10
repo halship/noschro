@@ -219,6 +219,7 @@ export function disconnectNostr() {
     rxReqEvent = null;
     rxReqFollow = null;
     rxNostr = null;
+    signer = null;
 
     nostrState.events = [];
     nostrState.eventsById = {};
