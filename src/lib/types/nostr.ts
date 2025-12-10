@@ -2,6 +2,7 @@ export type NostrState = {
     events: NostrEvent[],
     eventsById: Record<string, NostrEvent>,
     profiles: Record<string, NostrProfile>,
+    mentions: NostrEvent[],
 };
 
 export type NostrEvent = {
@@ -11,9 +12,6 @@ export type NostrEvent = {
     created_at: number;
     tags: string[][];
     content: string;
-    reference?: NostrRef;
-    mentions?: string[];
-    repost_id?: string;
 };
 
 export type NostrProfile = {
@@ -29,3 +27,5 @@ export type NostrRef = {
     id: string;
     pubkey: string;
 };
+
+export type NotifyType = 'all' | 'mentions' | 'reposts';

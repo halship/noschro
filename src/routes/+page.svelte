@@ -18,6 +18,8 @@
 
 <svelte:window onscroll={switchScrollUpButton} />
 
+<h1 class="text-lg font-bold">Home</h1>
+
 {#if nostrState.events.length === 0}
 	<p class="text-center">loading...</p>
 {:else}

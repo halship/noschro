@@ -4,4 +4,5 @@ export const nostrState: NostrState = $state({
     events: [],
     eventsById: {},
     profiles: {},
+    mentions: [],
 });

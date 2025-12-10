@@ -2,22 +2,20 @@
 	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
 	import { npubEncode } from 'nostr-tools/nip19';
 	import { Repeat2 } from '@lucide/svelte';
-	import { onMount } from 'svelte';
 	import { nostrState } from './state.svelte';
-	import { emitProfile } from './subscription';
 	import PostMain from './PostMain.svelte';
-	import { formatDisplayName } from './util';
+	import { formatDisplayName, getRefIds } from './util';
 
 	export let event: NostrEvent;
 	export let profiles: Record<string, NostrProfile>;
 
 	function getRepostEvent(ev: NostrEvent): NostrEvent | undefined {
-		return nostrState.eventsById[ev.repost_id!];
+		return nostrState.eventsById[getRefIds(ev)[0]];
 	}
 </script>
 
 <div id={event.id} class="post border-thin border rounded-md p-2 mt-2">
-	{#if (event.kind === 6 || event.kind === 16) && event.repost_id}
+	{#if (event.kind === 6 || event.kind === 16) && getRefIds(event).length > 0}
 		<div class="repost border-thin border-b mb-2">
 			<div class="repost-header mb-1 flex">
 				<span class="grow-0 shrink mr-1"><Repeat2 /></span>
@@ -48,7 +46,7 @@
 			</div>
 		</div>
 
-		{#if event.repost_id in nostrState.eventsById}
+		{#if getRefIds(event)[0] in nostrState.eventsById}
 			<PostMain event={getRepostEvent(event)!} {profiles} />
 		{/if}
 	{:else}

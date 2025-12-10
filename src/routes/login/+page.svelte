@@ -54,6 +54,8 @@
 	}
 </script>
 
+<h1 class="text-lg font-bold">ログイン</h1>
+
 {#if message}
 	<div id="message" class="border border-thin rounded-md p-2 mt-2">
 		{message}

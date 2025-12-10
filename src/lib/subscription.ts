@@ -6,6 +6,7 @@ import type { NostrEvent, NostrProfile, NostrRef } from "$lib/types/nostr";
 import { nostrState } from "./state.svelte";
 import type { Event } from "nostr-tools";
 import type { EventSigner } from "@rx-nostr/crypto/src";
+import { getRefPubkeys } from "./util";
 
 let signer: EventSigner | null = null;
 let rxNostr: RxNostr | null = null;
@@ -61,9 +62,6 @@ export function connectNostr(): boolean {
                 .pipe(uniq(flushesTimeline$), sortEvents(3000))
                 .subscribe({
                     next: ({ event }) => {
-                        if (event.kind !== 1 && event.kind !== 5 && event.kind !== 6 && event.kind !== 16) return;
-                        if (event.id in nostrState.eventsById) return;
-
                         if (event.kind === 1) processNote(event);
                         if (event.kind === 5) processDelete(event);
                         if (event.kind === 6 || event.kind === 16) processRepost(event);
@@ -252,6 +250,14 @@ function processNote(event: Event) {
     const nostrEvent: NostrEvent = { ...event };
     nostrState.events = [nostrEvent, ...nostrState.events].slice(0, 100);
     nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
+
+    setTimeout(async () => {
+        const pubkey = await signer!.getPublicKey();
+
+        if (getRefPubkeys(nostrEvent).includes(pubkey)) {
+            nostrState.mentions = [...nostrState.mentions, nostrEvent];
+        }
+    })
 }
 
 function processDelete(event: Event) {
@@ -276,7 +282,6 @@ function processRepost(event: Event) {
     const nostrEvent: NostrEvent = { ...event };
     const repostId = nostrEvent.tags.filter((tag) => tag[0] === 'e')
         .map((tag) => tag[1])[0];
-    nostrEvent.repost_id = repostId;
 
     if (!(repostId in nostrState.eventsById)) {
         rxReqEvent?.emit({
