@@ -20,7 +20,7 @@
 
 <h1 class="text-lg font-bold">Home</h1>
 
-{#if nostrState.events.length === 0}
+{#if nostrState.tlLoading}
 	<p class="text-center">loading...</p>
 {:else}
 	<div id="posts">

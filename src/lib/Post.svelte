@@ -4,40 +4,10 @@
 	import { Repeat2 } from '@lucide/svelte';
 	import { nostrState } from './state.svelte';
 	import PostMain from './PostMain.svelte';
-	import { formatDisplayName, formatReaction, getRefIds, getRefPubkeys } from './util';
-	import { onMount } from 'svelte';
-	import { emitEvent, emitProfile } from './subscription';
+	import { formatDisplayName, formatReaction, getRefIds } from './util';
 
 	export let event: NostrEvent;
 	export let profiles: Record<string, NostrProfile>;
-
-	onMount(() => {
-		if (!(event.pubkey in nostrState.profiles)) {
-			emitProfile([event.pubkey]);
-		}
-
-		if (event.kind === 6 || event.kind === 16) {
-			const ids = getRefIds(event);
-			const pubkeys = getRefPubkeys(event);
-
-			if (ids.length > 0) {
-				emitEvent(ids);
-			}
-			if (pubkeys.length > 0) {
-				emitProfile(pubkeys);
-			}
-		} else if (event.kind === 7) {
-			const ids = getRefIds(event);
-			const pubkeys = getRefPubkeys(event);
-
-			if (ids.length > 0) {
-				emitEvent(ids);
-			}
-			if (pubkeys.length > 0) {
-				emitProfile(pubkeys);
-			}
-		}
-	});
 </script>
 
 <div id={event.id} class="post border-thin border rounded-md p-2 mt-2">

@@ -1,7 +1,6 @@
 import DOMPurify from "isomorphic-dompurify";
 import { decodeNostrURI } from "nostr-tools/nip19";
 import { nostrState } from "./state.svelte";
-import { emitProfile } from "./subscription";
 import type { NostrEvent } from "./types/nostr";
 
 export function formatContent(content: string, tags: string[][]): string {
@@ -79,8 +78,6 @@ export function formatContent(content: string, tags: string[][]): string {
                             result.push(nostrState.profiles[decoded.data]?.display_name!);
                         }
                     } else {
-                        emitProfile([decoded.data]);
-
                         result.push(decoded.data.slice(9));
                     }
 

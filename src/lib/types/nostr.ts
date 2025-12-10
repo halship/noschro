@@ -1,6 +1,7 @@
 export type NostrState = {
     authoricated: boolean,
-    followees: string[],
+    tlLoading: boolean,
+    pubkey: string | null,
     events: NostrEvent[],
     eventsById: Record<string, NostrEvent>,
     profiles: Record<string, NostrProfile>,

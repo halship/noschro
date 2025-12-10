@@ -21,10 +21,13 @@
 
 			if (decoded.type === 'nsec') {
 				localStorage.setItem('login', nsec);
-				if (connectNostr()) {
-					nostrState.authoricated = true;
-					setTimeout(() => goto('/'), 0);
-				}
+
+				setTimeout(async () => {
+					if (await connectNostr()) {
+						nostrState.authoricated = true;
+						goto('/');
+					}
+				}, 0);
 			} else {
 				message = 'Invalid nsec';
 				nsec = '';
@@ -36,10 +39,12 @@
 		if (browser) {
 			localStorage.setItem('login', 'NIP07');
 
-			if (connectNostr()) {
-				nostrState.authoricated = true;
-				setTimeout(() => goto('/'), 0);
-			}
+			setTimeout(async () => {
+				if (await connectNostr()) {
+					nostrState.authoricated = true;
+					goto('/');
+				}
+			}, 0);
 		}
 	}
 </script>

@@ -4,9 +4,9 @@ import { bufferTime, Subject, Subscription } from "rxjs";
 import { browser } from "$app/environment";
 import type { NostrEvent, NostrProfile, NostrRef } from "$lib/types/nostr";
 import { nostrState } from "./state.svelte";
-import type { Event } from "nostr-tools";
+import { kinds, type Event } from "nostr-tools";
 import type { EventSigner } from "@rx-nostr/crypto/src";
-import { getRefPubkeys } from "./util";
+import { getRefIds, getRefPubkeys } from "./util";
 import { maxTimeline } from "./consts";
 
 let signer: EventSigner | null = null;
@@ -31,7 +31,7 @@ let eventSub: Subscription | undefined = undefined;
 let followSub: Subscription | undefined = undefined;
 let olderTimelineSub: Subscription | undefined = undefined;
 
-export function connectNostr(): boolean {
+export async function connectNostr(): Promise<boolean> {
     if (rxNostr) return true;
 
     if (browser) {
@@ -46,6 +46,8 @@ export function connectNostr(): boolean {
         }
 
         if (signer) {
+            nostrState.pubkey = await signer.getPublicKey();
+
             rxNostr = createRxNostr({
                 verifier,
                 signer,
@@ -139,6 +141,7 @@ export function connectNostr(): boolean {
                                 authors: [event.pubkey],
                                 limit: 1
                             });
+                            emitProfile([event.pubkey]);
                         }
 
                         const nostrEvent: NostrEvent = { ...event };
@@ -160,19 +163,7 @@ export function connectNostr(): boolean {
                             .filter((tag) => tag[0] === 'p')
                             .map((tag) => tag[1]);
 
-                        nostrState.followees = pubkeys;
-
-                        rxReqOlderTimeline.emit({
-                            kinds: [1, 5, 6, 7, 16],
-                            authors: nostrState.followees,
-                            until: nostrState.events.at(-1)?.created_at ?? now(),
-                            limit: 25,
-                        });
-                        rxReqTimeline.emit({
-                            kinds: [1, 5, 6, 7, 16],
-                            authors: nostrState.followees,
-                            since: now,
-                        });
+                        subscribeTimeline(pubkeys);
                     },
                     error: (err) => {
                         console.error(err);
@@ -188,6 +179,8 @@ export function connectNostr(): boolean {
                     complete: () => {
                         nostrState.events = nostrState.events.toSorted((a, b) => b.created_at - a.created_at);
                         nostrState.notifications = nostrState.notifications.toSorted((a, b) => b.created_at - a.created_at);
+                        console.log('Complete load old event');
+                        nostrState.tlLoading = false;
                     },
                     error: (err) => {
                         console.error(err);
@@ -195,19 +188,17 @@ export function connectNostr(): boolean {
                 });
             flushesOlderTimeline$.next();
 
-            setTimeout(async () => {
-                rxReqRelay.emit({
-                    kinds: [10002],
-                    authors: [await signer!.getPublicKey()],
-                    until: now,
-                    limit: 1
-                });
-                rxReqFollow.emit({
-                    kinds: [3],
-                    authors: [await signer!.getPublicKey()],
-                    until: now,
-                    limit: 1,
-                });
+            rxReqRelay.emit({
+                kinds: [10002],
+                authors: [nostrState.pubkey!],
+                until: now,
+                limit: 1
+            });
+            rxReqFollow.emit({
+                kinds: [3],
+                authors: [nostrState.pubkey!],
+                until: now,
+                limit: 1,
             });
 
             return true;
@@ -241,7 +232,6 @@ export function disconnectNostr() {
     nostrState.eventsById = {};
     nostrState.profiles = {};
     nostrState.authoricated = false;
-    nostrState.followees = [];
     nostrState.notifications = [];
 }
 
@@ -265,64 +255,65 @@ export function getSigner(): EventSigner | null {
     return signer;
 }
 
-function processNote(event: Event) {
+function processEvent(event: Event) {
     const nostrEvent: NostrEvent = { ...event };
     nostrState.events = [nostrEvent, ...nostrState.events].slice(0, maxTimeline);
     nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
 
-    if (!(nostrEvent.pubkey in nostrState.profiles)) {
-        emitProfile([nostrEvent.pubkey]);
+    const isReferenceMe = getRefPubkeys(event).filter((key) => key === nostrState.pubkey);
+    if (isReferenceMe) {
+        nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, maxTimeline);
     }
-
-    setTimeout(async () => {
-        const pubkey = await signer!.getPublicKey();
-
-        if (getRefPubkeys(nostrEvent).includes(pubkey)) {
-            nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, maxTimeline);
-        }
-    });
 }
 
 function processDelete(event: Event) {
-    const ids = event.tags
-        .filter((tag) => tag[0] === 'e')
-        .map((tag) => tag[1]);
-
+    const ids = getRefIds(event);
     if (ids.length == 0) return;
 
     nostrState.events = nostrState.events.filter((ev) => ev.id !== ids[0]);
 }
 
-function processRepost(event: Event) {
-    const nostrEvent: NostrEvent = { ...event };
-    const pubkeys = getRefPubkeys(nostrEvent);
-    nostrState.events = [nostrEvent, ...nostrState.events].slice(0, maxTimeline);
-
-    setTimeout(async () => {
-        const myPubkey = await signer!.getPublicKey();
-
-        if (pubkeys.includes(myPubkey)) {
-            nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, maxTimeline);
-        }
-    }, 0);
-}
-
 function processReaction(event: Event) {
-    setTimeout(async () => {
-        const myPubkey = await signer!.getPublicKey();
-        const nostrEvent: NostrEvent = { ...event };
-        const pubkeys = getRefPubkeys(nostrEvent);
+    const nostrEvent: NostrEvent = { ...event };
 
-        if (pubkeys.includes(myPubkey)) {
-            nostrState.events = [nostrEvent, ...nostrState.events].slice(0, maxTimeline);
-            nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, maxTimeline);
-        }
-    }, 0);
+    nostrState.events = [nostrEvent, ...nostrState.events].slice(0, maxTimeline);
+    nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, maxTimeline);
 }
 
 function processHomeTimeline(event: Event) {
-    if (event.kind === 1) processNote(event);
+    analyzeEvent(event);
+    if (event.kind === 1) processEvent(event);
     if (event.kind === 5) processDelete(event);
-    if (event.kind === 6 || event.kind === 16) processRepost(event);
+    if (event.kind === 6 || event.kind === 16) processEvent(event);
     if (event.kind === 7) processReaction(event);
+}
+
+function subscribeTimeline(followees: string[]) {
+    rxReqOlderTimeline.emit([{
+        kinds: [1, 5, 6, 16],
+        authors: followees,
+        until: nostrState.events.at(-1)?.created_at ?? now(),
+        limit: 25,
+    }]);
+    rxReqOlderTimeline.over();
+
+    rxReqTimeline.emit([{
+        kinds: [1, 5, 6, 16],
+        authors: followees,
+        since: now,
+    },
+    {
+        kinds: [7],
+        '#p': [nostrState.pubkey!],
+        since: now,
+    }]);
+}
+
+function analyzeEvent(event: Event) {
+    if (!(event.pubkey in nostrState.profiles)) {
+        emitProfile([event.pubkey]);
+    }
+
+    emitEvent(getRefIds(event));
+    emitProfile(getRefPubkeys(event))
 }
