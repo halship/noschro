@@ -242,7 +242,7 @@ export function emitEvent(ids: string[]) {
 
     if (rxNostr) {
         rxReqEvent?.emit({
-            kinds: [1, 5, 6, 16],
+            kinds: [1, 5, 6, 7, 16],
             ids,
             limit: ids.length,
         });
@@ -274,7 +274,7 @@ function processEvent(event: Event, mypubkey: string) {
     nostrState.events = [nostrEvent, ...nostrState.events].slice(0, maxTimeline);
     nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
 
-    const isReferenceMe = getRefPubkeys(event).filter((key) => key === mypubkey);
+    const isReferenceMe = getRefPubkeys(event).filter((key) => key === mypubkey).length > 0;
     if (isReferenceMe) {
         nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, maxTimeline);
     }
