@@ -12,6 +12,10 @@
 	export let profiles: Record<string, NostrProfile>;
 
 	onMount(() => {
+		if (!(event.pubkey in nostrState.profiles)) {
+			emitProfile([event.pubkey]);
+		}
+
 		if (event.kind === 6 || event.kind === 16) {
 			const ids = getRefIds(event);
 			const pubkeys = getRefPubkeys(event);
