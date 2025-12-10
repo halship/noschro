@@ -3,13 +3,13 @@
 	import { decodeNostrURI } from 'nostr-tools/nip19';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { connectNostr } from '$lib/subscription';
+	import { connectNostr, getSigner } from '$lib/subscription';
 
 	let nsec: string = $state('');
 	let message: string | null = $state(null);
 
 	onMount(() => {
-		if (browser && localStorage.getItem('login')) {
+		if (getSigner()) {
 			goto('/');
 		}
 	});

@@ -5,7 +5,9 @@ import { browser } from "$app/environment";
 import type { NostrEvent, NostrProfile, NostrRef } from "$lib/types/nostr";
 import { nostrState } from "./state.svelte";
 import type { Event } from "nostr-tools";
+import type { EventSigner } from "@rx-nostr/crypto/src";
 
+let signer: EventSigner | null = null;
 let rxNostr: RxNostr | null = null;
 
 let rxReqTimeline: any | null = null;
@@ -20,11 +22,11 @@ const flushesRelay$ = new Subject<void>();
 const flushesEvent$ = new Subject<void>();
 const flushesFollow$ = new Subject<void>();
 
-let timelineSub: Subscription | null = null;
-let profileSub: Subscription | null = null;
-let relaySub: Subscription | null = null;
-let eventSub: Subscription | null = null;
-let followSub: Subscription | null = null;
+let timelineSub: Subscription | undefined = undefined;
+let profileSub: Subscription | undefined = undefined;
+let relaySub: Subscription | undefined = undefined;
+let eventSub: Subscription | undefined = undefined;
+let followSub: Subscription | undefined = undefined;
 
 export function connectNostr(): boolean {
     if (rxNostr) return true;
@@ -34,15 +36,17 @@ export function connectNostr(): boolean {
 
         if (savedLogin === null) return false;
 
-        if (savedLogin!!.startsWith('nsec')) {
-            const signer = seckeySigner(savedLogin!!);
+        if (savedLogin!.startsWith('nsec')) {
+            signer = seckeySigner(savedLogin);
+        }
 
+        if (signer) {
             rxNostr = createRxNostr({
                 verifier,
                 signer,
             });
 
-            rxNostr.setDefaultRelays(['wss://yabu.me']);
+            rxNostr?.setDefaultRelays(['wss://yabu.me']);
 
             rxReqTimeline = createRxForwardReq();
             rxReqProfile = createRxForwardReq();
@@ -51,7 +55,7 @@ export function connectNostr(): boolean {
             rxReqFollow = createRxBackwardReq();
 
             // タイムライン購読
-            timelineSub = rxNostr.use(rxReqTimeline)
+            timelineSub = rxNostr!.use(rxReqTimeline)
                 .pipe(uniq(flushesTimeline$), sortEvents(3000))
                 .subscribe({
                     next: ({ event }) => {
@@ -70,7 +74,7 @@ export function connectNostr(): boolean {
 
             // プロフィール購読
             const rxReqProfileBatched = rxReqProfile.pipe(bufferTime(1000), batch());
-            profileSub = rxNostr
+            profileSub = rxNostr!
                 .use(rxReqProfileBatched)
                 .pipe(uniq(flushesProfile$), sortEvents(3000))
                 .subscribe({
@@ -107,7 +111,7 @@ export function connectNostr(): boolean {
             flushesProfile$.next();
 
             // リレー情報購読
-            relaySub = rxNostr
+            relaySub = rxNostr!
                 .use(rxReqRelay)
                 .pipe(uniq(flushesRelay$))
                 .subscribe({
@@ -124,7 +128,7 @@ export function connectNostr(): boolean {
 
             // 個別投稿取得
             const rxReqEventBatched = rxReqEvent.pipe(bufferTime(1000), batch());
-            eventSub = rxNostr
+            eventSub = rxNostr!
                 .use(rxReqEventBatched)
                 .pipe(uniq(flushesEvent$))
                 .subscribe({
@@ -157,7 +161,7 @@ export function connectNostr(): boolean {
             flushesEvent$.next();
 
             // フォローリスト購読
-            followSub = rxNostr.use(rxReqFollow)
+            followSub = rxNostr!.use(rxReqFollow)
                 .pipe(uniq(flushesFollow$))
                 .subscribe({
                     next: ({ event }) => {
@@ -182,12 +186,12 @@ export function connectNostr(): boolean {
             setTimeout(async () => {
                 rxReqRelay.emit({
                     kinds: [10002],
-                    authors: [await signer.getPublicKey()],
+                    authors: [await signer!.getPublicKey()],
                     limit: 1
                 });
                 rxReqFollow.emit({
                     kinds: [3],
-                    authors: [await signer.getPublicKey()],
+                    authors: [await signer!.getPublicKey()],
                     limit: 1,
                 });
             });
@@ -207,8 +211,8 @@ export function disconnectNostr() {
     followSub?.unsubscribe();
     rxNostr?.dispose();
 
-    timelineSub = null;
-    profileSub = null;
+    timelineSub = undefined;
+    profileSub = undefined;
     rxReqTimeline = null;
     rxReqProfile = null;
     rxReqRelay = null;
@@ -227,6 +231,10 @@ export function emitEvent(filter: LazyFilter) {
 
 export function emitProfile(filter: LazyFilter) {
     rxReqProfile?.emit(filter);
+}
+
+export function getSigner(): EventSigner | null {
+    return signer;
 }
 
 function processNote(event: Event) {
