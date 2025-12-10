@@ -6,43 +6,27 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { connectNostr, disconnectNostr } from '$lib/subscription';
+	import { nostrState } from '$lib/state.svelte';
 
 	let { children } = $props();
 
 	onMount(() => {
 		if (!connectNostr()) {
+			nostrState.authoricated = false;
 			goto('/login');
 		}
 
-		const logoutBtn = document.getElementById('logout-btn');
-		logoutBtn?.classList.toggle('hidden', !localStorage.getItem('login'));
-
-		const homeBtn = document.getElementById('home-btn');
-		homeBtn?.classList.toggle('hidden', !localStorage.getItem('login'));
-
-		const notificationsBtn = document.getElementById('notifications-btn');
-		notificationsBtn?.classList.toggle('hidden', !localStorage.getItem('login'));
-
 		return () => {
 			disconnectNostr();
+			nostrState.authoricated = false;
 		};
 	});
 
 	function logout() {
 		if (browser) {
 			localStorage.removeItem('login');
-
-			const logoutBtn = document.getElementById('logout-btn');
-			logoutBtn?.classList.toggle('hidden', !localStorage.getItem('login'));
-
-			const homeBtn = document.getElementById('home-btn');
-			homeBtn?.classList.toggle('hidden', !localStorage.getItem('login'));
-
-			const notificationsBtn = document.getElementById('notifications-btn');
-			notificationsBtn?.classList.toggle('hidden', !localStorage.getItem('login'));
-
 			disconnectNostr();
-
+			nostrState.authoricated = false;
 			setTimeout(() => goto('/login'), 0);
 		}
 	}
@@ -57,15 +41,15 @@
 	class="bg-light dark:bg-dark border-thin text-dark dark:text-light border-b p-1 inset-x-0 top-0 sticky flex"
 >
 	<ul class="flex-auto flex items-center pl-1">
-		<li id="home-btn" class="mr-3 hidden">
+		<li id="home-btn" class={['mx-3', !nostrState.authoricated && 'hidden']}>
 			<a href="/" class="text-lg"><House /></a>
 		</li>
 
-		<li id="notifications-btn" class="ml-5 mr-3 hidden">
+		<li id="notifications-btn" class={['mx-3', !nostrState.authoricated && 'hidden']}>
 			<a href="/notifications" class="text-lg"><Bell /></a>
 		</li>
 
-		<li id="logout-btn" class="ml-5 mr-3 hidden">
+		<li id="logout-btn" class={['mx-3', !nostrState.authoricated && 'hidden']}>
 			<button class="text-lg block" onclick={logout}><LogOut /></button>
 		</li>
 	</ul>
