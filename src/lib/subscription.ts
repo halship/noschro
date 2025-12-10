@@ -146,13 +146,6 @@ export function connectNostr(): boolean {
                         }
 
                         const nostrEvent: NostrEvent = { ...event };
-
-                        const refId = event.tags.filter((tag) => tag[0] === 'e');
-                        const refPubkey = event.tags.filter((tag) => tag[0] === 'p');
-                        if (refId.length !== 0 && refPubkey.length !== 0) {
-                            nostrEvent.reference = { id: refId[0][1], pubkey: refPubkey[0][1] };
-                        }
-
                         nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
                     },
                     error: (err) => {
@@ -257,14 +250,6 @@ function processNote(event: Event) {
     }
 
     const nostrEvent: NostrEvent = { ...event };
-    const refId = event.tags.filter((tag) => tag[0] === 'e');
-    const refPubkey = event.tags.filter((tag) => tag[0] === 'p');
-    if (refId.length !== 0 && refPubkey.length !== 0) {
-        nostrEvent.reference = { id: refId[0][1], pubkey: refPubkey[0][1] };
-    } else if (refPubkey.length !== 0) {
-        nostrEvent.mentions = refPubkey.map((tag) => tag[1]);
-    }
-
     nostrState.events = [nostrEvent, ...nostrState.events].slice(0, 100);
     nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
 }

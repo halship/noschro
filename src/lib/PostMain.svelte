@@ -14,8 +14,8 @@
 			emitProfile([event.pubkey]);
 		}
 
-		if (event.mentions) {
-			const pubkeys = event.mentions.filter((m) => !(m in nostrState));
+		if (getRefPubkeys(event).length > 0) {
+			const pubkeys = getRefPubkeys(event).filter((m) => !(m in nostrState));
 			emitProfile(pubkeys);
 		}
 	});
@@ -39,15 +39,15 @@
 		return new Date(ts * 1000).toLocaleString();
 	}
 
-	function formatMention(pubkey: string): string {
+	function formatMention(profile: NostrProfile | undefined, pubkey: string): string {
 		const npub = npubEncode(pubkey).slice(0, 9);
 		let result = ['@'];
 
-		if (pubkey in profiles) {
-			if (profiles[pubkey].display_name) {
-				result.push(formatDisplayName(profiles[pubkey].display_name, profiles[pubkey].tags));
-			} else if (profiles[pubkey].name) {
-				result.push(profiles[pubkey].name);
+		if (profile) {
+			if (profile.display_name) {
+				result.push(formatDisplayName(profile.display_name, profile.tags));
+			} else if (profile.name) {
+				result.push(profile.name);
 			} else {
 				result.push(npub);
 			}
@@ -94,7 +94,9 @@
 {#if getRefPubkeys(event).length > 0}
 	<div class="mentions mb-1">
 		{#each getRefPubkeys(event) as pubkey}
-			<a class="mr-2" href="/{npubEncode(pubkey)}">{@html formatMention(pubkey)}</a>
+			<a class="mr-2" href="/{npubEncode(pubkey)}"
+				>{@html formatMention(profiles[pubkey], pubkey)}</a
+			>
 		{/each}
 	</div>
 {/if}
