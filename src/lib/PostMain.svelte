@@ -2,9 +2,18 @@
 	import { neventEncode, npubEncode } from 'nostr-tools/nip19';
 	import type { NostrEvent, NostrProfile } from './types/nostr';
 	import { formatContent, formatDisplayName, getRefIds, getRefPubkeys } from './util';
+	import { onMount } from 'svelte';
+	import { emitEvent, emitProfile } from './subscription';
 
 	export let event: NostrEvent;
 	export let profiles: Record<string, NostrProfile>;
+
+	onMount(() => {
+		const pubkeys = getRefPubkeys(event);
+		if (pubkeys.length > 0) {
+			emitProfile(pubkeys.filter((key) => !(key in profiles)));
+		}
+	});
 
 	function getEventCode(ev: NostrEvent): string {
 		return neventEncode({
