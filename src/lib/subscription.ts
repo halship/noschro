@@ -7,6 +7,7 @@ import { nostrState } from "./state.svelte";
 import type { Event } from "nostr-tools";
 import type { EventSigner } from "@rx-nostr/crypto/src";
 import { getRefPubkeys } from "./util";
+import { maxTimeline } from "./consts";
 
 let signer: EventSigner | null = null;
 let rxNostr: RxNostr | null = null;
@@ -266,14 +267,18 @@ export function getSigner(): EventSigner | null {
 
 function processNote(event: Event) {
     const nostrEvent: NostrEvent = { ...event };
-    nostrState.events = [nostrEvent, ...nostrState.events].slice(0, 100);
+    nostrState.events = [nostrEvent, ...nostrState.events].slice(0, maxTimeline);
     nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
+
+    if (!(nostrEvent.pubkey in nostrState.profiles)) {
+        emitProfile([nostrEvent.pubkey]);
+    }
 
     setTimeout(async () => {
         const pubkey = await signer!.getPublicKey();
 
         if (getRefPubkeys(nostrEvent).includes(pubkey)) {
-            nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, 100);
+            nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, maxTimeline);
         }
     });
 }
@@ -291,13 +296,13 @@ function processDelete(event: Event) {
 function processRepost(event: Event) {
     const nostrEvent: NostrEvent = { ...event };
     const pubkeys = getRefPubkeys(nostrEvent);
-    nostrState.events = [nostrEvent, ...nostrState.events].slice(0, 100);
+    nostrState.events = [nostrEvent, ...nostrState.events].slice(0, maxTimeline);
 
     setTimeout(async () => {
         const myPubkey = await signer!.getPublicKey();
 
         if (pubkeys.includes(myPubkey)) {
-            nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, 100);
+            nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, maxTimeline);
         }
     }, 0);
 }
@@ -309,8 +314,8 @@ function processReaction(event: Event) {
         const pubkeys = getRefPubkeys(nostrEvent);
 
         if (pubkeys.includes(myPubkey)) {
-            nostrState.events = [nostrEvent, ...nostrState.events].slice(0, 100);
-            nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, 100);
+            nostrState.events = [nostrEvent, ...nostrState.events].slice(0, maxTimeline);
+            nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, maxTimeline);
         }
     }, 0);
 }
