@@ -8,4 +8,6 @@ export const nostrState: NostrState = $state({
     eventsById: {},
     profiles: {},
     notifications: [],
+    pendingEvents: [],
+    pendingProfiles: [],
 });

@@ -56,7 +56,7 @@ export async function connectNostr(): Promise<boolean> {
             rxNostr?.setDefaultRelays(['wss://yabu.me']);
 
             rxReqTimeline = createRxForwardReq();
-            rxReqProfile = createRxForwardReq();
+            rxReqProfile = createRxBackwardReq();
             rxReqRelay = createRxBackwardReq();
             rxReqEvent = createRxBackwardReq();
             rxReqFollow = createRxBackwardReq();
@@ -132,17 +132,7 @@ export async function connectNostr(): Promise<boolean> {
                 .pipe(uniq(flushesEvent$))
                 .subscribe({
                     next: ({ event }) => {
-                        if (event.kind !== 1) return;
-                        if (event.id in nostrState.eventsById) return;
-
-                        if (!(event.pubkey in nostrState.profiles)) {
-                            rxReqProfile.emit({
-                                kinds: [0],
-                                authors: [event.pubkey],
-                                limit: 1
-                            });
-                            emitProfile([event.pubkey]);
-                        }
+                        analyzeEvent(event);
 
                         const nostrEvent: NostrEvent = { ...event };
                         nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
@@ -151,6 +141,7 @@ export async function connectNostr(): Promise<boolean> {
                         console.error(err);
                     }
                 });
+            flushesEvent$.next();
 
             // フォローリスト購読
             followSub = rxNostr!.use(rxReqFollow)
@@ -204,6 +195,11 @@ export async function connectNostr(): Promise<boolean> {
             });
             rxReqFollow.over();
 
+            emitEvent(nostrState.pendingEvents);
+            nostrState.pendingEvents = [];
+            emitProfile(nostrState.pendingProfiles);
+            nostrState.pendingProfiles = [];
+
             return true;
         }
     }
@@ -239,19 +235,27 @@ export function disconnectNostr() {
 }
 
 export function emitEvent(ids: string[]) {
-    rxReqEvent?.emit({
-        kinds: [1],
-        ids,
-        limit: ids.length,
-    });
+    if (rxNostr) {
+        rxReqEvent?.emit({
+            kinds: [1],
+            ids,
+            limit: ids.length,
+        });
+    } else {
+        nostrState.pendingEvents = [...nostrState.pendingEvents, ...ids];
+    }
 }
 
 export function emitProfile(authors: string[]) {
-    rxReqProfile?.emit({
-        kinds: [0],
-        authors,
-        limit: authors.length,
-    });
+    if (rxNostr) {
+        rxReqProfile?.emit({
+            kinds: [0],
+            authors,
+            limit: authors.length,
+        });
+    } else {
+        nostrState.pendingProfiles = [...nostrState.pendingProfiles, ...authors];
+    }
 }
 
 export function getSigner(): EventSigner | null {
@@ -285,31 +289,25 @@ function processReaction(event: Event) {
 
 function processHomeTimeline(event: Event) {
     analyzeEvent(event);
-    if (event.kind === 1) processEvent(event);
-    if (event.kind === 5) processDelete(event);
-    if (event.kind === 6 || event.kind === 16) processEvent(event);
-    if (event.kind === 7) processReaction(event);
+    if (event.kind === 1 || event.kind === 6 || event.kind === 16) processEvent(event);
+    else if (event.kind === 5) processDelete(event);
+    else if (event.kind === 7) processReaction(event);
 }
 
 function subscribeTimeline(followees: string[]) {
-    rxReqOlderTimeline.emit([{
+    rxReqOlderTimeline.emit({
         kinds: [1, 5, 6, 16],
         authors: followees,
         until: nostrState.events.at(-1)?.created_at ?? now(),
         limit: 25,
-    }]);
+    });
     rxReqOlderTimeline.over();
 
-    rxReqTimeline.emit([{
+    rxReqTimeline.emit({
         kinds: [1, 5, 6, 16],
         authors: followees,
         since: now,
-    },
-    {
-        kinds: [7],
-        '#p': [nostrState.pubkey!],
-        since: now,
-    }]);
+    });
 }
 
 function analyzeEvent(event: Event) {
@@ -317,6 +315,9 @@ function analyzeEvent(event: Event) {
         emitProfile([event.pubkey]);
     }
 
-    emitEvent(getRefIds(event));
-    emitProfile(getRefPubkeys(event))
+    const refIds = getRefIds(event).filter((id) => !(id in nostrState.eventsById));
+    const refPubkeys = getRefPubkeys(event).filter((key) => !(key in nostrState.profiles));
+
+    if (refIds.length > 0) emitEvent(refIds);
+    if (refPubkeys.length > 0) emitProfile(refPubkeys);
 }

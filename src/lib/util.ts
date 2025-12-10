@@ -2,6 +2,7 @@ import DOMPurify from "isomorphic-dompurify";
 import { decodeNostrURI } from "nostr-tools/nip19";
 import { nostrState } from "./state.svelte";
 import type { NostrEvent } from "./types/nostr";
+import { emitProfile } from "./subscription";
 
 export function formatContent(content: string, tags: string[][]): string {
     let emojis: Record<string, string> = {};
@@ -76,9 +77,12 @@ export function formatContent(content: string, tags: string[][]): string {
                             result.push(nostrState.profiles[decoded.data]?.name!);
                         } else if (nostrState.profiles[decoded.data]?.display_name) {
                             result.push(nostrState.profiles[decoded.data]?.display_name!);
+                        } else {
+                            result.push(code.slice(0, 9));
                         }
                     } else {
-                        result.push(decoded.data.slice(9));
+                        emitProfile([decoded.data]);
+                        result.push(code.slice(0, 9));
                     }
 
                     result.push('</a>');
