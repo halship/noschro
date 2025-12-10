@@ -14,6 +14,8 @@
 		if (!connectNostr()) {
 			nostrState.authoricated = false;
 			goto('/login');
+		} else {
+			nostrState.authoricated = true;
 		}
 
 		return () => {
