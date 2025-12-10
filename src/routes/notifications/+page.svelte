@@ -2,36 +2,12 @@
 	import Notifications from '$lib/Notifications.svelte';
 	import { nostrState } from '$lib/state.svelte';
 	import type { NotifyType } from '$lib/types/nostr';
-	import { AtSign, Bell, Repeat2 } from '@lucide/svelte';
+	import { AtSign, Bell, Repeat2, Heart } from '@lucide/svelte';
 
 	let notifyType: NotifyType = 'all';
 
-	let allButtonProps = { class: ['p-2', 'selected-btn'] };
-	let mentionsButtonProps = { class: ['p-2'] };
-	let repostsButtonProps = { class: ['p-2'] };
-
 	function handleNotifyButton(ntype: NotifyType) {
 		notifyType = ntype;
-
-		if (ntype === 'all') {
-			if (!allButtonProps.class.includes('selected-btn')) {
-				allButtonProps.class = [...allButtonProps.class, 'selected-btn'];
-			}
-			mentionsButtonProps.class = mentionsButtonProps.class.filter((cls) => cls !== 'selected-btn');
-			repostsButtonProps.class = repostsButtonProps.class.filter((cls) => cls !== 'selected-btn');
-		} else if (ntype === 'mentions') {
-			if (!mentionsButtonProps.class.includes('selected-btn')) {
-				mentionsButtonProps.class = [...mentionsButtonProps.class, 'selected-btn'];
-			}
-			allButtonProps.class = allButtonProps.class.filter((cls) => cls !== 'selected-btn');
-			repostsButtonProps.class = repostsButtonProps.class.filter((cls) => cls !== 'selected-btn');
-		} else if (ntype === 'reposts') {
-			if (!repostsButtonProps.class.includes('selected-btn')) {
-				repostsButtonProps.class = [...repostsButtonProps.class, 'selected-btn'];
-			}
-			mentionsButtonProps.class = mentionsButtonProps.class.filter((cls) => cls !== 'selected-btn');
-			allButtonProps.class = allButtonProps.class.filter((cls) => cls !== 'selected-btn');
-		}
 	}
 </script>
 
@@ -39,15 +15,17 @@
 
 <ul class="flex justify-center items-center border rounded-md max-w-fit">
 	<li>
-		<button id="notify-all-btn" {...allButtonProps} onclick={() => handleNotifyButton('all')}
-			><Bell /></button
+		<button
+			id="notify-all-btn"
+			class={['p-2', notifyType === 'all' && 'selected-btn']}
+			onclick={() => handleNotifyButton('all')}><Bell /></button
 		>
 	</li>
 
 	<li>
 		<button
 			id="notify-mention-btn"
-			{...mentionsButtonProps}
+			class={['p-2', notifyType === 'mentions' && 'selected-btn']}
 			onclick={() => handleNotifyButton('mentions')}><AtSign /></button
 		>
 	</li>
@@ -55,8 +33,16 @@
 	<li>
 		<button
 			id="notify-reposts-btn"
-			{...repostsButtonProps}
+			class={['p-2', notifyType === 'reposts' && 'selected-btn']}
 			onclick={() => handleNotifyButton('reposts')}><Repeat2 /></button
+		>
+	</li>
+
+	<li>
+		<button
+			id="notify-reactions-btn"
+			class={['p-2', notifyType === 'reactions' && 'selected-btn']}
+			onclick={() => handleNotifyButton('reactions')}><Heart /></button
 		>
 	</li>
 </ul>
@@ -71,6 +57,11 @@
 {:else if notifyType === 'reposts'}
 	<Notifications
 		events={nostrState.notifications.filter((ev) => ev.kind === 6 || ev.kind === 16)}
+		profiles={nostrState.profiles}
+	/>
+{:else if notifyType === 'reactions'}
+	<Notifications
+		events={nostrState.notifications.filter((ev) => ev.kind === 7)}
 		profiles={nostrState.profiles}
 	/>
 {/if}

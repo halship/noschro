@@ -150,6 +150,23 @@ export function formatDisplayName(displayName: string, tags: string[][]): string
     return result.join('');
 }
 
+export function formatReaction(content: string, tags: string[][]): string {
+    let emojis: Record<string, string> = {};
+    tags.filter((tag) => tag[0] === 'emoji')
+        .forEach((tag) => {
+            emojis = { ...emojis, [tag[1]]: tag[2] };
+        });
+
+    content = DOMPurify.sanitize(content);
+    const emojiResult = content.match(/^:[a-zA-Z0-9_]+:$/);
+
+    if (emojiResult) {
+        return `<img src="${emojis[content.slice(1, -1)]}" class="inline-block max-w-[1em]">`;
+    }
+
+    return content;
+}
+
 export function getRefIds(ev: NostrEvent): string[] {
     return ev.tags.filter((tag) => tag[0] === 'e').map((tag) => tag[1]);
 }

@@ -6,7 +6,7 @@ import type { NostrEvent, NostrProfile, NostrRef } from "$lib/types/nostr";
 import { nostrState } from "./state.svelte";
 import type { Event } from "nostr-tools";
 import type { EventSigner } from "@rx-nostr/crypto/src";
-import { getRefPubkeys } from "./util";
+import { getRefIds, getRefPubkeys } from "./util";
 
 let signer: EventSigner | null = null;
 let rxNostr: RxNostr | null = null;
@@ -65,6 +65,7 @@ export function connectNostr(): boolean {
                         if (event.kind === 1) processNote(event);
                         if (event.kind === 5) processDelete(event);
                         if (event.kind === 6 || event.kind === 16) processRepost(event);
+                        if (event.kind === 7) processReaction(event);
                     },
                     error: (err) => {
                         console.log(err);
@@ -164,7 +165,7 @@ export function connectNostr(): boolean {
                             .map((tag) => tag[1]);
 
                         rxReqTimeline.emit({
-                            kinds: [1, 5, 6, 16],
+                            kinds: [1, 5, 6, 7, 16],
                             authors: follows,
                             limit: 20
                         });
@@ -239,14 +240,6 @@ export function getSigner(): EventSigner | null {
 }
 
 function processNote(event: Event) {
-    if (!(event.pubkey in nostrState.profiles)) {
-        rxReqProfile?.emit({
-            kinds: [0],
-            authors: [event.pubkey],
-            limit: 1
-        });
-    }
-
     const nostrEvent: NostrEvent = { ...event };
     nostrState.events = [nostrEvent, ...nostrState.events].slice(0, 100);
     nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
@@ -271,33 +264,28 @@ function processDelete(event: Event) {
 }
 
 function processRepost(event: Event) {
-    if (!(event.pubkey in nostrState.profiles)) {
-        rxReqProfile?.emit({
-            kinds: [0],
-            authors: [event.pubkey],
-            limit: 1
-        });
-    }
-
     const nostrEvent: NostrEvent = { ...event };
-    const repostId = nostrEvent.tags.filter((tag) => tag[0] === 'e')
-        .map((tag) => tag[1])[0];
-
-    if (!(repostId in nostrState.eventsById)) {
-        rxReqEvent?.emit({
-            kinds: [1],
-            ids: [repostId],
-            limit: 1
-        });
-    }
-
+    const pubkeys = getRefPubkeys(nostrEvent);
     nostrState.events = [nostrEvent, ...nostrState.events].slice(0, 100);
 
     setTimeout(async () => {
-        const pubkey = await signer!.getPublicKey();
+        const myPubkey = await signer!.getPublicKey();
 
-        if (getRefPubkeys(nostrEvent).includes(pubkey)) {
+        if (pubkeys.includes(myPubkey)) {
             nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, 100);
         }
-    });
+    }, 0);
+}
+
+function processReaction(event: Event) {
+    setTimeout(async () => {
+        const myPubkey = await signer!.getPublicKey();
+        const nostrEvent: NostrEvent = { ...event };
+        const pubkeys = getRefPubkeys(nostrEvent);
+
+        if (pubkeys.includes(myPubkey)) {
+            nostrState.events = [nostrEvent, ...nostrState.events].slice(0, 100);
+            nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, 100);
+        }
+    }, 0);
 }

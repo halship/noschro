@@ -28,4 +28,4 @@ export type NostrRef = {
     pubkey: string;
 };
 
-export type NotifyType = 'all' | 'mentions' | 'reposts';
+export type NotifyType = 'all' | 'mentions' | 'reposts' | 'reactions';
