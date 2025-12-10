@@ -1,5 +1,5 @@
 import DOMPurify from "isomorphic-dompurify";
-import { decodeNostrURI } from "nostr-tools/nip19";
+import { decodeNostrURI, naddrEncode } from "nostr-tools/nip19";
 import { nostrState } from "./state.svelte";
 import type { NostrEvent } from "./types/nostr";
 import { emitProfile } from "./subscription";
@@ -175,4 +175,19 @@ export function getRefIds(ev: NostrEvent): string[] {
 export function getRefPubkeys(ev: NostrEvent): string[] {
     const result = new Set(ev.tags.filter((tag) => tag[0] === 'p').map((tag) => tag[1]));
     return [...result];
+}
+
+export function getNaddr(ev: NostrEvent): string {
+    return naddrEncode({
+        identifier: ev.id,
+        pubkey: ev.pubkey,
+        kind: ev.kind,
+    });
+}
+
+export function tagFilter(tagName: string): (tag: string[]) => boolean {
+    return (tag: string[]) => {
+        if (tag.length > 0) return tag[0] === tagName;
+        return false;
+    };
 }

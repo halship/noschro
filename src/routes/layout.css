@@ -7,3 +7,62 @@
     --color-thin: #808080;
     --color-dark: #000000;
 }
+
+@layer components {
+    .longform-content {
+        line-height: 1.4em;
+    }
+
+    .longform-content h1 {
+		font-size: var(--text-2xl);
+		font-weight: bold;
+	}
+
+	.longform-content h2 {
+		font-size: var(--text-xl);
+		font-weight: bold;
+	}
+
+	.longform-content h3 {
+		font-size: var(--text-lg);
+		font-weight: bold;
+	}
+
+	.longform-content hr {
+		margin-top: 0.5em;
+		margin-bottom: 0.5em;
+	}
+
+    .longform-content p {
+        margin-top: 1em;
+        margin-bottom: 1em;
+    }
+
+    .longform-content ul {
+        list-style: disc;
+        margin-left: 2em;
+        margin-top: 1em;
+        margin-bottom: 1em;
+    }
+
+    .longform-content ul ul {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    .longform-content li {
+        margin-top: 0.2em;
+        margin-bottom: 0.2em;
+    }
+
+    .longform-content pre {
+        border: 1px solid var(--color-thin);
+        padding: 5px 10px;
+        margin-top: 1em;
+        margin-bottom: 1em;
+    }
+
+    .longform-content .footnote-ref {
+        color: var(--color-thin);
+    }
+}

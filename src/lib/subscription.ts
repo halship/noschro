@@ -273,7 +273,7 @@ export function emitEvent(ids: string[]) {
 
     if (rxNostr) {
         rxReqEvent?.emit({
-            kinds: [1, 5, 6, 7, 16],
+            kinds: [1, 5, 6, 7, 16, 30023],
             ids,
             limit: ids.length,
         });
@@ -322,7 +322,7 @@ export function emitOlderTimeline() {
     }
 
     rxReqOlderTimeline.emit({
-        kinds: [1, 5, 6, 16],
+        kinds: [1, 5, 6, 16, 30023],
         authors: followees,
         until: nostrState.events.at(-1)?.created_at ?? now(),
         limit: limit,

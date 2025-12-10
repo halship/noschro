@@ -5,6 +5,7 @@
 	import ReactionHeader from './ReactionHeader.svelte';
 	import { onMount } from 'svelte';
 	import { emitEvent, emitProfile } from './subscription';
+	import { npubEncode } from 'nostr-tools/nip19';
 
 	onMount(() => {
 		if (!(event.pubkey in profiles)) {
@@ -28,7 +29,9 @@
 </script>
 
 <div id={event.id} class="post border-thin border rounded-md p-2 mt-2">
-	{#if event.kind === 6 || event.kind === 7 || event.kind === 16}
+	{#if event.kind === 1}
+		<PostMain {event} {profiles} />
+	{:else if event.kind === 6 || event.kind === 7 || event.kind === 16}
 		<ReactionHeader {event} profile={profiles[event.pubkey]} />
 
 		{#if getRefIds(event)[0] in eventsById}
@@ -36,7 +39,5 @@
 		{:else}
 			<p>loading...</p>
 		{/if}
-	{:else}
-		<PostMain {event} {profiles} />
 	{/if}
 </div>
