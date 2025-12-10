@@ -38,7 +38,6 @@ let olderReactionSub: Subscription | undefined = undefined;
 
 let pendingEvents: string[] = [];
 let pendingProfiles: string[] = [];
-let pendingReaction: boolean = false;
 
 export async function connectNostr(): Promise<boolean> {
     if (rxNostr) return true;
@@ -62,7 +61,12 @@ export async function connectNostr(): Promise<boolean> {
                 signer,
             });
 
-            rxNostr?.setDefaultRelays(['wss://yabu.me']);
+            rxNostr?.setDefaultRelays([
+                'wss://yabu.me',
+                'wss://relay-jp.nostr.wirednet.jp',
+                'wss://relay.damus.io',
+                'wss://nrelay-jp.c-stellar.net'
+            ]);
 
             rxReqTimeline = createRxForwardReq();
             rxReqProfile = createRxBackwardReq();
@@ -146,8 +150,6 @@ export async function connectNostr(): Promise<boolean> {
                 .pipe(uniq(flushesEvent$))
                 .subscribe({
                     next: ({ event }) => {
-                        analyzeEvent(event);
-
                         const nostrEvent: NostrEvent = { ...event };
                         nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
                     },
@@ -176,8 +178,9 @@ export async function connectNostr(): Promise<boolean> {
                 });
 
             // 古いイベントの購読
+            const rxReqOlderTimelineBatched = rxReqOlderTimeline.pipe(bufferTime(loadBufferTime), batch());
             olderTimelineSub = rxNostr!
-                .use(rxReqOlderTimeline)
+                .use(rxReqOlderTimelineBatched)
                 .pipe(uniq(flushesOlderTimeline$))
                 .subscribe({
                     next: ({ event }) => processHomeTimeline(event),
@@ -191,8 +194,9 @@ export async function connectNostr(): Promise<boolean> {
             flushesOlderTimeline$.next();
 
             // 古いリアクションの購読
+            const rxReqOlderReactionBatched = rxReqOlderReaction.pipe(bufferTime(loadBufferTime), batch());
             olderReactionSub = rxNostr!
-                .use(rxReqOlderReaction)
+                .use(rxReqOlderReactionBatched)
                 .pipe(uniq(flushesOlderReaction$))
                 .subscribe({
                     next: ({ event }) => processOlderReaction(event),
@@ -225,8 +229,6 @@ export async function connectNostr(): Promise<boolean> {
             pendingEvents = [];
             emitProfile(pendingProfiles);
             pendingProfiles = [];
-            if (pendingReaction) emitOlderReaction();
-            pendingReaction = false;
 
             return true;
         }
@@ -295,21 +297,22 @@ export function emitProfile(authors: string[]) {
 }
 
 export function emitOlderReaction() {
-    if (rxNostr) {
-        let until = now();
-        if (nostrState.notifications.length > 0) {
-            until = nostrState.notifications[-1].created_at;
-        }
-
-        rxReqOlderReaction?.emit({
-            kinds: [1, 5, 6, 7, 16],
-            '#p': [pubkey!],
-            until,
-            limit: loadLimit,
-        });
-    } else {
-        pendingReaction = true;
+    let limit = loadLimit;
+    if (maxTimeline - nostrState.events.length < loadLimit) {
+        limit = maxTimeline - nostrState.events.length;
     }
+
+    let until = now();
+    if (nostrState.notifications.length > 0) {
+        until = nostrState.notifications[-1].created_at;
+    }
+
+    rxReqOlderReaction?.emit({
+        kinds: [1, 5, 6, 7, 16],
+        '#p': [pubkey!],
+        until,
+        limit,
+    });
 }
 
 export function emitOlderTimeline() {
@@ -354,24 +357,23 @@ function processReaction(event: Event) {
 
     addEvent(nostrEvent);
     addNotification(nostrEvent);
+    nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
 }
 
 function processHomeTimeline(event: Event) {
-    analyzeEvent(event);
     if (event.kind === 1 || event.kind === 6 || event.kind === 16) processEvent(event);
     else if (event.kind === 5) processDelete(event);
     else if (event.kind === 7) processReaction(event);
 }
 
 function processOlderReaction(event: Event) {
-    analyzeEvent(event);
-
     const nostrEvent: NostrEvent = { ...event };
     addNotification(nostrEvent);
 }
 
 function subscribeTimeline() {
     emitOlderTimeline();
+    emitOlderReaction();
 
     rxReqTimeline.emit([
         {
@@ -385,18 +387,6 @@ function subscribeTimeline() {
             since: now,
         },
     ]);
-}
-
-function analyzeEvent(event: Event) {
-    if (!(event.pubkey in nostrState.profiles)) {
-        emitProfile([event.pubkey]);
-    }
-
-    const refIds = getRefIds(event).filter((id) => !(id in nostrState.eventsById));
-    const refPubkeys = getRefPubkeys(event).filter((key) => !(key in nostrState.profiles));
-
-    if (refIds.length > 0) emitEvent(refIds);
-    if (refPubkeys.length > 0) emitProfile(refPubkeys);
 }
 
 function addNotification(event: NostrEvent) {

@@ -1,18 +1,10 @@
 <script lang="ts">
 	import Notifications from '$lib/Notifications.svelte';
 	import { nostrState } from '$lib/state.svelte';
-	import { emitOlderReaction } from '$lib/subscription';
 	import type { NotifyType } from '$lib/types/nostr';
 	import { AtSign, Bell, Repeat2, Heart } from '@lucide/svelte';
-	import { onMount } from 'svelte';
 
 	let notifyType: NotifyType = 'all';
-
-	onMount(() => {
-		if (nostrState.notifications.length === 0) {
-			emitOlderReaction();
-		}
-	});
 
 	function handleNotifyButton(ntype: NotifyType) {
 		notifyType = ntype;
