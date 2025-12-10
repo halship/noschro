@@ -72,7 +72,7 @@ export function connectNostr(): boolean {
             const rxReqProfileBatched = rxReqProfile.pipe(bufferTime(1000), batch());
             profileSub = rxNostr
                 .use(rxReqProfileBatched)
-                .pipe(uniq(flushesProfile$))
+                .pipe(uniq(flushesProfile$), sortEvents(3000))
                 .subscribe({
                     next: ({ event }) => {
                         if (event.kind !== 0) return;
