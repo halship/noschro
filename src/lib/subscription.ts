@@ -227,12 +227,20 @@ export function disconnectNostr() {
     nostrState.profiles = {};
 }
 
-export function emitEvent(filter: LazyFilter) {
-    rxReqEvent?.emit(filter);
+export function emitEvent(ids: string[]) {
+    rxReqEvent?.emit({
+        kinds: [1],
+        ids,
+        limit: ids.length,
+    });
 }
 
-export function emitProfile(filter: LazyFilter) {
-    rxReqProfile?.emit(filter);
+export function emitProfile(authors: string[]) {
+    rxReqProfile?.emit({
+        kinds: [0],
+        authors,
+        limit: authors.length,
+    });
 }
 
 export function getSigner(): EventSigner | null {
@@ -253,6 +261,8 @@ function processNote(event: Event) {
     const refPubkey = event.tags.filter((tag) => tag[0] === 'p');
     if (refId.length !== 0 && refPubkey.length !== 0) {
         nostrEvent.reference = { id: refId[0][1], pubkey: refPubkey[0][1] };
+    } else if (refPubkey.length !== 0) {
+        nostrEvent.mentions = refPubkey.map((tag) => tag[1]);
     }
 
     nostrState.events = [nostrEvent, ...nostrState.events].slice(0, 100);

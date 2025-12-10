@@ -11,20 +11,6 @@
 	export let event: NostrEvent;
 	export let profiles: Record<string, NostrProfile>;
 
-	onMount(() => {
-		if ((event.kind === 6 || event.kind === 16) && getRepostEvent(event)) {
-			const pubkey = getRepostEvent(event)!.pubkey;
-
-			if (!(pubkey in nostrState.profiles)) {
-				emitProfile({
-					kinds: [0],
-					authors: [pubkey],
-					limit: 1
-				});
-			}
-		}
-	});
-
 	function getRepostEvent(ev: NostrEvent): NostrEvent | undefined {
 		return nostrState.eventsById[ev.repost_id!];
 	}

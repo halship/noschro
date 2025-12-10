@@ -2,6 +2,7 @@ import DOMPurify from "isomorphic-dompurify";
 import { decodeNostrURI } from "nostr-tools/nip19";
 import { nostrState } from "./state.svelte";
 import { emitProfile } from "./subscription";
+import type { NostrEvent } from "./types/nostr";
 
 export function formatContent(content: string, tags: string[][]): string {
     let emojis: Record<string, string> = {};
@@ -78,11 +79,7 @@ export function formatContent(content: string, tags: string[][]): string {
                             result.push(nostrState.profiles[decoded.data]?.display_name!);
                         }
                     } else {
-                        emitProfile({
-                            kinds: [0],
-                            authors: [decoded.data],
-                            limit: 1,
-                        });
+                        emitProfile([decoded.data]);
 
                         result.push(decoded.data.slice(9));
                     }
@@ -151,4 +148,13 @@ export function formatDisplayName(displayName: string, tags: string[][]): string
     }
 
     return result.join('');
+}
+
+export function getRefIds(ev: NostrEvent): string[] {
+    return ev.tags.filter((tag) => tag[0] === 'e').map((tag) => tag[1]);
+}
+
+export function getRefPubkeys(ev: NostrEvent): string[] {
+    const result = new Set(ev.tags.filter((tag) => tag[0] === 'p').map((tag) => tag[1]));
+    return [...result];
 }

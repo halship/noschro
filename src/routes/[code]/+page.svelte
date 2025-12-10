@@ -9,23 +9,11 @@
 
 	onMount(() => {
 		if (data.result.type === 'nevent' && !(data.result.data.id in nostrState.eventsById)) {
-			emitEvent({
-				kinds: [1],
-				ids: [data.result.data.id],
-				limit: 1
-			});
+			emitEvent([data.result.data.id]);
 		} else if (data.result.type === 'note' && !(data.result.data in nostrState.eventsById)) {
-			emitEvent({
-				kinds: [1],
-				ids: [data.result.data],
-				limit: 1
-			});
+			emitEvent([data.result.data]);
 		} else if (data.result.type === 'npub' && !(data.result.data in nostrState.profiles)) {
-			emitProfile({
-				kinds: [0],
-				authors: [data.result.data],
-				limit: 1
-			});
+			emitProfile([data.result.data]);
 		}
 	});
 
