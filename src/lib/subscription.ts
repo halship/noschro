@@ -31,6 +31,9 @@ let eventSub: Subscription | undefined = undefined;
 let followSub: Subscription | undefined = undefined;
 let olderTimelineSub: Subscription | undefined = undefined;
 
+let pendingEvents: string[] = [];
+let pendingProfiles: string[] = [];
+
 export async function connectNostr(): Promise<boolean> {
     if (rxNostr) return true;
 
@@ -46,7 +49,7 @@ export async function connectNostr(): Promise<boolean> {
         }
 
         if (signer) {
-            nostrState.pubkey = await signer.getPublicKey();
+            const pubkey = await signer.getPublicKey();
 
             rxNostr = createRxNostr({
                 verifier,
@@ -66,7 +69,7 @@ export async function connectNostr(): Promise<boolean> {
             timelineSub = rxNostr!.use(rxReqTimeline)
                 .pipe(uniq(flushesTimeline$))
                 .subscribe({
-                    next: ({ event }) => processHomeTimeline(event),
+                    next: ({ event }) => processHomeTimeline(event, pubkey),
                     error: (err) => {
                         console.log(err);
                     },
@@ -154,7 +157,7 @@ export async function connectNostr(): Promise<boolean> {
                             .filter((tag) => tag[0] === 'p')
                             .map((tag) => tag[1]);
 
-                        subscribeTimeline(pubkeys);
+                        subscribeTimeline(pubkeys, pubkey);
                     },
                     error: (err) => {
                         console.error(err);
@@ -166,7 +169,7 @@ export async function connectNostr(): Promise<boolean> {
                 .use(rxReqOlderTimeline)
                 .pipe(uniq(flushesOlderTimeline$), sortEvents(3000))
                 .subscribe({
-                    next: ({ event }) => processHomeTimeline(event),
+                    next: ({ event }) => processHomeTimeline(event, pubkey),
                     complete: () => {
                         nostrState.events = nostrState.events.toSorted((a, b) => b.created_at - a.created_at);
                         nostrState.notifications = nostrState.notifications.toSorted((a, b) => b.created_at - a.created_at);
@@ -181,7 +184,7 @@ export async function connectNostr(): Promise<boolean> {
 
             rxReqRelay.emit({
                 kinds: [10002],
-                authors: [nostrState.pubkey!],
+                authors: [pubkey],
                 until: now,
                 limit: 1
             });
@@ -189,16 +192,16 @@ export async function connectNostr(): Promise<boolean> {
 
             rxReqFollow.emit({
                 kinds: [3],
-                authors: [nostrState.pubkey!],
+                authors: [pubkey],
                 until: now,
                 limit: 1,
             });
             rxReqFollow.over();
 
-            emitEvent(nostrState.pendingEvents);
-            nostrState.pendingEvents = [];
-            emitProfile(nostrState.pendingProfiles);
-            nostrState.pendingProfiles = [];
+            emitEvent(pendingEvents);
+            pendingEvents = [];
+            emitProfile(pendingProfiles);
+            pendingProfiles = [];
 
             return true;
         }
@@ -244,7 +247,7 @@ export function emitEvent(ids: string[]) {
             limit: ids.length,
         });
     } else {
-        nostrState.pendingEvents = [...nostrState.pendingEvents, ...ids];
+        pendingEvents = [...pendingEvents, ...ids];
     }
 }
 
@@ -258,7 +261,7 @@ export function emitProfile(authors: string[]) {
             limit: authors.length,
         });
     } else {
-        nostrState.pendingProfiles = [...nostrState.pendingProfiles, ...authors];
+        pendingProfiles = [...pendingProfiles, ...authors];
     }
 }
 
@@ -266,12 +269,12 @@ export function getSigner(): EventSigner | null {
     return signer;
 }
 
-function processEvent(event: Event) {
+function processEvent(event: Event, mypubkey: string) {
     const nostrEvent: NostrEvent = { ...event };
     nostrState.events = [nostrEvent, ...nostrState.events].slice(0, maxTimeline);
     nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
 
-    const isReferenceMe = getRefPubkeys(event).filter((key) => key === nostrState.pubkey);
+    const isReferenceMe = getRefPubkeys(event).filter((key) => key === mypubkey);
     if (isReferenceMe) {
         nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, maxTimeline);
     }
@@ -291,14 +294,14 @@ function processReaction(event: Event) {
     nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, maxTimeline);
 }
 
-function processHomeTimeline(event: Event) {
+function processHomeTimeline(event: Event, mypubkey: string) {
     analyzeEvent(event);
-    if (event.kind === 1 || event.kind === 6 || event.kind === 16) processEvent(event);
+    if (event.kind === 1 || event.kind === 6 || event.kind === 16) processEvent(event, mypubkey);
     else if (event.kind === 5) processDelete(event);
     else if (event.kind === 7) processReaction(event);
 }
 
-function subscribeTimeline(followees: string[]) {
+function subscribeTimeline(followees: string[], mypubkey: string) {
     rxReqOlderTimeline.emit({
         kinds: [1, 5, 6, 16],
         authors: followees,
@@ -307,11 +310,18 @@ function subscribeTimeline(followees: string[]) {
     });
     rxReqOlderTimeline.over();
 
-    rxReqTimeline.emit({
-        kinds: [1, 5, 6, 16],
-        authors: followees,
-        since: now,
-    });
+    rxReqTimeline.emit([
+        {
+            kinds: [1, 5, 6, 16],
+            authors: followees,
+            since: now,
+        },
+        {
+            kinds: [7],
+            '#p': [mypubkey],
+            since: now,
+        },
+    ]);
 }
 
 function analyzeEvent(event: Event) {

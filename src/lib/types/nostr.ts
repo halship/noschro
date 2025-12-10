@@ -1,13 +1,10 @@
 export type NostrState = {
     authoricated: boolean,
     tlLoading: boolean,
-    pubkey: string | null,
     events: NostrEvent[],
     eventsById: Record<string, NostrEvent>,
     profiles: Record<string, NostrProfile>,
     notifications: NostrEvent[],
-    pendingEvents: string[],
-    pendingProfiles: string[],
 };
 
 export type NostrEvent = {
