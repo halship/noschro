@@ -1,5 +1,5 @@
 <script lang="ts">
-	import NotifyMentions from '$lib/NotifyMentions.svelte';
+	import Notifications from '$lib/Notifications.svelte';
 	import { nostrState } from '$lib/state.svelte';
 	import type { NotifyType } from '$lib/types/nostr';
 	import { AtSign, Bell, Repeat2 } from '@lucide/svelte';
@@ -61,8 +61,18 @@
 	</li>
 </ul>
 
-{#if notifyType === 'mentions'}
-	<NotifyMentions mentions={nostrState.mentions} profiles={nostrState.profiles} />
+{#if notifyType === 'all'}
+	<Notifications events={nostrState.notifications} profiles={nostrState.profiles} />
+{:else if notifyType === 'mentions'}
+	<Notifications
+		events={nostrState.notifications.filter((ev) => ev.kind === 1)}
+		profiles={nostrState.profiles}
+	/>
+{:else if notifyType === 'reposts'}
+	<Notifications
+		events={nostrState.notifications.filter((ev) => ev.kind === 6 || ev.kind === 16)}
+		profiles={nostrState.profiles}
+	/>
 {/if}
 
 <style>

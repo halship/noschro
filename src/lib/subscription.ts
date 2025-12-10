@@ -255,9 +255,9 @@ function processNote(event: Event) {
         const pubkey = await signer!.getPublicKey();
 
         if (getRefPubkeys(nostrEvent).includes(pubkey)) {
-            nostrState.mentions = [...nostrState.mentions, nostrEvent];
+            nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, 100);
         }
-    })
+    });
 }
 
 function processDelete(event: Event) {
@@ -292,4 +292,12 @@ function processRepost(event: Event) {
     }
 
     nostrState.events = [nostrEvent, ...nostrState.events].slice(0, 100);
+
+    setTimeout(async () => {
+        const pubkey = await signer!.getPublicKey();
+
+        if (getRefPubkeys(nostrEvent).includes(pubkey)) {
+            nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, 100);
+        }
+    });
 }

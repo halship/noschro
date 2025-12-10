@@ -2,7 +2,7 @@ export type NostrState = {
     events: NostrEvent[],
     eventsById: Record<string, NostrEvent>,
     profiles: Record<string, NostrProfile>,
-    mentions: NostrEvent[],
+    notifications: NostrEvent[],
 };
 
 export type NostrEvent = {
