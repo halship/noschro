@@ -7,10 +7,11 @@ import { nostrState } from "./state.svelte";
 import type { Event } from "nostr-tools";
 import type { EventSigner } from "@rx-nostr/crypto/src";
 import { getRefIds, getRefPubkeys } from "./util";
-import { maxTimeline } from "./consts";
+import { loadLimit, maxTimeline } from "./consts";
 
 let signer: EventSigner | null = null;
 let rxNostr: RxNostr | null = null;
+let pubkey: string | null = null;
 
 let rxReqTimeline: any | null = null;
 let rxReqProfile: any | null = null;
@@ -18,11 +19,13 @@ let rxReqRelay: any | null = null;
 let rxReqEvent: any | null = null;
 let rxReqFollow: any | null = null;
 let rxReqOlderTimeline: any | null = null;
+let rxReqOlderReaction: any | null = null;
 
 const flushesTimeline$ = new Subject<void>();
 const flushesProfile$ = new Subject<void>();
 const flushesEvent$ = new Subject<void>();
 const flushesOlderTimeline$ = new Subject<void>();
+const flushesOlderReaction$ = new Subject<void>();
 
 let timelineSub: Subscription | undefined = undefined;
 let profileSub: Subscription | undefined = undefined;
@@ -30,9 +33,11 @@ let relaySub: Subscription | undefined = undefined;
 let eventSub: Subscription | undefined = undefined;
 let followSub: Subscription | undefined = undefined;
 let olderTimelineSub: Subscription | undefined = undefined;
+let olderReactionSub: Subscription | undefined = undefined;
 
 let pendingEvents: string[] = [];
 let pendingProfiles: string[] = [];
+let pendingReaction: boolean = false;
 
 export async function connectNostr(): Promise<boolean> {
     if (rxNostr) return true;
@@ -49,7 +54,7 @@ export async function connectNostr(): Promise<boolean> {
         }
 
         if (signer) {
-            const pubkey = await signer.getPublicKey();
+            pubkey = await signer.getPublicKey();
 
             rxNostr = createRxNostr({
                 verifier,
@@ -64,12 +69,13 @@ export async function connectNostr(): Promise<boolean> {
             rxReqEvent = createRxBackwardReq();
             rxReqFollow = createRxBackwardReq();
             rxReqOlderTimeline = createRxBackwardReq();
+            rxReqOlderReaction = createRxBackwardReq();
 
             // タイムライン購読
             timelineSub = rxNostr!.use(rxReqTimeline)
                 .pipe(uniq(flushesTimeline$))
                 .subscribe({
-                    next: ({ event }) => processHomeTimeline(event, pubkey),
+                    next: ({ event }) => processHomeTimeline(event, pubkey!),
                     error: (err) => {
                         console.log(err);
                     },
@@ -157,7 +163,7 @@ export async function connectNostr(): Promise<boolean> {
                             .filter((tag) => tag[0] === 'p')
                             .map((tag) => tag[1]);
 
-                        subscribeTimeline(pubkeys, pubkey);
+                        subscribeTimeline(pubkeys, pubkey!);
                     },
                     error: (err) => {
                         console.error(err);
@@ -169,10 +175,8 @@ export async function connectNostr(): Promise<boolean> {
                 .use(rxReqOlderTimeline)
                 .pipe(uniq(flushesOlderTimeline$), sortEvents(3000))
                 .subscribe({
-                    next: ({ event }) => processHomeTimeline(event, pubkey),
+                    next: ({ event }) => processHomeTimeline(event, pubkey!),
                     complete: () => {
-                        nostrState.events = nostrState.events.toSorted((a, b) => b.created_at - a.created_at);
-                        nostrState.notifications = nostrState.notifications.toSorted((a, b) => b.created_at - a.created_at);
                         console.log('Complete load old event');
                         nostrState.tlLoading = false;
                     },
@@ -181,6 +185,21 @@ export async function connectNostr(): Promise<boolean> {
                     },
                 });
             flushesOlderTimeline$.next();
+
+            // 古いリアクションの購読
+            olderReactionSub = rxNostr!
+                .use(rxReqOlderReaction)
+                .pipe(uniq(flushesOlderReaction$), sortEvents(3000))
+                .subscribe({
+                    next: ({ event }) => processOlderReaction(event),
+                    complete: () => {
+                        console.log('Complete load old reaction');
+                    },
+                    error: (err) => {
+                        console.error(err);
+                    },
+                });
+            flushesOlderReaction$.next();
 
             rxReqRelay.emit({
                 kinds: [10002],
@@ -202,6 +221,8 @@ export async function connectNostr(): Promise<boolean> {
             pendingEvents = [];
             emitProfile(pendingProfiles);
             pendingProfiles = [];
+            if (pendingReaction) emitOlderReaction();
+            pendingReaction = false;
 
             return true;
         }
@@ -217,6 +238,7 @@ export function disconnectNostr() {
     eventSub?.unsubscribe();
     followSub?.unsubscribe();
     olderTimelineSub?.unsubscribe();
+    olderReactionSub?.unsubscribe();
     rxNostr?.dispose();
 
     timelineSub = undefined;
@@ -227,6 +249,7 @@ export function disconnectNostr() {
     rxReqEvent = null;
     rxReqFollow = null;
     rxReqOlderTimeline = null;
+    rxReqOlderReaction = null;
     rxNostr = null;
     signer = null;
 
@@ -265,18 +288,49 @@ export function emitProfile(authors: string[]) {
     }
 }
 
+export function emitOlderReaction() {
+    if (rxNostr) {
+        let until = now();
+        if (nostrState.notifications.length > 0) {
+            until = nostrState.notifications[-1].created_at;
+        }
+
+        rxReqOlderReaction?.emit({
+            kinds: [1, 5, 6, 7, 16],
+            '#p': [pubkey!],
+            until,
+            limit: loadLimit,
+        });
+    } else {
+        pendingReaction = true;
+    }
+}
+
 export function getSigner(): EventSigner | null {
     return signer;
 }
 
 function processEvent(event: Event, mypubkey: string) {
     const nostrEvent: NostrEvent = { ...event };
-    nostrState.events = [nostrEvent, ...nostrState.events].slice(0, maxTimeline);
+
+    if (nostrState.events.length === 0) {
+        nostrState.events = [nostrEvent];
+    } else if (nostrState.events[0].created_at < nostrEvent.created_at) {
+        nostrState.events = [nostrEvent, ...nostrState.events].slice(0, maxTimeline);
+    } else {
+        nostrState.events = [...nostrState.events, nostrEvent].slice(0, maxTimeline);
+    }
     nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
 
     const isReferenceMe = getRefPubkeys(event).filter((key) => key === mypubkey).length > 0;
     if (isReferenceMe) {
-        nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, maxTimeline);
+        if (nostrState.notifications.length === 0) {
+            nostrState.notifications = [nostrEvent];
+        } else if (nostrState.notifications[0].created_at < nostrEvent.created_at) {
+            nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, maxTimeline);
+        } else {
+            nostrState.notifications = [...nostrState.notifications, nostrEvent].slice(0, maxTimeline);
+        }
     }
 }
 
@@ -301,6 +355,20 @@ function processHomeTimeline(event: Event, mypubkey: string) {
     else if (event.kind === 7) processReaction(event);
 }
 
+function processOlderReaction(event: Event) {
+    analyzeEvent(event);
+
+    const nostrEvent: NostrEvent = { ...event };
+
+    if (nostrState.notifications.length === 0) {
+        nostrState.notifications = [nostrEvent];
+    } else if (nostrState.notifications[0].created_at < nostrEvent.created_at) {
+        nostrState.notifications = [nostrEvent, ...nostrState.notifications].slice(0, maxTimeline);
+    } else {
+        nostrState.notifications = [...nostrState.notifications, nostrEvent].slice(0, maxTimeline);
+    }
+}
+
 function subscribeTimeline(followees: string[], mypubkey: string) {
     rxReqOlderTimeline.emit({
         kinds: [1, 5, 6, 16],
@@ -308,7 +376,6 @@ function subscribeTimeline(followees: string[], mypubkey: string) {
         until: nostrState.events.at(-1)?.created_at ?? now(),
         limit: 25,
     });
-    rxReqOlderTimeline.over();
 
     rxReqTimeline.emit([
         {
