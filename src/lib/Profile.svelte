@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { NostrProfile } from '$lib/types/nostr';
-	import { formatContent } from '$lib/util';
+	import { formatContent, formatDisplayName } from '$lib/util';
 
 	export let profiles: Record<string, NostrProfile>;
 	export let pubkey: string;
@@ -9,7 +9,7 @@
 <div class="profile border-thin border rounded-md p-2 mt-2">
 	<div class="user-display-name font-bold text-lg wrap-break-word">
 		{#if profiles[pubkey]?.display_name}
-			{profiles[pubkey].display_name!}
+			{@html formatDisplayName(profiles[pubkey].display_name!, profiles[pubkey].tags)}
 		{:else if profiles[pubkey]?.name}
 			@{profiles[pubkey].name}
 		{/if}
