@@ -2,9 +2,9 @@ import { batch, createRxBackwardReq, createRxForwardReq, createRxNostr, latest, 
 import { seckeySigner, verifier } from "@rx-nostr/crypto";
 import { bufferTime, Subject, Subscription } from "rxjs";
 import { browser } from "$app/environment";
-import type { NostrEvent, NostrProfile, NostrRef } from "$lib/types/nostr";
+import type { NostrEvent, NostrProfile } from "$lib/types/nostr";
 import { nostrState } from "./state.svelte";
-import { kinds, type Event } from "nostr-tools";
+import type { Event } from "nostr-tools";
 import type { EventSigner } from "@rx-nostr/crypto/src";
 import { getRefIds, getRefPubkeys } from "./util";
 import { maxTimeline } from "./consts";
@@ -194,12 +194,15 @@ export async function connectNostr(): Promise<boolean> {
                 until: now,
                 limit: 1
             });
+            rxReqRelay.over();
+
             rxReqFollow.emit({
                 kinds: [3],
                 authors: [nostrState.pubkey!],
                 until: now,
                 limit: 1,
             });
+            rxReqFollow.over();
 
             return true;
         }

@@ -26,9 +26,4 @@ export type NostrProfile = {
     tags: string[][];
 };
 
-export type NostrRef = {
-    id: string;
-    pubkey: string;
-};
-
 export type NotifyType = 'all' | 'mentions' | 'reposts' | 'reactions';
