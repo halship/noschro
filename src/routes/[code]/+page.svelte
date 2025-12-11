@@ -1,7 +1,7 @@
 <script lang="ts">
-	import LongForm from '$lib/LongForm.svelte';
-	import Post from '$lib/Post.svelte';
-	import Profile from '$lib/Profile.svelte';
+	import LongForm from '$lib/components/LongForm.svelte';
+	import Post from '$lib/components/Post.svelte';
+	import Profile from '$lib/components/Profile.svelte';
 	import { nostrState } from '$lib/state.svelte.js';
 	import { emitEvent, emitNaddrEvent, emitProfile } from '$lib/subscription.js';
 	import type { NostrEvent } from '$lib/types/nostr.js';

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import './layout.css';
 	import { Bell, House, LogOut } from '@lucide/svelte';
-	import ThemeButton from '$lib/ThemeButton.svelte';
+	import ThemeButton from '$lib/components/ThemeButton.svelte';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';

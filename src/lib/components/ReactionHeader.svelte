@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Repeat2 } from '@lucide/svelte';
-	import type { NostrEvent, NostrProfile } from './types/nostr';
-	import { formatDisplayName, formatReaction } from './util';
+	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
+	import { formatDisplayName, formatReaction } from '$lib/util';
 	import { npubEncode } from 'nostr-tools/nip19';
 
 	export let event: NostrEvent;

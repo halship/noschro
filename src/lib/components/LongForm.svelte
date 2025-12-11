@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import PostHeader from './PostHeader.svelte';
-	import type { NostrEvent, NostrProfile } from './types/nostr';
-	import { tagFilter } from './util';
-	import { emitProfile } from './subscription';
+	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
+	import { tagFilter } from '$lib/util';
+	import { emitProfile } from '$lib/subscription';
 	import DOMPurify from 'isomorphic-dompurify';
 	import MarkdownIt from 'markdown-it';
 	import MarkdownItFootnote from 'markdown-it-footnote';

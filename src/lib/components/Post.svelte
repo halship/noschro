@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
 	import PostMain from './PostMain.svelte';
-	import { getRefIds, getRefPubkeys } from './util';
+	import { getRefIds, getRefPubkeys } from '../util';
 	import ReactionHeader from './ReactionHeader.svelte';
 	import { onMount } from 'svelte';
-	import { emitEvent, emitProfile } from './subscription';
+	import { emitEvent, emitProfile } from '../subscription';
 
 	export let event: NostrEvent;
 	export let eventsById: Record<string, NostrEvent>;

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { neventEncode, npubEncode } from 'nostr-tools/nip19';
-	import type { NostrEvent, NostrProfile } from './types/nostr';
-	import { formatContent, formatDisplayName, getRefIds, getRefPubkeys, getNaddr } from './util';
+	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
+	import { formatContent, formatDisplayName, getRefIds, getRefPubkeys, getNaddr } from '$lib/util';
 	import { onMount } from 'svelte';
-	import { emitProfile } from './subscription';
+	import { emitProfile } from '$lib/subscription';
 	import PostHeader from './PostHeader.svelte';
 
 	export let event: NostrEvent;

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Notifications from '$lib/Notifications.svelte';
+	import Notifications from '$lib/components/Notifications.svelte';
 	import { nostrState } from '$lib/state.svelte';
 	import type { NotifyType } from '$lib/types/nostr';
 	import { AtSign, Bell, Repeat2, Heart } from '@lucide/svelte';

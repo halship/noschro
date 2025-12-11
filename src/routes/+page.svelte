@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { maxTimeline } from '$lib/consts';
-	import Post from '$lib/Post.svelte';
+	import Post from '$lib/components/Post.svelte';
 	import { nostrState } from '$lib/state.svelte';
 	import { emitOlderTimeline } from '$lib/subscription';
 	import { MoveUp } from '@lucide/svelte';

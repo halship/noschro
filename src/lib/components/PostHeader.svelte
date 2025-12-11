@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { neventEncode, npubEncode } from 'nostr-tools/nip19';
-	import type { NostrEvent, NostrProfile } from './types/nostr';
-	import { formatDisplayName } from './util';
+	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
+	import { formatDisplayName } from '$lib/util';
 
 	export let event: NostrEvent;
 	export let profile: NostrProfile | undefined;

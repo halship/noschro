@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Post from './Post.svelte';
-	import type { NostrEvent, NostrProfile } from './types/nostr';
+	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
 
 	export let events: NostrEvent[];
 	export let eventsById: Record<string, NostrEvent>;
