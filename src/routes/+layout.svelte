@@ -11,12 +11,15 @@
 	let { children } = $props();
 
 	onMount(() => {
-		if (!connectNostr()) {
-			nostrState.authoricated = false;
-			goto('/login');
-		} else {
-			nostrState.authoricated = true;
-		}
+		setTimeout(async () => {
+			if (!(await connectNostr())) {
+				disconnectNostr();
+				nostrState.authoricated = false;
+				goto('/login');
+			} else {
+				nostrState.authoricated = true;
+			}
+		}, 0);
 
 		return () => {
 			disconnectNostr();
