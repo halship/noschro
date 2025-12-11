@@ -6,8 +6,9 @@ import type { NostrEvent, NostrProfile } from "$lib/types/nostr";
 import { nostrState } from "./state.svelte";
 import type { Event } from "nostr-tools";
 import type { EventSigner } from "@rx-nostr/crypto/src";
-import { getRefIds, getRefPubkeys } from "./util";
+import { getRefIds, getRefPubkeys, tagFilter } from "./util";
 import { loadBufferTime, loadLimit, maxTimeline } from "./consts";
+import { naddrEncode, type AddressPointer } from "nostr-tools/nip19";
 
 let signer: EventSigner | null = null;
 let rxNostr: RxNostr | null = null;
@@ -38,6 +39,7 @@ let olderReactionSub: Subscription | undefined = undefined;
 
 let pendingEvents: string[] = [];
 let pendingProfiles: string[] = [];
+let pendingNaddrEvents: AddressPointer[] = [];
 
 export async function connectNostr(): Promise<boolean> {
     if (rxNostr) return true;
@@ -152,6 +154,12 @@ export async function connectNostr(): Promise<boolean> {
                     next: ({ event }) => {
                         const nostrEvent: NostrEvent = { ...event };
                         nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
+
+                        const identifiers = nostrEvent.tags.filter(tagFilter('d'))
+                            .map((tag) => tag[1]);
+                        if (identifiers.length > 0) {
+                            nostrState.eventsByAddr = [...nostrState.eventsByAddr, nostrEvent];
+                        }
                     },
                     error: (err) => {
                         console.error(err);
@@ -230,6 +238,11 @@ export async function connectNostr(): Promise<boolean> {
             emitProfile(pendingProfiles);
             pendingProfiles = [];
 
+            for (const addr of pendingNaddrEvents) {
+                emitNaddrEvent(addr);
+            }
+            pendingNaddrEvents = [];
+
             return true;
         }
     }
@@ -261,11 +274,16 @@ export function disconnectNostr() {
     pubkey = null;
     followees = [];
 
+    pendingEvents = [];
+    pendingNaddrEvents = [];
+    pendingProfiles = [];
+
     nostrState.events = [];
     nostrState.eventsById = {};
     nostrState.profiles = {};
     nostrState.authoricated = false;
     nostrState.notifications = [];
+    nostrState.eventsByAddr = [];
 }
 
 export function emitEvent(ids: string[]) {
@@ -273,7 +291,7 @@ export function emitEvent(ids: string[]) {
 
     if (rxNostr) {
         rxReqEvent?.emit({
-            kinds: [1, 5, 6, 7, 16, 30023],
+            kinds: [1, 5, 6, 7, 16],
             ids,
             limit: ids.length,
         });
@@ -293,6 +311,19 @@ export function emitProfile(authors: string[]) {
         });
     } else {
         pendingProfiles = [...pendingProfiles, ...authors];
+    }
+}
+
+export function emitNaddrEvent(addr: AddressPointer) {
+    if (rxNostr) {
+        rxReqEvent?.emit({
+            kinds: [addr.kind],
+            '#d': [addr.identifier],
+            authors: [addr.pubkey],
+            limit: 1,
+        });
+    } else {
+        pendingNaddrEvents = [...pendingNaddrEvents, addr];
     }
 }
 
@@ -361,7 +392,7 @@ function processReaction(event: Event) {
 }
 
 function processHomeTimeline(event: Event) {
-    if (event.kind === 1 || event.kind === 6 || event.kind === 16) processEvent(event);
+    if (event.kind === 1 || event.kind === 6 || event.kind === 16 || event.kind === 30023) processEvent(event);
     else if (event.kind === 5) processDelete(event);
     else if (event.kind === 7) processReaction(event);
 }

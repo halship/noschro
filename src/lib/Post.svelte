@@ -5,7 +5,10 @@
 	import ReactionHeader from './ReactionHeader.svelte';
 	import { onMount } from 'svelte';
 	import { emitEvent, emitProfile } from './subscription';
-	import { npubEncode } from 'nostr-tools/nip19';
+
+	export let event: NostrEvent;
+	export let eventsById: Record<string, NostrEvent>;
+	export let profiles: Record<string, NostrProfile>;
 
 	onMount(() => {
 		if (!(event.pubkey in profiles)) {
@@ -22,10 +25,6 @@
 			emitProfile(pubkeys.filter((key) => !(key in profiles)));
 		}
 	});
-
-	export let event: NostrEvent;
-	export let eventsById: Record<string, NostrEvent>;
-	export let profiles: Record<string, NostrProfile>;
 </script>
 
 <div id={event.id} class="post border-thin border rounded-md p-2 mt-2">

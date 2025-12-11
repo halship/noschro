@@ -43,25 +43,25 @@
 	}
 </script>
 
+<PostHeader {event} profile={profiles[event.pubkey]} />
+
+{#if getRefIds(event).length > 0}
+	<div class="ref-link underline mb-1">
+		<a href="/{getRefEventCode(event)}">[返信元]</a>
+	</div>
+{/if}
+
+{#if getRefPubkeys(event).length > 0}
+	<div class="mentions mb-1">
+		{#each getRefPubkeys(event) as pubkey}
+			<a class="mr-2" href="/{npubEncode(pubkey)}"
+				>{@html formatMention(profiles[pubkey], pubkey)}</a
+			>
+		{/each}
+	</div>
+{/if}
+
 {#if event.kind === 1}
-	<PostHeader {event} profile={profiles[event.pubkey]} />
-
-	{#if getRefIds(event).length > 0}
-		<div class="ref-link underline mb-1">
-			<a href="/{getRefEventCode(event)}">[返信元]</a>
-		</div>
-	{/if}
-
-	{#if getRefPubkeys(event).length > 0}
-		<div class="mentions mb-1">
-			{#each getRefPubkeys(event) as pubkey}
-				<a class="mr-2" href="/{npubEncode(pubkey)}"
-					>{@html formatMention(profiles[pubkey], pubkey)}</a
-				>
-			{/each}
-		</div>
-	{/if}
-
 	<div class="post-content wrap-break-word leading-none mb-1">
 		{@html formatContent(event.content, event.tags)}
 	</div>

@@ -4,6 +4,7 @@ export type NostrState = {
     eventsById: Record<string, NostrEvent>,
     profiles: Record<string, NostrProfile>,
     notifications: NostrEvent[],
+    eventsByAddr: NostrEvent[],
 };
 
 export type NostrEvent = {

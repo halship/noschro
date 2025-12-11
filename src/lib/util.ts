@@ -61,7 +61,7 @@ export function formatContent(content: string, tags: string[][]): string {
         } else if (codeResult) {
             const code = codeResult[0].slice(6);
 
-            if (code.startsWith('nevent') || code.startsWith('note')) {
+            if (code.startsWith('nevent') || code.startsWith('note') || code.startsWith('naddr')) {
                 result.push('<a href="/');
                 result.push(code);
                 result.push('" class="underline">[引用]</a>');

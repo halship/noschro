@@ -6,4 +6,5 @@ export const nostrState: NostrState = $state({
     eventsById: {},
     profiles: {},
     notifications: [],
+    eventsByAddr: [],
 });

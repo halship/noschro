@@ -3,10 +3,12 @@
 	import Post from '$lib/Post.svelte';
 	import Profile from '$lib/Profile.svelte';
 	import { nostrState } from '$lib/state.svelte.js';
-	import { emitEvent, emitProfile } from '$lib/subscription.js';
+	import { emitEvent, emitNaddrEvent, emitProfile } from '$lib/subscription.js';
+	import type { NostrEvent } from '$lib/types/nostr.js';
+	import { tagFilter } from '$lib/util.js';
 	import { onMount } from 'svelte';
 
-	let { data } = $props();
+	let { data, params } = $props();
 
 	onMount(() => {
 		if (data.result.type === 'nevent' && !(data.result.data.id in nostrState.eventsById)) {
@@ -15,17 +17,30 @@
 			emitEvent([data.result.data]);
 		} else if (data.result.type === 'npub' && !(data.result.data in nostrState.profiles)) {
 			emitProfile([data.result.data]);
-		} else if (
-			data.result.type === 'naddr' &&
-			!(data.result.data.identifier in nostrState.eventsById)
-		) {
-			emitEvent([data.result.data.identifier]);
+		} else if (data.result.type === 'naddr' && !(params.code in nostrState.eventsByAddr)) {
+			emitNaddrEvent(data.result.data);
 		}
 	});
 
 	function goBack(event: MouseEvent) {
 		event.preventDefault();
 		history.back();
+	}
+
+	function getNaddrEvent(): NostrEvent | null {
+		if (data.result.type === 'naddr') {
+			const { identifier, pubkey, kind } = data.result.data;
+
+			for (const ev of nostrState.eventsByAddr) {
+				const evIdentifiers = ev.tags.filter(tagFilter('d')).map((tag) => tag[1]);
+				if (evIdentifiers.length === 0) continue;
+
+				if (evIdentifiers[0] === identifier && ev.pubkey === pubkey && ev.kind === kind) {
+					return ev;
+				}
+			}
+		}
+		return null;
 	}
 </script>
 
@@ -47,11 +62,8 @@
 	/>
 {:else if data.result.type === 'npub' && data.result.data in nostrState.profiles}
 	<Profile profiles={nostrState.profiles} pubkey={data.result.data} />
-{:else if data.result.type === 'naddr' && data.result.data.identifier in nostrState.eventsById}
-	<LongForm
-		event={nostrState.eventsById[data.result.data.identifier]}
-		profiles={nostrState.profiles}
-	/>
+{:else if data.result.type === 'naddr' && getNaddrEvent()}
+	<LongForm event={getNaddrEvent()!} profiles={nostrState.profiles} />
 {:else}
 	<p class="text-center">loading...</p>
 {/if}
