@@ -71,7 +71,7 @@ export async function connectNostr(): Promise<boolean> {
             ]);
 
             rxReqTimeline = createRxForwardReq();
-            rxReqProfile = createRxBackwardReq();
+            rxReqProfile = createRxForwardReq();
             rxReqRelay = createRxBackwardReq();
             rxReqEvent = createRxBackwardReq();
             rxReqFollow = createRxBackwardReq();
