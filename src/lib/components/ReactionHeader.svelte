@@ -3,16 +3,20 @@
 	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
 	import { formatDisplayName, formatReaction } from '$lib/util';
 	import { npubEncode } from 'nostr-tools/nip19';
+	import { kindGeneralRepost, kindReaction, kindRepost } from '$lib/consts';
 
 	export let event: NostrEvent;
 	export let profile: NostrProfile | undefined;
 </script>
 
 <div class="reaction-header mb-2 pb-1 flex border-thin border-b">
-	<span class="grow-0 shrink mr-1">
-		{#if event.kind === 6 || event.kind === 16}
+	<span
+		class="grow-0 shrink mr-1"
+		class:text-repost={event.kind === kindRepost || event.kind === kindGeneralRepost}
+	>
+		{#if event.kind === kindRepost || event.kind === kindGeneralRepost}
 			<Repeat2 />
-		{:else if event.kind === 7}
+		{:else if event.kind === kindReaction}
 			{@html formatReaction(event.content, event.tags)}
 		{/if}
 	</span>

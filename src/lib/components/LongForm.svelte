@@ -6,16 +6,18 @@
 	import DOMPurify from 'isomorphic-dompurify';
 	import MarkdownIt from 'markdown-it';
 	import MarkdownItFootnote from 'markdown-it-footnote';
+	import { rxReqProfiles } from '$lib/timelines/base_timeline';
+	import { kindMetaData } from '$lib/consts';
 
 	export let event: NostrEvent;
 	export let profiles: Record<string, NostrProfile>;
 
 	onMount(() => {
-		/*
-		if (!(event.pubkey in profiles)) {
-			emitProfile([event.pubkey]);
-		}
-		*/
+		rxReqProfiles.emit({
+			kinds: [kindMetaData],
+			authors: [event.pubkey],
+			limit: 1
+		});
 	});
 
 	function getTitle(): string {

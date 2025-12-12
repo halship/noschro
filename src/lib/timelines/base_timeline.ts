@@ -126,7 +126,7 @@ export async function subscribe() {
 
                 const nostrEvent: NostrEvent = { ...event };
                 const index = nostrState.notifications
-                    .findIndex((ev) => ev.created_at <= event.created_at);
+                    .findIndex((ev) => ev.created_at < event.created_at);
                 if (index < 0) {
                     nostrState.notifications = [...nostrState.notifications, nostrEvent]
                         .slice(0, maxTimelineNum);
@@ -180,7 +180,7 @@ function setTimeline(event: Event) {
     const nostrEvent = { ...event };
 
     const index = nostrState.events
-        .findIndex((ev) => ev.created_at <= nostrEvent.created_at);
+        .findIndex((ev) => ev.created_at < nostrEvent.created_at);
     if (index < 0) {
         nostrState.events = [...nostrState.events, nostrEvent].slice(0, maxTimelineNum);
     } else {

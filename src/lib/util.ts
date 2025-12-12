@@ -109,6 +109,9 @@ export function formatContent(content: string, tags: string[][]): string {
             }
 
             i += emojiResult[0].length;
+        } else if (content.slice(i).startsWith(' ')) {
+            result.push('&nbsp;');
+            i++;
         } else {
             // その他の場合
             result.push(content.slice(i).charAt(0));
