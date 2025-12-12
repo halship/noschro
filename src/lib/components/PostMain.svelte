@@ -4,17 +4,25 @@
 	import { formatContent, formatDisplayName, getRefIds, getRefPubkeys, getNaddr } from '$lib/util';
 	import { onMount } from 'svelte';
 	import PostHeader from './PostHeader.svelte';
+	import { nostrState } from '$lib/state.svelte';
+	import { rxReqProfiles } from '$lib/timelines/base_timeline';
+	import { kindMetaData } from '$lib/consts';
 
 	export let event: NostrEvent;
 	export let profiles: Record<string, NostrProfile>;
 
 	onMount(() => {
-		/*
-		const pubkeys = getRefPubkeys(event);
+		const pubkeys = event.tags
+			.filter((t) => t[0] === 'p')
+			.map((t) => t[0])
+			.filter((pub) => !(pub in profiles));
 		if (pubkeys.length > 0) {
-			emitProfile(pubkeys.filter((key) => !(key in profiles)));
+			rxReqProfiles.emit({
+				kinds: [kindMetaData],
+				authors: pubkeys,
+				limit: pubkeys.length
+			});
 		}
-		*/
 	});
 
 	function getRefEventCode(ev: NostrEvent): string {
@@ -55,7 +63,7 @@
 {#if getRefPubkeys(event).length > 0}
 	<div class="mentions mb-1">
 		{#each getRefPubkeys(event) as pubkey}
-			<a class="mr-2" href="/{npubEncode(pubkey)}"
+			<a class="mr-2 text-sm text-thin" href="/{npubEncode(pubkey)}"
 				>{@html formatMention(profiles[pubkey], pubkey)}</a
 			>
 		{/each}

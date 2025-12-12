@@ -36,6 +36,7 @@
 			}
 
 			localStorage.setItem('theme', theme);
+			document.documentElement.classList.toggle('dark', theme === 'dark');
 		}
 	}
 </script>
@@ -49,15 +50,15 @@
 	class="bg-light dark:bg-dark border-thin text-dark dark:text-light border-b p-1 inset-x-0 top-0 sticky flex"
 >
 	<ul class="flex-auto flex items-center pl-1">
-		<li id="home-btn" class={['mx-3', !nostrState.isAuthoricated && 'hidden']}>
+		<li id="home-btn" class="mx-3" class:hidden={!nostrState.isAuthoricated}>
 			<a href="/" class="text-lg"><House /></a>
 		</li>
 
-		<li id="notifications-btn" class={['mx-3', !nostrState.isAuthoricated && 'hidden']}>
+		<li id="notifications-btn" class="mx-3" class:hidden={!nostrState.isAuthoricated}>
 			<a href="/notifications" class="text-lg"><Bell /></a>
 		</li>
 
-		<li id="logout-btn" class={['mx-3', !nostrState.isAuthoricated && 'hidden']}>
+		<li id="logout-btn" class="mx-3" class:hidden={!nostrState.isAuthoricated}>
 			<button class="text-lg block" onclick={handleLogout}><LogOut /></button>
 		</li>
 	</ul>

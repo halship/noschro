@@ -2,6 +2,8 @@ import DOMPurify from "isomorphic-dompurify";
 import { decodeNostrURI, naddrEncode } from "nostr-tools/nip19";
 import { nostrState } from "./state.svelte";
 import type { NostrEvent } from "./types/nostr";
+import { rxReqProfiles } from "./timelines/base_timeline";
+import { kindMetaData } from "./consts";
 
 export function formatContent(content: string, tags: string[][]): string {
     let emojis: Record<string, string> = {};
@@ -80,7 +82,11 @@ export function formatContent(content: string, tags: string[][]): string {
                             result.push(code.slice(0, 9));
                         }
                     } else {
-                        /*emitProfile([decoded.data]);*/
+                        rxReqProfiles.emit({
+                            kinds: [kindMetaData],
+                            authors: [decoded.data],
+                            limit: 1,
+                        });
                         result.push(code.slice(0, 9));
                     }
 
@@ -189,9 +195,4 @@ export function tagFilter(tagName: string): (tag: string[]) => boolean {
         if (tag.length > 0) return tag[0] === tagName;
         return false;
     };
-}
-
-export function getTagValues(tags: string[][], tagName: string): string[][] {
-    return tags.filter((t) => t[0] === tagName)
-        .map((t) => t.slice(1));
 }

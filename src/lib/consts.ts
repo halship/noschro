@@ -11,4 +11,10 @@ export const defaultRelays = [
 export const kindMetaData = 0;
 export const kindPost = 1;
 export const kindFollowList = 3;
+export const kindDelete = 5;
+export const kindRepost = 6;
+export const kindReaction = 7;
+export const kindGeneralRepost = 16;
 export const kindRelayList = 10002;
+
+export const kindsEvent = [kindPost, kindDelete, kindRepost, kindGeneralRepost];

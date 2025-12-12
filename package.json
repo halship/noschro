@@ -40,12 +40,15 @@
 	"dependencies": {
 		"@lucide/svelte": "^0.556.0",
 		"@rx-nostr/crypto": "^0.0.0",
+		"bufferutil": "^4.0.9",
+		"canvas": "^3.2.0",
 		"isomorphic-dompurify": "2.25.0",
 		"markdown-it": "^14.1.0",
 		"markdown-it-footnote": "^4.0.0",
 		"nostr-tools": "^2.19.2",
 		"nostr-typedef": "^0.13.0",
 		"rx-nostr": "^3.6.1",
-		"rxjs": "^7.8.2"
+		"rxjs": "^7.8.2",
+		"utf-8-validate": "^6.0.5"
 	}
 }

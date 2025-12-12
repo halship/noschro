@@ -33,7 +33,9 @@
 		});
 	}
 
-	function handleLoadMore() {}
+	function handleLoadMore() {
+		rxReqOldTimeline.emit(getHomeOldTimelineFilter());
+	}
 </script>
 
 <svelte:window onscroll={handleScroll} />
@@ -53,6 +55,7 @@
 		<button
 			id="load-more-btn"
 			class="block my-3 mx-auto p-2 text-center bg-light dark:bg-dark border-dark dark:border-light border rounded-md"
+			class:hidden={nostrState.events.length >= maxTimelineNum}
 			onclick={handleLoadMore}
 		>
 			▼ Load more ▼
@@ -62,18 +65,8 @@
 
 <button
 	id="scroll-up-btn"
-	class={[
-		!isScrolled && 'hidden',
-		'bg-light',
-		'dark:bg-dark',
-		'border-dark',
-		'dark:border-light',
-		'border',
-		'p-2',
-		'fixed',
-		'bottom-5',
-		'right-5'
-	]}
+	class="bg-light dark:bg-dark border-dark dark:border-light border p-2 fixed bottom-5 right-5"
+	class:hidden={!isScrolled}
 	onclick={handleScrollUp}
 >
 	<MoveUp />

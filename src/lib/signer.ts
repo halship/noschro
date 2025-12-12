@@ -7,6 +7,10 @@ export let signer: EventSigner | null = null;
 export let pubkey: string | null = null;
 
 export async function tryLogin(): Promise<boolean> {
+    if (signer !== null && pubkey !== null) {
+        return true;
+    }
+
     const savedLogin = browser ? localStorage.getItem('login') : null;
     if (savedLogin === null) {
         nostrState.isAuthoricated = false;
