@@ -1,15 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import Notifications from '$lib/components/Notifications.svelte';
-	import { kindGeneralRepost, kindReaction, kindRepost } from '$lib/consts';
-	import { pubkey, tryLogin } from '$lib/signer';
+	import { tryLogin } from '$lib/signer';
 	import { nostrState } from '$lib/state.svelte';
 	import { rxReqOldNotifications, subscribe } from '$lib/timelines/base_timeline';
 	import { getNotificationsFilter } from '$lib/timelines/home_timeline';
 	import type { NotifyType } from '$lib/types/nostr';
 	import { AtSign, Bell, Repeat2, Heart } from '@lucide/svelte';
-	import type { LazyFilter } from 'rx-nostr';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 
 	let notifyType: NotifyType = $state('all');
 
@@ -23,6 +21,11 @@
 		nostrState.notifications = [];
 		nostrState.notificationsById = {};
 		rxReqOldNotifications.emit(getNotificationsFilter(notifyType));
+	});
+
+	onDestroy(() => {
+		nostrState.notifications = [];
+		nostrState.notificationsById = {};
 	});
 
 	function handleNotifyButton(ntype: NotifyType) {

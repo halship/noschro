@@ -8,11 +8,14 @@
 	import { unsubscribe } from '$lib/timelines/base_timeline';
 	import { browser } from '$app/environment';
 	import { logout } from '$lib/signer';
+	import { configTheme } from '$lib/consts';
 
 	let { children }: LayoutProps = $props();
 
 	let theme: string = $state(
-		browser && localStorage.getItem('theme') !== null ? localStorage.getItem('theme')! : 'light'
+		browser && localStorage.getItem(configTheme) !== null
+			? localStorage.getItem(configTheme)!
+			: 'light'
 	);
 
 	onDestroy(() => {

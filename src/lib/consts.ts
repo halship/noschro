@@ -18,3 +18,7 @@ export const kindGeneralRepost = 16;
 export const kindRelayList = 10002;
 
 export const kindsEvent = [kindPost, kindDelete, kindRepost, kindGeneralRepost];
+
+export const configLogin = 'login';
+export const configTheme = 'theme';
+export const configLoadImage = 'load-image';

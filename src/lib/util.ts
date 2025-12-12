@@ -3,7 +3,8 @@ import { decodeNostrURI, naddrEncode } from "nostr-tools/nip19";
 import { nostrState } from "./state.svelte";
 import type { NostrEvent } from "./types/nostr";
 import { rxReqProfiles } from "./timelines/base_timeline";
-import { kindMetaData } from "./consts";
+import { configLoadImage, kindMetaData } from "./consts";
+import { browser } from "$app/environment";
 
 export function formatContent(content: string, tags: string[][]): string {
     let emojis: Record<string, string> = {};
@@ -31,11 +32,11 @@ export function formatContent(content: string, tags: string[][]): string {
             if (imgResult) {
                 const imgType = imgResult[1].toLowerCase();
                 // 画像の場合
-                result.push('<a href="');
-                result.push(url);
-                result.push('" target="_blank" class="underline">');
-                result.push('[Open media (type: ' + imgType + ')]');
-                result.push('</a>');
+                if (getLoadImage()) {
+                    result.push(`<img src="${url}" class="max-w-fit">`);
+                } else {
+                    result.push(`<a href="${url}" target="_blank" class="underline">[Open media (type: ${imgType})]</a>`);
+                }
 
                 i += url.length;
             } else {
@@ -98,12 +99,16 @@ export function formatContent(content: string, tags: string[][]): string {
 
             i += codeResult[0].length;
         } else if (emojiResult) {
-            const emojiCode = emojiResult[0].slice(1, -1);
+            if (getLoadImage()) {
+                const emojiCode = emojiResult[0].slice(1, -1);
 
-            if (emojiCode in emojis) {
-                result.push('<img src="');
-                result.push(emojis[emojiCode]);
-                result.push('" class="inline-block max-w-[1em]">');
+                if (emojiCode in emojis) {
+                    result.push('<img src="');
+                    result.push(emojis[emojiCode]);
+                    result.push('" class="inline-block max-w-[1em]">');
+                } else {
+                    result.push(emojiResult[0]);
+                }
             } else {
                 result.push(emojiResult[0]);
             }
@@ -138,12 +143,16 @@ export function formatDisplayName(displayName: string, tags: string[][]): string
         const emojiResult = displayName.slice(i).match(/^:[a-zA-Z0-9_]+:/);
 
         if (emojiResult) {
-            const emojiCode = emojiResult[0].slice(1, -1);
+            if (getLoadImage()) {
+                const emojiCode = emojiResult[0].slice(1, -1);
 
-            if (emojiCode in emojis) {
-                result.push('<img src="');
-                result.push(emojis[emojiCode]);
-                result.push('" class="inline-block max-w-[1em]">');
+                if (emojiCode in emojis) {
+                    result.push('<img src="');
+                    result.push(emojis[emojiCode]);
+                    result.push('" class="inline-block max-w-[1em]">');
+                } else {
+                    result.push(emojiResult[0]);
+                }
             } else {
                 result.push(emojiResult[0]);
             }
@@ -160,6 +169,10 @@ export function formatDisplayName(displayName: string, tags: string[][]): string
 }
 
 export function formatReaction(content: string, tags: string[][]): string {
+    if (!getLoadImage()) {
+        return content;
+    }
+
     let emojis: Record<string, string> = {};
     tags.filter((tag) => tag[0] === 'emoji')
         .forEach((tag) => {
@@ -198,4 +211,8 @@ export function tagFilter(tagName: string): (tag: string[]) => boolean {
         if (tag.length > 0) return tag[0] === tagName;
         return false;
     };
+}
+
+export function getLoadImage(): boolean {
+    return browser ? localStorage.getItem(configLoadImage) === 'true' : false;;
 }
