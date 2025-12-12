@@ -4,27 +4,33 @@
 	import { getRefIds, getRefPubkeys } from '../util';
 	import ReactionHeader from './ReactionHeader.svelte';
 	import { onMount } from 'svelte';
+	import { rxReqProfiles, subscribe } from '$lib/timelines/base_timeline';
+	import { kindMetaData } from '$lib/consts';
 
 	export let event: NostrEvent;
 	export let eventsById: Record<string, NostrEvent>;
 	export let profiles: Record<string, NostrProfile>;
 
-	onMount(() => {
-		/*
+	onMount(async () => {
+		await subscribe();
+
 		if (!(event.pubkey in profiles)) {
-			emitProfile([event.pubkey]);
+			rxReqProfiles.emit({
+				kinds: [kindMetaData],
+				authors: [event.pubkey],
+				limit: 1
+			});
 		}
 
 		const ids = getRefIds(event);
 		if (ids.length > 0) {
-			emitEvent(ids.filter((id) => !(id in eventsById)));
+			//emitEvent(ids.filter((id) => !(id in eventsById)));
 		}
 
 		const pubkeys = getRefPubkeys(event);
 		if (pubkeys.length > 0) {
-			emitProfile(pubkeys.filter((key) => !(key in profiles)));
+			//emitProfile(pubkeys.filter((key) => !(key in profiles)));
 		}
-		*/
 	});
 </script>
 

@@ -3,10 +3,11 @@
 	import Post from '$lib/components/Post.svelte';
 	import { nostrState } from '$lib/state.svelte';
 	import { MoveUp } from '@lucide/svelte';
-	import { emitTimeline, subscribe } from '$lib/timelines/base_timeline';
+	import { rxReqOldTimeline, rxReqTimeline, subscribe } from '$lib/timelines/base_timeline';
 	import { onMount } from 'svelte';
 	import { tryLogin } from '$lib/signer';
 	import { goto } from '$app/navigation';
+	import { getHomeOldTimelineFilter, getHomeTimelineFilter } from '$lib/timelines/home_timeline';
 
 	let isScrolled: boolean = $state(false);
 
@@ -16,8 +17,9 @@
 			return;
 		}
 
-		subscribe();
-		emitTimeline();
+		await subscribe();
+		rxReqOldTimeline.emit(getHomeOldTimelineFilter());
+		rxReqTimeline.emit(getHomeTimelineFilter());
 	});
 
 	function handleScroll() {
