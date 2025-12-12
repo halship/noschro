@@ -33,7 +33,7 @@ export function formatContent(content: string, tags: string[][]): string {
                 const imgType = imgResult[1].toLowerCase();
                 // 画像の場合
                 if (getLoadImage()) {
-                    result.push(`<img src="${url}" class="max-w-fit">`);
+                    result.push(`<img src="${url}" class="max-w-[70%] my-3">`);
                 } else {
                     result.push(`<a href="${url}" target="_blank" class="underline">[Open media (type: ${imgType})]</a>`);
                 }
@@ -144,12 +144,16 @@ export function formatDisplayName(displayName: string, tags: string[][]): string
 
         if (emojiResult) {
             if (getLoadImage()) {
-                const emojiCode = emojiResult[0].slice(1, -1);
+                if (getLoadImage()) {
+                    const emojiCode = emojiResult[0].slice(1, -1);
 
-                if (emojiCode in emojis) {
-                    result.push('<img src="');
-                    result.push(emojis[emojiCode]);
-                    result.push('" class="inline-block max-w-[1em]">');
+                    if (emojiCode in emojis) {
+                        result.push('<img src="');
+                        result.push(emojis[emojiCode]);
+                        result.push('" class="inline-block max-w-[1em]">');
+                    } else {
+                        result.push(emojiResult[0]);
+                    }
                 } else {
                     result.push(emojiResult[0]);
                 }
@@ -158,6 +162,9 @@ export function formatDisplayName(displayName: string, tags: string[][]): string
             }
 
             i += emojiResult[0].length;
+        } else if (displayName.slice(i).startsWith(' ')) {
+            result.push('&nbsp;');
+            i++;
         } else {
             // その他の場合
             result.push(displayName.slice(i).charAt(0));

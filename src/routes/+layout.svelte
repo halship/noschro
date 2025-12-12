@@ -1,6 +1,6 @@
 <script lang="ts">
 	import './layout.css';
-	import { Bell, House, LogOut, Moon, Sun } from '@lucide/svelte';
+	import { Bell, House, LogOut, Moon, Settings, Sun } from '@lucide/svelte';
 	import { goto } from '$app/navigation';
 	import { onDestroy } from 'svelte';
 	import { clearState, nostrState } from '$lib/state.svelte';
@@ -59,6 +59,10 @@
 
 		<li id="notifications-btn" class="mx-3" class:hidden={!nostrState.isAuthoricated}>
 			<a href="/notifications" class="text-lg"><Bell /></a>
+		</li>
+
+		<li id="settings-btn" class="mx-3" class:hidden={!nostrState.isAuthoricated}>
+			<a href="/settings" class="text-lg"><Settings /></a>
 		</li>
 
 		<li id="logout-btn" class="mx-3" class:hidden={!nostrState.isAuthoricated}>
