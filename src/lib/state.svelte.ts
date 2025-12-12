@@ -1,10 +1,21 @@
 import type { NostrState } from "./types/nostr";
 
 export const nostrState: NostrState = $state({
-    authoricated: false,
     events: [],
     eventsById: {},
+    eventsByAddr: {},
     profiles: {},
     notifications: [],
-    eventsByAddr: [],
+    relays: [],
+    followees: [],
 });
+
+export function clearState() {
+    nostrState.events = [];
+    nostrState.eventsById = {};
+    nostrState.eventsByAddr = {};
+    nostrState.profiles = {};
+    nostrState.notifications = [];
+    nostrState.relays = [];
+    nostrState.followees = [];
+}

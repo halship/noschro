@@ -2,38 +2,42 @@
 	import './layout.css';
 	import { Bell, House, LogOut } from '@lucide/svelte';
 	import ThemeButton from '$lib/components/ThemeButton.svelte';
-	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
-	import { connectNostr, disconnectNostr } from '$lib/subscription';
-	import { nostrState } from '$lib/state.svelte';
+	import { clearState } from '$lib/state.svelte';
+	import type { LayoutProps } from './$types';
+	import { subscribe, unsubscribe } from '$lib/timelines/base_timeline';
+	import { browser } from '$app/environment';
+	import { page } from '$app/state';
 
-	let { children } = $props();
+	let { children, data }: LayoutProps = $props();
 
 	onMount(() => {
-		setTimeout(async () => {
-			if (!(await connectNostr())) {
-				disconnectNostr();
-				nostrState.authoricated = false;
-				goto('/login');
-			} else {
-				nostrState.authoricated = true;
-			}
-		}, 0);
+		if (page.url.pathname === '/login' && data.authoricated) {
+			goto('/');
+		} else if (page.url.pathname !== '/login' && !data.authoricated) {
+			goto('/login');
+		}
+
+		if (data.signer !== undefined && data.pubkey !== undefined) {
+			subscribe(data.signer, data.pubkey);
+		}
 
 		return () => {
-			disconnectNostr();
-			nostrState.authoricated = false;
+			unsubscribe();
+			clearState();
 		};
 	});
 
-	function logout() {
+	function handleLogout() {
+		unsubscribe();
+		clearState();
+
 		if (browser) {
 			localStorage.removeItem('login');
-			disconnectNostr();
-			nostrState.authoricated = false;
-			setTimeout(() => goto('/login'), 0);
 		}
+
+		setTimeout(() => goto('/login'), 0);
 	}
 </script>
 
@@ -46,16 +50,16 @@
 	class="bg-light dark:bg-dark border-thin text-dark dark:text-light border-b p-1 inset-x-0 top-0 sticky flex"
 >
 	<ul class="flex-auto flex items-center pl-1">
-		<li id="home-btn" class={['mx-3', !nostrState.authoricated && 'hidden']}>
+		<li id="home-btn" class={['mx-3', !data.authoricated && 'hidden']}>
 			<a href="/" class="text-lg"><House /></a>
 		</li>
 
-		<li id="notifications-btn" class={['mx-3', !nostrState.authoricated && 'hidden']}>
+		<li id="notifications-btn" class={['mx-3', !data.authoricated && 'hidden']}>
 			<a href="/notifications" class="text-lg"><Bell /></a>
 		</li>
 
-		<li id="logout-btn" class={['mx-3', !nostrState.authoricated && 'hidden']}>
-			<button class="text-lg block" onclick={logout}><LogOut /></button>
+		<li id="logout-btn" class={['mx-3', !data.authoricated && 'hidden']}>
+			<button class="text-lg block" onclick={handleLogout}><LogOut /></button>
 		</li>
 	</ul>
 	<div class="pr-1">

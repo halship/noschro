@@ -1,10 +1,11 @@
 export type NostrState = {
-    authoricated: boolean,
     events: NostrEvent[],
     eventsById: Record<string, NostrEvent>,
+    eventsByAddr: Record<string, NostrEvent>,
     profiles: Record<string, NostrProfile>,
     notifications: NostrEvent[],
-    eventsByAddr: NostrEvent[],
+    relays: NostrRelay[],
+    followees: string[],
 };
 
 export type NostrEvent = {
@@ -27,3 +28,9 @@ export type NostrProfile = {
 };
 
 export type NotifyType = 'all' | 'mentions' | 'reposts' | 'reactions';
+
+export type NostrRelay = {
+    url: string;
+    read: boolean;
+    write: boolean;
+};

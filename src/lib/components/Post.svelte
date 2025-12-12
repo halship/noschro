@@ -4,13 +4,13 @@
 	import { getRefIds, getRefPubkeys } from '../util';
 	import ReactionHeader from './ReactionHeader.svelte';
 	import { onMount } from 'svelte';
-	import { emitEvent, emitProfile } from '../subscription';
 
 	export let event: NostrEvent;
 	export let eventsById: Record<string, NostrEvent>;
 	export let profiles: Record<string, NostrProfile>;
 
 	onMount(() => {
+		/*
 		if (!(event.pubkey in profiles)) {
 			emitProfile([event.pubkey]);
 		}
@@ -24,6 +24,7 @@
 		if (pubkeys.length > 0) {
 			emitProfile(pubkeys.filter((key) => !(key in profiles)));
 		}
+		*/
 	});
 </script>
 

@@ -7,7 +7,7 @@ import { nostrState } from "./state.svelte";
 import type { Event } from "nostr-tools";
 import type { EventSigner } from "@rx-nostr/crypto/src";
 import { getRefIds, getRefPubkeys, tagFilter } from "./util";
-import { loadBufferTime, loadLimit, maxTimeline } from "./consts";
+import { loadBufferTime, loadLimit, maxTimelineNum } from "./consts";
 import { naddrEncode, type AddressPointer } from "nostr-tools/nip19";
 
 let signer: EventSigner | null = null;
@@ -329,8 +329,8 @@ export function emitNaddrEvent(addr: AddressPointer) {
 
 export function emitOlderReaction() {
     let limit = loadLimit;
-    if (maxTimeline - nostrState.events.length < loadLimit) {
-        limit = maxTimeline - nostrState.events.length;
+    if (maxTimelineNum - nostrState.events.length < loadLimit) {
+        limit = maxTimelineNum - nostrState.events.length;
     }
 
     let until = now();
@@ -348,8 +348,8 @@ export function emitOlderReaction() {
 
 export function emitOlderTimeline() {
     let limit = loadLimit;
-    if (maxTimeline - nostrState.events.length < loadLimit) {
-        limit = maxTimeline - nostrState.events.length;
+    if (maxTimelineNum - nostrState.events.length < loadLimit) {
+        limit = maxTimelineNum - nostrState.events.length;
     }
 
     rxReqOlderTimeline.emit({
@@ -423,17 +423,17 @@ function subscribeTimeline() {
 function addNotification(event: NostrEvent) {
     const index = nostrState.notifications.findIndex((ev) => ev.created_at < event.created_at);
     if (index < 0) {
-        nostrState.notifications = [...nostrState.notifications, event].slice(0, maxTimeline);
+        nostrState.notifications = [...nostrState.notifications, event].slice(0, maxTimelineNum);
     } else {
-        nostrState.notifications = nostrState.notifications.toSpliced(index, 0, event).slice(0, maxTimeline);
+        nostrState.notifications = nostrState.notifications.toSpliced(index, 0, event).slice(0, maxTimelineNum);
     }
 }
 
 function addEvent(event: NostrEvent) {
     const index = nostrState.events.findIndex((ev) => ev.created_at < event.created_at);
     if (index < 0) {
-        nostrState.events = [...nostrState.events, event].slice(0, maxTimeline);
+        nostrState.events = [...nostrState.events, event].slice(0, maxTimelineNum);
     } else {
-        nostrState.events = nostrState.events.toSpliced(index, 0, event).slice(0, maxTimeline);
+        nostrState.events = nostrState.events.toSpliced(index, 0, event).slice(0, maxTimelineNum);
     }
 }

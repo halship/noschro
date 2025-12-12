@@ -3,7 +3,6 @@
 	import PostHeader from './PostHeader.svelte';
 	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
 	import { tagFilter } from '$lib/util';
-	import { emitProfile } from '$lib/subscription';
 	import DOMPurify from 'isomorphic-dompurify';
 	import MarkdownIt from 'markdown-it';
 	import MarkdownItFootnote from 'markdown-it-footnote';
@@ -12,9 +11,11 @@
 	export let profiles: Record<string, NostrProfile>;
 
 	onMount(() => {
+		/*
 		if (!(event.pubkey in profiles)) {
 			emitProfile([event.pubkey]);
 		}
+		*/
 	});
 
 	function getTitle(): string {

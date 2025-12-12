@@ -1,51 +1,28 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
 	import { decodeNostrURI } from 'nostr-tools/nip19';
-	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { connectNostr, getSigner } from '$lib/subscription';
-	import { nostrState } from '$lib/state.svelte';
+	import type { PageProps } from './$types';
+
+	let { data }: PageProps = $props();
 
 	let nsec: string = $state('');
 	let message: string | null = $state(null);
 
-	onMount(() => {
-		if (getSigner()) {
-			goto('/');
-		}
-	});
+	function handleLoginNsec() {
+		const decoded = decodeNostrURI(nsec);
 
-	function loginNsec() {
-		if (browser) {
-			const decoded = decodeNostrURI(nsec);
-
-			if (decoded.type === 'nsec') {
-				localStorage.setItem('login', nsec);
-
-				setTimeout(async () => {
-					if (await connectNostr()) {
-						nostrState.authoricated = true;
-						goto('/');
-					}
-				}, 0);
-			} else {
-				message = 'Invalid nsec';
-				nsec = '';
-			}
+		if (decoded.type === 'nsec') {
+			localStorage.setItem('login', nsec);
+			setTimeout(() => goto('/'), 0);
+		} else {
+			message = 'Invalid nsec';
+			nsec = '';
 		}
 	}
 
-	function loginNip07() {
-		if (browser) {
-			localStorage.setItem('login', 'NIP07');
-
-			setTimeout(async () => {
-				if (await connectNostr()) {
-					nostrState.authoricated = true;
-					goto('/');
-				}
-			}, 0);
-		}
+	function handleLoginNip07() {
+		localStorage.setItem('login', '<NIP-7>');
+		setTimeout(() => goto('/'), 0);
 	}
 </script>
 
@@ -67,15 +44,15 @@
 		placeholder="Please input nsec"
 		bind:value={nsec}
 	/>
-	<button class="rounded border border-dark dark:border-light p-1 mt-2" onclick={loginNsec}
+	<button class="rounded border border-dark dark:border-light p-1 mt-2" onclick={handleLoginNsec}
 		>ログイン</button
 	>
 
-	{#if window.nostr}
+	{#if data.hasNip07}
 		<hr class="my-5" />
 
 		<h2 class="text-lg">■ 拡張機能でログイン</h2>
-		<button class="rounded border border-dark dark:border-light p-1 mt-2" onclick={loginNip07}
+		<button class="rounded border border-dark dark:border-light p-1 mt-2" onclick={handleLoginNip07}
 			>ログイン</button
 		>
 	{/if}

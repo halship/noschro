@@ -3,17 +3,18 @@
 	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
 	import { formatContent, formatDisplayName, getRefIds, getRefPubkeys, getNaddr } from '$lib/util';
 	import { onMount } from 'svelte';
-	import { emitProfile } from '$lib/subscription';
 	import PostHeader from './PostHeader.svelte';
 
 	export let event: NostrEvent;
 	export let profiles: Record<string, NostrProfile>;
 
 	onMount(() => {
+		/*
 		const pubkeys = getRefPubkeys(event);
 		if (pubkeys.length > 0) {
 			emitProfile(pubkeys.filter((key) => !(key in profiles)));
 		}
+		*/
 	});
 
 	function getRefEventCode(ev: NostrEvent): string {
