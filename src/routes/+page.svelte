@@ -3,17 +3,21 @@
 	import Post from '$lib/components/Post.svelte';
 	import { nostrState } from '$lib/state.svelte';
 	import { MoveUp } from '@lucide/svelte';
-	import { rxReqOldTimeline, rxReqTimeline } from '$lib/timelines/base_timeline';
-	import { getHomeOldTimelineFilter, getHomeTimelineFilter } from '$lib/timelines/home_timeline';
+	import { emitTimeline, subscribe } from '$lib/timelines/base_timeline';
+	import { onMount } from 'svelte';
+	import { tryLogin } from '$lib/signer';
+	import { goto } from '$app/navigation';
 
 	let isScrolled: boolean = $state(false);
 
-	$effect(() => {
-		if (nostrState.followees.length > 0) {
-			rxReqOldTimeline.emit(getHomeOldTimelineFilter());
-			rxReqTimeline.emit(getHomeTimelineFilter());
-			console.log('Start to loading timeline');
+	onMount(async () => {
+		if (!(await tryLogin())) {
+			goto('/login');
+			return;
 		}
+
+		subscribe();
+		emitTimeline();
 	});
 
 	function handleScroll() {

@@ -1,43 +1,42 @@
 <script lang="ts">
 	import './layout.css';
-	import { Bell, House, LogOut } from '@lucide/svelte';
-	import ThemeButton from '$lib/components/ThemeButton.svelte';
+	import { Bell, House, LogOut, Moon, Sun } from '@lucide/svelte';
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
-	import { clearState } from '$lib/state.svelte';
+	import { onDestroy } from 'svelte';
+	import { clearState, nostrState } from '$lib/state.svelte';
 	import type { LayoutProps } from './$types';
-	import { subscribe, unsubscribe } from '$lib/timelines/base_timeline';
+	import { unsubscribe } from '$lib/timelines/base_timeline';
 	import { browser } from '$app/environment';
-	import { page } from '$app/state';
+	import { logout } from '$lib/signer';
 
-	let { children, data }: LayoutProps = $props();
+	let { children }: LayoutProps = $props();
 
-	onMount(() => {
-		if (page.url.pathname === '/login' && data.authoricated) {
-			goto('/');
-		} else if (page.url.pathname !== '/login' && !data.authoricated) {
-			goto('/login');
-		}
+	let theme: string = $state(
+		browser && localStorage.getItem('theme') !== null ? localStorage.getItem('theme')! : 'light'
+	);
 
-		if (data.signer !== undefined && data.pubkey !== undefined) {
-			subscribe(data.signer, data.pubkey);
-		}
-
-		return () => {
-			unsubscribe();
-			clearState();
-		};
+	onDestroy(() => {
+		unsubscribe();
+		clearState();
 	});
 
 	function handleLogout() {
 		unsubscribe();
 		clearState();
+		logout();
+		goto('/login');
+	}
 
+	function toggleTheme() {
 		if (browser) {
-			localStorage.removeItem('login');
-		}
+			if (theme === 'light') {
+				theme = 'dark';
+			} else {
+				theme = 'light';
+			}
 
-		setTimeout(() => goto('/login'), 0);
+			localStorage.setItem('theme', theme);
+		}
 	}
 </script>
 
@@ -50,20 +49,26 @@
 	class="bg-light dark:bg-dark border-thin text-dark dark:text-light border-b p-1 inset-x-0 top-0 sticky flex"
 >
 	<ul class="flex-auto flex items-center pl-1">
-		<li id="home-btn" class={['mx-3', !data.authoricated && 'hidden']}>
+		<li id="home-btn" class={['mx-3', !nostrState.isAuthoricated && 'hidden']}>
 			<a href="/" class="text-lg"><House /></a>
 		</li>
 
-		<li id="notifications-btn" class={['mx-3', !data.authoricated && 'hidden']}>
+		<li id="notifications-btn" class={['mx-3', !nostrState.isAuthoricated && 'hidden']}>
 			<a href="/notifications" class="text-lg"><Bell /></a>
 		</li>
 
-		<li id="logout-btn" class={['mx-3', !data.authoricated && 'hidden']}>
+		<li id="logout-btn" class={['mx-3', !nostrState.isAuthoricated && 'hidden']}>
 			<button class="text-lg block" onclick={handleLogout}><LogOut /></button>
 		</li>
 	</ul>
 	<div class="pr-1">
-		<ThemeButton />
+		<button class="border border-thin rounded-full p-1" onclick={toggleTheme}>
+			{#if theme === 'light'}
+				<Sun />
+			{:else}
+				<Moon />
+			{/if}
+		</button>
 	</div>
 </header>
 

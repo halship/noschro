@@ -2,18 +2,32 @@
 	import { decodeNostrURI } from 'nostr-tools/nip19';
 	import { goto } from '$app/navigation';
 	import type { PageProps } from './$types';
+	import { tryLogin } from '$lib/signer';
+	import { onMount } from 'svelte';
 
 	let { data }: PageProps = $props();
 
 	let nsec: string = $state('');
 	let message: string | null = $state(null);
 
+	onMount(async () => {
+		if (await tryLogin()) {
+			goto('/');
+		}
+	});
+
 	function handleLoginNsec() {
 		const decoded = decodeNostrURI(nsec);
 
 		if (decoded.type === 'nsec') {
 			localStorage.setItem('login', nsec);
-			setTimeout(() => goto('/'), 0);
+			tryLogin().then((result) => {
+				if (result) {
+					goto('/');
+				} else {
+					message = 'Failed to login';
+				}
+			});
 		} else {
 			message = 'Invalid nsec';
 			nsec = '';
@@ -22,7 +36,13 @@
 
 	function handleLoginNip07() {
 		localStorage.setItem('login', '<NIP-7>');
-		setTimeout(() => goto('/'), 0);
+		tryLogin().then((result) => {
+			if (result) {
+				goto('/');
+			} else {
+				message = 'Failed to login';
+			}
+		});
 	}
 </script>
 

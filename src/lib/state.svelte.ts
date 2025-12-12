@@ -8,6 +8,7 @@ export const nostrState: NostrState = $state({
     notifications: [],
     relays: [],
     followees: [],
+    isAuthoricated: false,
 });
 
 export function clearState() {

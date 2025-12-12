@@ -6,6 +6,7 @@ export type NostrState = {
     notifications: NostrEvent[],
     relays: NostrRelay[],
     followees: string[],
+    isAuthoricated: boolean,
 };
 
 export type NostrEvent = {

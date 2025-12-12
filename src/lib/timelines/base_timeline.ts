@@ -5,6 +5,8 @@ import type { Subscription } from "rxjs";
 import { nostrState } from "$lib/state.svelte";
 import { getTagValues } from "$lib/util";
 import type { Event } from "nostr-typedef";
+import { signer, pubkey } from "$lib/signer";
+import { getHomeOldTimelineFilter, getHomeTimelineFilter } from "./home_timeline";
 
 export const rxReqTimeline = createRxForwardReq();
 export const rxReqOldTimeline = createRxBackwardReq();
@@ -18,10 +20,15 @@ let oldTimelineSub: Subscription | null = null;
 let relaysSub: Subscription | null = null;
 let followSub: Subscription | null = null;
 
-export function subscribe(signer: EventSigner, pubkey: string) {
+let isLoadedRelay = false;
+let isLoadedFollow = false;
+
+export function subscribe() {
     if (signer === null || pubkey === null) {
         throw Error('signer or pubkey is null');
     }
+
+    if (rxNostr !== null) return;
 
     rxNostr = createRxNostr({
         verifier,
@@ -65,6 +72,8 @@ export function subscribe(signer: EventSigner, pubkey: string) {
                 for (const relay of nostrState.relays) {
                     console.log(relay);
                 }
+
+                isLoadedRelay = true;
             },
             error: (err) => {
                 console.error(err);
@@ -79,11 +88,25 @@ export function subscribe(signer: EventSigner, pubkey: string) {
                     .map((t) => t[0]);
 
                 console.log(`[${kindFollowList}] Set follow list`);
+
+                isLoadedFollow = true;
             },
             error: (err) => {
                 console.error(err);
             }
         });
+
+    rxReqRelays.emit({
+        kinds: [kindRelayList],
+        authors: [pubkey],
+        limit: 1
+    });
+
+    rxReqFollow.emit({
+        kinds: [kindFollowList],
+        authors: [pubkey],
+        limit: 1
+    });
 }
 
 export function unsubscribe() {
@@ -98,6 +121,17 @@ export function unsubscribe() {
 
     rxNostr?.dispose();
     rxNostr = null;
+}
+
+export function emitTimeline() {
+    if (isLoadedRelay && isLoadedFollow) {
+        rxReqOldTimeline.emit(getHomeOldTimelineFilter());
+        rxReqTimeline.emit(getHomeTimelineFilter());
+    } else {
+        setTimeout(() => {
+            emitTimeline();
+        }, 1000);
+    }
 }
 
 function setTimeline(event: Event) {
