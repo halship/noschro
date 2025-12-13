@@ -43,8 +43,8 @@
 	}
 
 	function handleLoadMore() {
-		if (nostrState.maxTimelineNum < maxTimelineNum) {
-			nostrState.maxTimelineNum += loadLimit;
+		if (nostrState.timelineNum < maxTimelineNum) {
+			nostrState.timelineNum += loadLimit;
 		}
 		rxReqOldTimeline.emit(getHomeOldTimelineFilter());
 	}
