@@ -19,8 +19,9 @@
 </script>
 
 <div class="post-header mb-1 flex">
+    <div class="overflow-hidden flex flex-none flex-nowrap">
 	<span
-		class="user-display-name font-bold grow-0 shrink basis-auto min-w-0 whitespace-nowrap overflow-hidden mr-1"
+		class="user-display-name font-bold whitespace-nowrap mr-1 flex-none"
 	>
 		<a href="/{npubEncode(event.pubkey)}">
 			{#if profile?.display_name}
@@ -33,11 +34,12 @@
 		</a>
 	</span>
 
-	<span class="user-name text-thin grow shrink min-w-0 whitespace-nowrap overflow-hidden mr-1">
+	<span class="user-name text-thin grow shrink min-w-0 whitespace-nowrap overflow-hidden mr-1 flex-none">
 		{#if profile?.display_name && profile?.name && profile?.display_name !== profile?.name}
 			@{profile?.name!}
 		{/if}
 	</span>
+	</div>
 
 	<span class="post-created-at text-thin grow-0 shrink-0 basis-auto"
 		><a href="/{getEventCode(event)}" class="underline">{formatTime(event.created_at)}</a></span
