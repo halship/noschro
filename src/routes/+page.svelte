@@ -26,11 +26,6 @@
 		}
 	});
 
-	onDestroy(() => {
-		nostrState.timelineNum = loadLimit;
-		nostrState.events.slice(0, nostrState.timelineNum);
-	});
-
 	function handleScroll() {
 		isScrolled = window.scrollY > 0;
 	}
@@ -40,6 +35,8 @@
 			top: 0,
 			behavior: 'instant'
 		});
+		nostrState.timelineNum = loadLimit;
+		nostrState.events = nostrState.events.slice(0, nostrState.timelineNum);
 	}
 
 	function handleLoadMore() {

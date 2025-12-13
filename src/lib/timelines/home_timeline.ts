@@ -21,13 +21,12 @@ export function getHomeTimelineFilter(): LazyFilter[] {
 
 export function getHomeOldTimelineFilter(): LazyFilter[] {
     const until = nostrState.events.length > 0 ? nostrState.events.slice(-1)[0].created_at : now();
-    const limit = maxTimelineNum - nostrState.events.length < loadLimit ? maxTimelineNum - nostrState.events.length : loadLimit;
     return [
         {
             kinds: kindsEvent,
             authors: nostrState.followees,
             until,
-            limit,
+            limit: loadLimit,
         }
     ];
 }
