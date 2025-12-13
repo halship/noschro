@@ -89,7 +89,7 @@
 		{/if}
 
 		{#if event.kind === 1}
-			<div class="post-content wrap-break-word leading-none mb-1">
+			<div class="post-content wrap-break-word leading-none mb-1 break-all">
 				{@html formatContent(event.content, event.tags)}
 			</div>
 		{:else if event.kind === 30023}
