@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { maxTimelineNum } from '$lib/consts';
+	import { maxTimelineNum, loadLimit } from '$lib/consts';
 	import Post from '$lib/components/Post.svelte';
 	import { nostrState } from '$lib/state.svelte';
 	import { MoveUp } from '@lucide/svelte';
 	import { rxReqOldTimeline, rxReqTimeline, subscribe } from '$lib/timelines/base_timeline';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { tryLogin } from '$lib/signer';
 	import { goto } from '$app/navigation';
 	import { getHomeOldTimelineFilter, getHomeTimelineFilter } from '$lib/timelines/home_timeline';
@@ -26,6 +26,11 @@
 		}
 	});
 
+	onDestroy(() => {
+		nostrState.timelineNum = loadLimit;
+		nostrState.events.slice(0, nostrState.timelineNum);
+	});
+
 	function handleScroll() {
 		isScrolled = window.scrollY > 0;
 	}
@@ -38,6 +43,9 @@
 	}
 
 	function handleLoadMore() {
+		if (nostrState.maxTimelineNum < maxTimelineNum) {
+			nostrState.maxTimelineNum += loadLimit;
+		}
 		rxReqOldTimeline.emit(getHomeOldTimelineFilter());
 	}
 </script>

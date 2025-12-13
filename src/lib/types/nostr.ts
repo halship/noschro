@@ -8,6 +8,7 @@ export type NostrState = {
     relays: NostrRelay[],
     followees: string[],
     isAuthoricated: boolean,
+    timelineNum: number,
 };
 
 export type NostrEvent = {

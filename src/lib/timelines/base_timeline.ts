@@ -182,10 +182,10 @@ function setTimeline(event: Event) {
     const index = nostrState.events
         .findIndex((ev) => ev.created_at < nostrEvent.created_at);
     if (index < 0) {
-        nostrState.events = [...nostrState.events, nostrEvent].slice(0, maxTimelineNum);
+        nostrState.events = [...nostrState.events, nostrEvent].slice(0, nostrState.timelineNum);
     } else {
         nostrState.events = nostrState.events
-            .toSpliced(index, 0, nostrEvent).slice(0, maxTimelineNum);
+            .toSpliced(index, 0, nostrEvent).slice(0, nostrState.timelineNum);
     }
 
     nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
