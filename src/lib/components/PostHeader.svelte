@@ -19,9 +19,9 @@
 </script>
 
 <div class="post-header mb-1 flex flex-nowrap w-full">
-    <div class="overflow-hidden flex flex-nowrap grow shrink basis-0 min-w-0">
+    <div class="overflow-hidden flex flex-nowrap grow shrink min-w-0">
 	<span
-		class="user-display-name font-bold whitespace-nowrap mr-1 grow-0 basis-0 min-w-0 overflow-hidden"
+		class="user-display-name font-bold whitespace-nowrap mr-1 grow-0 shrink min-w-0 overflow-hidden"
 	>
 		<a href="/{npubEncode(event.pubkey)}">
 			{#if profile?.display_name}
