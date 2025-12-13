@@ -21,7 +21,7 @@
 <div class="post-header mb-1 flex flex-nowrap">
     <div class="overflow-hidden flex flex-nowrap grow shrink min-w-0">
 	<span
-		class="user-display-name font-bold whitespace-nowrap mr-1 flex-none"
+		class="user-display-name font-bold whitespace-nowrap mr-1 flex-none min-w-0"
 	>
 		<a href="/{npubEncode(event.pubkey)}">
 			{#if profile?.display_name}
