@@ -14,7 +14,21 @@
 	}
 
 	function formatTime(ts: number) {
-		return new Date(ts * 1000).toLocaleString();
+		const datetime = new Date(ts * 1000);
+		const now = new Date(Date.now());
+		if (datetime.getDay() === now.getDay()) {
+			const hour = datetime.getHours();
+			const minutes = datetime.getMinutes();
+
+			const minutesString = minutes > 9 ? minutes.toString() : `0${minutes}`;
+			return `${hour}:${minutesString}`;
+		}
+
+		const month = datetime.getMonth();
+		const day = datetime.getDay();
+
+		const dayString = day > 9 ? day.toString() : `0${day}`;
+		return `${month}/${day}`;
 	}
 </script>
 

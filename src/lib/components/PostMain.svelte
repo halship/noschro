@@ -11,6 +11,9 @@
 	export let event: NostrEvent;
 	export let profiles: Record<string, NostrProfile>;
 
+	let refIds: string[] = event.tags.filter((t) => t[0] === 'e').map((t) => t[1]);
+	let refPubkeys: string[] = event.tags.filter((t) => t[0] === 'p').map((t) => t[1]);
+
 	onMount(() => {
 		const pubkeys = event.tags
 			.filter((t) => t[0] === 'p')
@@ -27,8 +30,8 @@
 
 	function getRefEventCode(ev: NostrEvent): string {
 		return neventEncode({
-			id: getRefIds(ev)[0],
-			author: getRefPubkeys(ev)[0]
+			id: refIds.slice(-1)[0],
+			author: refPubkeys.slice(-1)[0]
 		});
 	}
 
@@ -58,7 +61,7 @@
 	<PostHeader {event} profile={profiles[event.pubkey]} />
 
 	<div class="break-all wrap-anywhere">
-		{#if getRefIds(event).length > 0}
+		{#if refIds.length > 0}
 			<div class="ref-link underline mb-1">
 				<a href="/{getRefEventCode(event)}">[返信元]</a>
 			</div>
