@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { configLoadImage } from '$lib/consts';
-	import { tryLogin } from '$lib/signer';
-	import { subscribe } from '$lib/timelines/base_timeline';
+	import { configLoadImage, loadLimit } from '$lib/consts';
+	import { logout, tryLogin } from '$lib/signer';
+	import { clearState, nostrState } from '$lib/state.svelte';
+	import { subscribe, unsubscribe } from '$lib/timelines/base_timeline';
 	import { getLoadImage } from '$lib/util';
 	import { onMount } from 'svelte';
 
@@ -16,6 +17,9 @@
 		}
 
 		await subscribe();
+
+		nostrState.timelineNum = loadLimit;
+		nostrState.events = nostrState.events.slice(0, nostrState.timelineNum);
 	});
 
 	function handleClickLoginImage() {
@@ -25,6 +29,13 @@
 			localStorage.setItem(configLoadImage, loadImage ? 'true' : 'false');
 		}
 	}
+
+	function handleLogout() {
+		unsubscribe();
+		clearState();
+		logout();
+		goto('/login');
+	}
 </script>
 
 <h1 class="text-lg font-bold">Settings</h1>
@@ -33,5 +44,14 @@
 	<div>
 		<span class="inline-block mr-2">画像をロードする:</span>
 		<input type="checkbox" bind:checked={loadImage} onclick={handleClickLoginImage} />
+	</div>
+
+	<hr class="my-4" />
+
+	<div>
+		<button
+			class="p-2 text-center bg-light dark:bg-dark border-dark dark:border-light border rounded-md"
+			onclick={handleLogout}>ログアウト</button
+		>
 	</div>
 </div>

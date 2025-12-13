@@ -49,7 +49,7 @@
 
 <svelte:window onscroll={handleScroll} />
 
-<h1 class="text-lg font-bold">Home</h1>
+<h1 class="text-lg font-bold">ホーム</h1>
 
 {#if nostrState.events.length === 0}
 	<p class="text-center">loading...</p>

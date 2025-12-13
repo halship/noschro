@@ -23,13 +23,6 @@
 		clearState();
 	});
 
-	function handleLogout() {
-		unsubscribe();
-		clearState();
-		logout();
-		goto('/login');
-	}
-
 	function toggleTheme() {
 		if (browser) {
 			if (theme === 'light') {
@@ -63,10 +56,6 @@
 
 		<li id="settings-btn" class="mx-3" class:hidden={!nostrState.isAuthoricated}>
 			<a href="/settings" class="text-lg"><Settings /></a>
-		</li>
-
-		<li id="logout-btn" class="mx-3" class:hidden={!nostrState.isAuthoricated}>
-			<button class="text-lg block" onclick={handleLogout}><LogOut /></button>
 		</li>
 	</ul>
 	<div class="pr-1">
