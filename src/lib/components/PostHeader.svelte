@@ -19,7 +19,7 @@
 </script>
 
 <div class="post-header mb-1 flex flex-nowrap">
-    <div class="overflow-hidden flex flex-nowrap flex-1 min-w-0">
+    <div class="overflow-hidden flex flex-nowrap grow shrink min-w-0">
 	<span
 		class="user-display-name font-bold whitespace-nowrap mr-1 flex-none"
 	>
