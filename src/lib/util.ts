@@ -33,7 +33,7 @@ export function formatContent(content: string, tags: string[][]): string {
                 const imgType = imgResult[1].toLowerCase();
                 // 画像の場合
                 if (getLoadImage()) {
-                    result.push(`<a href="${url}" target="_blank"><img src="${url}" class="max-w-2xs w-full my-3 border border-thin rounded-md"></a>`);
+                    result.push(`<a href="${url}" target="_blank"><img src="${url}" class="block object-contain max-h-80 max-w-full my-3 rounded-md mx-auto border border-thin"></a>`);
                 } else {
                     result.push(`<a href="${url}" target="_blank" class="underline">[Open media (type: ${imgType})]</a>`);
                 }
