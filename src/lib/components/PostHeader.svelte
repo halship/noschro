@@ -18,8 +18,8 @@
 	}
 </script>
 
-<div class="post-header mb-1 flex">
-    <div class="overflow-hidden flex flex-none flex-nowrap">
+<div class="post-header mb-1 flex flex-nowrap">
+    <div class="overflow-hidden flex flex-nowrap min-w-0">
 	<span
 		class="user-display-name font-bold whitespace-nowrap mr-1 flex-none"
 	>
