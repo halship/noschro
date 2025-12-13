@@ -18,30 +18,28 @@
 	}
 </script>
 
-<div class="post-header mb-1 flex flex-nowrap w-full">
-    <div class="overflow-hidden flex flex-nowrap grow shrink min-w-0 w-full">
-	<span
-		class="user-display-name font-bold whitespace-nowrap mr-1 grow-0 shrink min-w-0 overflow-hidden"
-	>
+<div class="post-header mb-1 flex justify-between">
+	<div class="min-w-0 w-0 grow shrink text-nowrap overflow-hidden">
 		<a href="/{npubEncode(event.pubkey)}">
-			{#if profile?.display_name}
-				{@html formatDisplayName(profile.display_name!, profile.tags)}
-			{:else if profile?.name}
-				{profile?.name!}
-			{:else}
-				{event.pubkey.substring(0, 9)}
+			<span class="user-display-name font-bold mr-1">
+				{#if profile?.display_name}
+					{@html formatDisplayName(profile.display_name!, profile.tags)}
+				{:else if profile?.name}
+					{profile?.name!}
+				{:else}
+					{event.pubkey.substring(0, 9)}
+				{/if}
+			</span>
+
+			{#if profile?.display_name && profile?.name && profile?.display_name !== profile?.name}
+				<span class="user-name text-thin">
+					@{profile?.name!}
+				</span>
 			{/if}
 		</a>
-	</span>
-
-	<span class="user-name text-thin grow shrink min-w-0 whitespace-nowrap overflow-hidden mr-1 flex-none">
-		{#if profile?.display_name && profile?.name && profile?.display_name !== profile?.name}
-			@{profile?.name!}
-		{/if}
-	</span>
 	</div>
 
-	<span class="post-created-at text-thin grow-0 shrink-0 basis-auto"
+	<span class="post-created-at text-thin text-right text-nowrap pl-2"
 		><a href="/{getEventCode(event)}" class="underline">{formatTime(event.created_at)}</a></span
 	>
 </div>

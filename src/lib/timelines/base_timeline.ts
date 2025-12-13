@@ -179,6 +179,10 @@ function setTimeline(event: Event) {
 
     const nostrEvent = { ...event };
 
+    if (nostrState.events.length < maxTimelineNum) {
+        nostrState.timelineNum += 1;
+    }
+
     const index = nostrState.events
         .findIndex((ev) => ev.created_at < nostrEvent.created_at);
     if (index < 0) {

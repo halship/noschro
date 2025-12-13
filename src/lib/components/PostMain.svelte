@@ -13,6 +13,7 @@
 	import PostHeader from './PostHeader.svelte';
 	import { rxReqProfiles } from '$lib/timelines/base_timeline';
 	import { kindMetaData } from '$lib/consts';
+	import PostUserImage from './PostUserImage.svelte';
 
 	export let event: NostrEvent;
 	export let profiles: Record<string, NostrProfile>;
@@ -58,20 +59,12 @@
 	}
 </script>
 
-<div class="post-main flex">
-	<div class="post-left flex-none mr-2">
-		<a href="/{npubEncode(event.pubkey)}">
-			{#if getLoadImage() && profiles[event.pubkey]?.picture}
-				<img src={profiles[event.pubkey].picture} class="w-[50px] h-[50px] rounded-full" />
-			{:else}
-				<div class="w-[50px] h-[50px] rounded-full border border-thin"></div>
-			{/if}
-		</a>
-	</div>
+<div class="post-main grid grid-cols-[auto_1fr] grid-rows-[auto_1fr]">
+	<PostUserImage pubkey={event.pubkey} {profiles} />
 
-	<div class="post-right flex-auto">
-		<PostHeader {event} profile={profiles[event.pubkey]} />
+	<PostHeader {event} profile={profiles[event.pubkey]} />
 
+	<div class="break-all wrap-anywhere">
 		{#if getRefIds(event).length > 0}
 			<div class="ref-link underline mb-1">
 				<a href="/{getRefEventCode(event)}">[返信元]</a>
@@ -89,7 +82,7 @@
 		{/if}
 
 		{#if event.kind === 1}
-			<div class="post-content wrap-anywhere leading-none mb-1 break-all">
+			<div class="post-content leading-none mb-1">
 				{@html formatContent(event.content, event.tags)}
 			</div>
 		{:else if event.kind === 30023}
