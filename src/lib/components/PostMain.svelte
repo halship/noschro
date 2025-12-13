@@ -1,7 +1,14 @@
 <script lang="ts">
 	import { neventEncode, npubEncode } from 'nostr-tools/nip19';
 	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
-	import { formatContent, formatDisplayName, getRefIds, getRefPubkeys, getNaddr } from '$lib/util';
+	import {
+		formatContent,
+		formatDisplayName,
+		getRefIds,
+		getRefPubkeys,
+		getNaddr,
+		getLoadImage
+	} from '$lib/util';
 	import { onMount } from 'svelte';
 	import PostHeader from './PostHeader.svelte';
 	import { rxReqProfiles } from '$lib/timelines/base_timeline';
@@ -51,28 +58,42 @@
 	}
 </script>
 
-<PostHeader {event} profile={profiles[event.pubkey]} />
-
-{#if getRefIds(event).length > 0}
-	<div class="ref-link underline mb-1">
-		<a href="/{getRefEventCode(event)}">[返信元]</a>
+<div class="post-main flex">
+	<div class="post-left flex-none mr-2">
+		<a href="/{npubEncode(event.pubkey)}">
+			{#if getLoadImage() && profiles[event.pubkey]?.picture}
+				<img src={profiles[event.pubkey].picture} class="w-[50px] h-[50px] rounded-full" />
+			{:else}
+				<div class="w-[50px] h-[50px] rounded-full border border-thin"></div>
+			{/if}
+		</a>
 	</div>
-{/if}
 
-{#if getRefPubkeys(event).length > 0}
-	<div class="mentions mb-1 text-sm text-thin">
-		{#each getRefPubkeys(event) as pubkey}
-			<a class="mr-2" href="/{npubEncode(pubkey)}"
-				>{@html formatMention(profiles[pubkey], pubkey)}</a
-			>
-		{/each}
-	</div>
-{/if}
+	<div class="post-right flex-auto">
+		<PostHeader {event} profile={profiles[event.pubkey]} />
 
-{#if event.kind === 1}
-	<div class="post-content wrap-break-word leading-none mb-1">
-		{@html formatContent(event.content, event.tags)}
+		{#if getRefIds(event).length > 0}
+			<div class="ref-link underline mb-1">
+				<a href="/{getRefEventCode(event)}">[返信元]</a>
+			</div>
+		{/if}
+
+		{#if getRefPubkeys(event).length > 0}
+			<div class="mentions mb-1 text-sm text-thin">
+				{#each getRefPubkeys(event) as pubkey}
+					<a class="mr-2" href="/{npubEncode(pubkey)}"
+						>{@html formatMention(profiles[pubkey], pubkey)}</a
+					>
+				{/each}
+			</div>
+		{/if}
+
+		{#if event.kind === 1}
+			<div class="post-content wrap-break-word leading-none mb-1">
+				{@html formatContent(event.content, event.tags)}
+			</div>
+		{:else if event.kind === 30023}
+			<a href="/{getNaddr(event)}" class="underline">[長文投稿]</a>
+		{/if}
 	</div>
-{:else if event.kind === 30023}
-	<a href="/{getNaddr(event)}" class="underline">[長文投稿]</a>
-{/if}
+</div>
