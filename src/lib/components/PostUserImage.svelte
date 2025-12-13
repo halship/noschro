@@ -7,16 +7,18 @@
 	export let profiles: Record<string, NostrProfile>;
 </script>
 
-<div class="post-image mr-2 row-span-2">
-	<a href="/{npubEncode(pubkey)}">
-		{#if getLoadImage() && profiles[pubkey]?.picture}
-			<img
-				src={profiles[pubkey].picture}
-				alt={profiles[pubkey].name}
-				class="w-[50px] h-[50px] rounded-full"
-			/>
-		{:else}
-			<div class="w-[50px] h-[50px] rounded-full border border-thin"></div>
-		{/if}
-	</a>
+<div class="post-image row-span-2" class:mr-2={getLoadImage()}>
+	{#if getLoadImage()}
+		<a href="/{npubEncode(pubkey)}">
+			{#if profiles[pubkey]?.picture}
+				<img
+					src={profiles[pubkey].picture}
+					alt={profiles[pubkey].name}
+					class="w-[50px] h-[50px] rounded-full"
+				/>
+			{:else}
+				<div class="w-[50px] h-[50px] rounded-full border border-thin"></div>
+			{/if}
+		</a>
+	{/if}
 </div>

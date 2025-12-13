@@ -1,14 +1,7 @@
 <script lang="ts">
 	import { neventEncode, npubEncode } from 'nostr-tools/nip19';
 	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
-	import {
-		formatContent,
-		formatDisplayName,
-		getRefIds,
-		getRefPubkeys,
-		getNaddr,
-		getLoadImage
-	} from '$lib/util';
+	import { formatContent, formatDisplayName, getRefIds, getRefPubkeys, getNaddr } from '$lib/util';
 	import { onMount } from 'svelte';
 	import PostHeader from './PostHeader.svelte';
 	import { rxReqProfiles } from '$lib/timelines/base_timeline';
