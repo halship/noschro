@@ -72,6 +72,7 @@ export async function subscribe() {
                         name?: string;
                         display_name?: string;
                         picture?: string;
+                        banner?: string;
                         about?: string;
                     };
 
@@ -82,6 +83,7 @@ export async function subscribe() {
                         name: meta.name,
                         display_name: meta.display_name,
                         picture: meta.picture,
+                        banner: meta.banner,
                         about: meta.about,
                     };
 

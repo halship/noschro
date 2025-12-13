@@ -38,7 +38,7 @@
 	}
 </script>
 
-<h1 class="text-lg font-bold">Settings</h1>
+<h1 class="text-lg font-bold">設定</h1>
 
 <div class="border border-thin rounded-md p-2 mt-2">
 	<div>

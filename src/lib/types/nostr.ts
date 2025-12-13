@@ -25,6 +25,7 @@ export type NostrProfile = {
     name?: string,
     display_name?: string,
     picture?: string;
+    banner?: string;
     about?: string;
     tags: string[][];
     created_at: number;
