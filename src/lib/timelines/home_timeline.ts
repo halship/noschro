@@ -32,8 +32,8 @@ export function getHomeOldTimelineFilter(): LazyFilter[] {
 }
 
 export function getNotificationsFilter(notifyType: NotifyType): LazyFilter {
-    const until = nostrState.events.length > 0 ? nostrState.events.slice(-1)[0].created_at : now();
-    const limit = maxTimelineNum - nostrState.events.length < loadLimit ? maxTimelineNum - nostrState.events.length : loadLimit;
+    const until = nostrState.notifications.length > 0 ? nostrState.notifications.slice(-1)[0].created_at : now();
+    const limit = maxTimelineNum - nostrState.notifications.length < loadLimit ? maxTimelineNum - nostrState.notifications.length : loadLimit;
 
     if (notifyType === 'mentions') {
         return {

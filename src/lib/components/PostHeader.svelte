@@ -23,8 +23,8 @@
 			return `${hour}:${minutesString}`;
 		}
 
-		const month = datetime.getMonth();
-		const day = datetime.getDay();
+		const month = datetime.getMonth() + 1;
+		const day = datetime.getDate();
 
 		const dayString = day > 9 ? day.toString() : `0${day}`;
 		return `${month}/${dayString}`;

@@ -12,10 +12,10 @@
 	let refIds = $derived(event.tags.filter((t) => t[0] === 'e').map((t) => t[1]));
 
 	onMount(() => {
-		if (refIds.length > 0 && !(refIds[0] in nostrState.eventsById)) {
+		if (refIds.length > 0 && !(refIds.slice(-1)[0] in nostrState.eventsById)) {
 			rxReqEvent.emit({
 				kinds: kindsEvent,
-				ids: [refIds[0]],
+				ids: [refIds.slice(-1)[0]],
 				limit: 1
 			});
 		}
