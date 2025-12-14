@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import Notifications from '$lib/components/Notifications.svelte';
+	import Post from '$lib/components/Post.svelte';
 	import { tryLogin } from '$lib/signer';
 	import { nostrState } from '$lib/state.svelte';
 	import { rxReqOldNotifications, subscribe } from '$lib/timelines/base_timeline';
@@ -76,12 +76,11 @@
 	</li>
 </ul>
 
-<Notifications
-	events={nostrState.notifications}
-	eventsById={nostrState.eventsById}
-	profiles={nostrState.profiles}
-	repostsById={nostrState.repostsById}
-/>
+<div id="notifications">
+	{#each nostrState.notifications as ev (ev.id)}
+		<Post state={nostrState} event={ev} />
+	{/each}
+</div>
 
 <style>
 	.selected-btn {

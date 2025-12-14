@@ -2,28 +2,26 @@
 	import { kindMetaData, kindsEvent } from '$lib/consts';
 	import { tokenize } from '$lib/formatter';
 	import { rxReqEvent, rxReqProfiles } from '$lib/timelines/base_timeline';
-	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
-	import { Emoji, Image, Link, LongContent, Reference, Text, User, Video } from '$lib/types/token';
+	import type { NostrEvent, NostrProfile, NostrState } from '$lib/types/nostr';
+	import {
+		Emoji,
+		Image,
+		Link,
+		LongContent,
+		Reference,
+		Text,
+		User,
+		Video,
+		type Token
+	} from '$lib/types/token';
 	import { getSetting } from '$lib/util';
 	import { SquareArrowOutUpRight } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import Post from './Post.svelte';
 
-	let {
-		content,
-		tags,
-		eventsById,
-		profiles,
-		repostsById
-	}: {
-		content: string;
-		tags: string[][];
-		eventsById: Record<string, NostrEvent>;
-		profiles: Record<string, NostrProfile>;
-		repostsById: Record<string, string>;
-	} = $props();
+	let { state, content, tags }: { state: NostrState; content: string; tags: string[][] } = $props();
 
-	let tokens = $derived(tokenize(content));
+	let tokens: Token[] = $derived(tokenize(content));
 
 	let emojis: Record<string, string> = $derived(
 		tags
@@ -37,13 +35,13 @@
 
 	onMount(async () => {
 		for (const token of tokens) {
-			if (token instanceof Reference && !(token.id in eventsById)) {
+			if (token instanceof Reference && !(token.id in state.eventsById)) {
 				rxReqEvent.emit({
 					kinds: kindsEvent,
 					ids: [token.id],
 					limit: 1
 				});
-			} else if (token instanceof User && !(token.pubkey in profiles)) {
+			} else if (token instanceof User && !(token.pubkey in state.profiles)) {
 				rxReqProfiles.emit({
 					kinds: [kindMetaData],
 					authors: [token.pubkey],
@@ -91,8 +89,8 @@
 				{token.url}<SquareArrowOutUpRight class="inline-block size-4" />
 			</a>
 		{:else if token instanceof Reference}
-			{#if getSetting('expand-ref') === 'true' && token.id in eventsById}
-				<Post event={eventsById[token.id]} {profiles} {eventsById} {repostsById} />
+			{#if getSetting('expand-ref') === 'true' && token.id in state.eventsById}
+				<Post {state} event={state.eventsById[token.id]} />
 			{:else}
 				<a href="/{token.code}" class="underline">[引用]</a>
 			{/if}
@@ -100,13 +98,13 @@
 			<a href="/{token.code}" class="underline">[長文投稿]</a>
 		{:else if token instanceof User}
 			<a href="/{token.code}">
-				{#if token.pubkey in profiles}
-					{#if profiles[token.pubkey].display_name}
-						@{profiles[token.pubkey].display_name}
-					{:else if profiles[token.pubkey].name}
-						@{profiles[token.pubkey].name}
+				{#if token.pubkey in state.profiles}
+					{#if state.profiles[token.pubkey].display_name}
+						@{state.profiles[token.pubkey].display_name}
+					{:else if state.profiles[token.pubkey].name}
+						@{state.profiles[token.pubkey].name}
 					{:else}
-						@token.code.slice(0, 9)}
+						@token.code.slice(0, 9)
 					{/if}
 				{:else}
 					@{token.code.slice(0, 9)}

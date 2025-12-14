@@ -1,19 +1,10 @@
 <script lang="ts">
-	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
-	import { formatDisplayName, getRefIds, getRefPubkeys, getSetting } from '$lib/util';
+	import type { NostrProfile, NostrState } from '$lib/types/nostr';
+	import { getSetting } from '$lib/util';
+	import { formatDisplayName } from '$lib/formatter';
 	import PostContent from './PostContent.svelte';
 
-	let {
-		profile,
-		eventsById,
-		profiles,
-		repostsById
-	}: {
-		profile: NostrProfile;
-		eventsById: Record<string, NostrEvent>;
-		profiles: Record<string, NostrProfile>;
-		repostsById: Record<string, string>;
-	} = $props();
+	let { state, profile }: { state: NostrState; profile: NostrProfile } = $props();
 </script>
 
 <div class="profile border-thin border rounded-md mt-2 overflow-hidden">
@@ -51,13 +42,7 @@
 		{/if}
 
 		<div class="user-about mt-5">
-			<PostContent
-				content={profile.about ?? ''}
-				tags={profile.tags}
-				{profiles}
-				{eventsById}
-				{repostsById}
-			/>
+			<PostContent {state} content={profile.about ?? ''} tags={profile.tags} />
 		</div>
 	</div>
 </div>

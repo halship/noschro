@@ -151,6 +151,14 @@ export async function subscribe() {
                 }
 
                 nostrState.notificationsById = { ...nostrState.notificationsById, [event.id]: nostrEvent };
+
+                if (!(event.pubkey in nostrState.profiles)) {
+                    rxReqProfiles.emit({
+                        kinds: [kindMetaData],
+                        authors: [event.pubkey],
+                        limit: 1,
+                    });
+                }
             },
             error: (err) => {
                 console.error(err);

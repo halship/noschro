@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Repeat2 } from '@lucide/svelte';
 	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
-	import { formatDisplayName, formatReaction } from '$lib/util';
+	import { formatDisplayName, formatReaction } from '$lib/formatter';
 	import { npubEncode } from 'nostr-tools/nip19';
 	import { kindGeneralRepost, kindReaction, kindRepost } from '$lib/consts';
 

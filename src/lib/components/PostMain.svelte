@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { neventEncode, npubEncode } from 'nostr-tools/nip19';
-	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
-	import { formatDisplayName } from '$lib/util';
+	import type { NostrEvent, NostrProfile, NostrState } from '$lib/types/nostr';
+	import { formatDisplayName } from '$lib/formatter';
 	import PostHeader from './PostHeader.svelte';
 	import PostUserImage from './PostUserImage.svelte';
 	import PostContent from './PostContent.svelte';
@@ -9,17 +9,7 @@
 	import { rxNostr } from '$lib/timelines/base_timeline';
 	import { kindRepost } from '$lib/consts';
 
-	let {
-		event,
-		eventsById,
-		profiles,
-		repostsById
-	}: {
-		event: NostrEvent;
-		eventsById: Record<string, NostrEvent>;
-		profiles: Record<string, NostrProfile>;
-		repostsById: Record<string, string>;
-	} = $props();
+	let { state, event }: { state: NostrState; event: NostrEvent } = $props();
 
 	let refIds: string[] = $derived(event.tags.filter((t) => t[0] === 'e').map((t) => t[1]));
 	let refPubkeys: string[] = $derived(event.tags.filter((t) => t[0] === 'p').map((t) => t[1]));
@@ -31,7 +21,7 @@
 	);
 
 	let repostColor: string = $derived.by(() => {
-		if (event.id in repostsById) {
+		if (event.id in state.repostsById) {
 			return 'text-repost';
 		} else {
 			return 'text-thin';
@@ -76,7 +66,7 @@
 			})
 			.subscribe((packet) => {
 				if (packet.ok) {
-					repostsById = { ...repostsById, [event.id]: packet.eventId };
+					state.repostsById = { ...state.repostsById, [event.id]: packet.eventId };
 					console.log('Success to reposted');
 				}
 			});
@@ -84,9 +74,10 @@
 </script>
 
 <div class="post-main grid grid-cols-[auto_1fr] grid-rows-[auto_1fr_auto]">
-	<PostUserImage pubkey={event.pubkey} {profiles} />
-
-	<PostHeader {event} profile={profiles[event.pubkey]} />
+	{#if event.pubkey in state.profiles}
+		<PostUserImage profile={state.profiles[event.pubkey]} />
+		<PostHeader {event} profile={state.profiles[event.pubkey]} />
+	{/if}
 
 	<div class="break-all wrap-anywhere">
 		{#if refIds.length > 0}
@@ -99,20 +90,14 @@
 			<div class="mentions mb-1 text-sm text-thin">
 				{#each refPubkeys as pubkey}
 					<a class="mr-2" href="/{npubEncode(pubkey)}"
-						>{@html formatMention(profiles[pubkey], pubkey)}</a
+						>{@html formatMention(state.profiles[pubkey], pubkey)}</a
 					>
 				{/each}
 			</div>
 		{/if}
 
 		{#if event.kind === 1}
-			<PostContent
-				content={event.content}
-				tags={event.tags}
-				{profiles}
-				{eventsById}
-				{repostsById}
-			/>
+			<PostContent {state} content={event.content} tags={event.tags} />
 		{:else if event.kind === 30023 && naddr}
 			<a href="/{naddr}" class="underline">[長文投稿]</a>
 		{/if}

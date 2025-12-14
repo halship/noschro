@@ -41,7 +41,7 @@
 </svelte:head>
 
 <header
-	class="bg-light dark:bg-dark border-thin text-dark dark:text-light border-b p-1 inset-x-0 top-0 sticky flex"
+	class="bg-light dark:bg-dark border-thin text-dark dark:text-light border-b p-1 inset-x-0 top-0 sticky flex z-10"
 >
 	<ul class="flex-auto flex items-center pl-1">
 		<li id="home-btn" class="mx-3" class:hidden={!nostrState.isAuthoricated}>

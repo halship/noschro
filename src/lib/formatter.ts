@@ -1,6 +1,7 @@
 import DOMPurify from 'isomorphic-dompurify';
 import { Emoji, Image, Video, Link, Reference, Text, User, type Token, LongContent } from './types/token';
 import { decodeNostrURI } from 'nostr-tools/nip19';
+import { getSetting } from './util';
 
 export function tokenize(content: string): Token[] {
     content = DOMPurify.sanitize(content);
@@ -90,4 +91,78 @@ export function tokenize(content: string): Token[] {
     }
 
     return result;
+}
+
+export function formatDisplayName(displayName: string, tags: string[][]): string {
+    let emojis: Record<string, string> = {};
+    tags.filter((tag) => tag[0] === 'emoji')
+        .forEach((tag) => {
+            emojis = { ...emojis, [tag[1]]: tag[2] };
+        });
+
+    displayName = DOMPurify.sanitize(displayName);
+
+    const result: string[] = [];
+    const loadImage = getSetting('load-image') === 'true';
+    let i: number = 0
+
+    while (i < displayName.length) {
+        const emojiResult = displayName.slice(i).match(/^:[a-zA-Z0-9_]+:/);
+
+        if (emojiResult) {
+            if (loadImage) {
+                if (loadImage) {
+                    const emojiCode = emojiResult[0].slice(1, -1);
+
+                    if (emojiCode in emojis) {
+                        result.push('<img src="');
+                        result.push(emojis[emojiCode]);
+                        result.push('" class="inline-block max-w-[1em]">');
+                    } else {
+                        result.push(emojiResult[0]);
+                    }
+                } else {
+                    result.push(emojiResult[0]);
+                }
+            } else {
+                result.push(emojiResult[0]);
+            }
+
+            i += emojiResult[0].length;
+        } else if (displayName.slice(i).startsWith(' ')) {
+            result.push('&nbsp;');
+            i++;
+        } else {
+            // その他の場合
+            result.push(displayName.slice(i).charAt(0));
+            i++;
+        }
+    }
+
+    return result.join('');
+}
+
+export function formatReaction(content: string, tags: string[][]): string {
+    if (getSetting('load-image') === 'false') {
+        return content;
+    }
+
+    let emojis: Record<string, string> = {};
+    tags.filter((tag) => tag[0] === 'emoji')
+        .forEach((tag) => {
+            emojis = { ...emojis, [tag[1]]: tag[2] };
+        });
+
+    content = DOMPurify.sanitize(content);
+    const emojiResult = content.match(/^:[a-zA-Z0-9_]+:$/);
+
+    if (emojiResult) {
+        return `<img src="${emojis[content.slice(1, -1)]}" class="inline-block max-w-[1em]">`;
+    }
+
+    if (content === '+') {
+        return '❤';
+    }
+
+    return content;
 }
