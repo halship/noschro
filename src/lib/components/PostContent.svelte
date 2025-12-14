@@ -101,7 +101,7 @@
 			</a>
 		{:else if token instanceof Emoji}
 			{#if loadImage && token.code in emojis}
-				<img src={emojis[token.code]} alt="emoji" class="inline-block max-w-[1em]" />
+				<img src={emojis[token.code]} alt="emoji" class="inline-block max-h-[1em]" />
 			{:else}
 				:{token.code}:
 			{/if}
