@@ -44,17 +44,19 @@
 	class="bg-light dark:bg-dark border-thin text-dark dark:text-light border-b p-1 inset-x-0 top-0 sticky flex z-10"
 >
 	<ul class="flex-auto flex items-center pl-1">
-		<li id="home-btn" class="mx-3" class:hidden={!nostrState.isAuthoricated}>
-			<a href="/" class="text-lg"><House /></a>
-		</li>
+		{#if nostrState.isAuthoricated}
+			<li id="home-btn" class="mx-3">
+				<a href="/" class="text-lg"><House /></a>
+			</li>
 
-		<li id="notifications-btn" class="mx-3" class:hidden={!nostrState.isAuthoricated}>
-			<a href="/notifications" class="text-lg"><Bell /></a>
-		</li>
+			<li id="notifications-btn" class="mx-3">
+				<a href="/notifications" class="text-lg"><Bell /></a>
+			</li>
 
-		<li id="settings-btn" class="mx-3" class:hidden={!nostrState.isAuthoricated}>
-			<a href="/settings" class="text-lg"><Settings /></a>
-		</li>
+			<li id="settings-btn" class="mx-3">
+				<a href="/settings" class="text-lg"><Settings /></a>
+			</li>
+		{/if}
 	</ul>
 	<div class="pr-1">
 		<button class="border border-thin rounded-full p-1" onclick={toggleTheme}>
