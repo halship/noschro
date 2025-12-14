@@ -1,6 +1,6 @@
 <script lang="ts">
 	import './layout.css';
-	import { Bell, House, LogOut, Moon, Settings, Sun } from '@lucide/svelte';
+	import { Bell, House, LogOut, Moon, Settings, SquarePen, Sun } from '@lucide/svelte';
 	import { onDestroy } from 'svelte';
 	import { clearState, nostrState } from '$lib/state.svelte';
 	import type { LayoutProps } from './$types';
@@ -41,12 +41,16 @@
 </svelte:head>
 
 <header
-	class="bg-light dark:bg-dark border-thin text-dark dark:text-light border-b p-1 inset-x-0 top-0 sticky flex z-10"
+	class="bg-light dark:bg-dark border-thin text-dark dark:text-light border-b p-1 inset-x-0 top-0 sticky flex justify-between z-10"
 >
-	<ul class="flex-auto flex items-center pl-1">
+	<ul class="flex items-center pl-1">
 		{#if nostrState.isAuthoricated}
 			<li id="home-btn" class="mx-3">
 				<a href="/" class="text-lg"><House /></a>
+			</li>
+
+			<li class="mx-3">
+				<a href="/post" class="text-lg"><SquarePen /></a>
 			</li>
 
 			<li id="notifications-btn" class="mx-3">
@@ -58,6 +62,7 @@
 			</li>
 		{/if}
 	</ul>
+
 	<div class="pr-1">
 		<button class="border border-thin rounded-full p-1" onclick={toggleTheme}>
 			{#if theme === 'light'}
