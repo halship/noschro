@@ -1,6 +1,6 @@
 import { batch, createRxBackwardReq, createRxForwardReq, createRxNostr, latest, type LazyFilter, type RxNostr } from "rx-nostr";
 import { verifier } from "@rx-nostr/crypto";
-import { defaultRelays, kindDelete, kindFollowList, kindMetaData, kindPost, kindRelayList, kindsEvent, loadBufferTime, maxTimelineNum } from "$lib/consts";
+import { defaultRelays, kindDelete, kindFollowList, kindGeneralRepost, kindMetaData, kindPost, kindRelayList, kindRepost, kindsEvent, loadBufferTime, maxTimelineNum } from "$lib/consts";
 import { bufferTime, type Subscription } from "rxjs";
 import { nostrState } from "$lib/state.svelte";
 import type { Event } from "nostr-typedef";
@@ -16,7 +16,7 @@ export const rxReqProfiles = createRxForwardReq();
 export const rxReqEvent = createRxBackwardReq();
 export const rxReqOldNotifications = createRxBackwardReq();
 
-let rxNostr: RxNostr | null = null;
+export let rxNostr: RxNostr | null = null;
 
 let timelineSub: Subscription | null = null;
 let oldTimelineSub: Subscription | null = null;
@@ -243,6 +243,11 @@ function setTimeline(event: Event) {
             authors: pubkeys,
             limit: pubkeys.length,
         });
+    }
+
+    if ((event.kind === kindRepost || event.kind === kindGeneralRepost) &&
+        event.pubkey === pubkey!) {
+        nostrState.repostsById = { ...nostrState.repostsById, [ids[0]]: event.id };
     }
 }
 

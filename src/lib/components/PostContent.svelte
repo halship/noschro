@@ -20,7 +20,7 @@
 		tags: string[][];
 		eventsById: Record<string, NostrEvent>;
 		profiles: Record<string, NostrProfile>;
-		repostsById: Record<string, NostrEvent>;
+		repostsById: Record<string, string>;
 	} = $props();
 
 	let tokens = $derived(tokenize(content));

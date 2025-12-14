@@ -6,6 +6,8 @@
 	import PostUserImage from './PostUserImage.svelte';
 	import PostContent from './PostContent.svelte';
 	import { Repeat2 } from '@lucide/svelte';
+	import { rxNostr } from '$lib/timelines/base_timeline';
+	import { kindRepost } from '$lib/consts';
 
 	let {
 		event,
@@ -16,7 +18,7 @@
 		event: NostrEvent;
 		eventsById: Record<string, NostrEvent>;
 		profiles: Record<string, NostrProfile>;
-		repostsById: Record<string, NostrEvent>;
+		repostsById: Record<string, string>;
 	} = $props();
 
 	let refIds: string[] = $derived(event.tags.filter((t) => t[0] === 'e').map((t) => t[1]));
@@ -28,7 +30,13 @@
 			.at(0)
 	);
 
-	let repostClass: string[] = $state([]);
+	let repostColor: string = $derived.by(() => {
+		if (event.id in repostsById) {
+			return 'text-repost';
+		} else {
+			return 'text-thin';
+		}
+	});
 
 	function getRefEventCode(ev: NostrEvent): string {
 		return neventEncode({
@@ -54,6 +62,24 @@
 		}
 
 		return result.join('');
+	}
+
+	function handleRepost() {
+		rxNostr
+			?.send({
+				kind: kindRepost,
+				content: JSON.stringify(event),
+				tags: [
+					['e', event.id],
+					['p', event.pubkey]
+				]
+			})
+			.subscribe((packet) => {
+				if (packet.ok) {
+					repostsById = { ...repostsById, [event.id]: packet.eventId };
+					console.log('Success to reposted');
+				}
+			});
 	}
 </script>
 
@@ -93,6 +119,6 @@
 	</div>
 
 	<div class="flex mt-3">
-		<button class=""><Repeat2 /></button>
+		<button class={repostColor} onclick={handleRepost}><Repeat2 /></button>
 	</div>
 </div>

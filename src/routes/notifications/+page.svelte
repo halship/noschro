@@ -80,6 +80,7 @@
 	events={nostrState.notifications}
 	eventsById={nostrState.eventsById}
 	profiles={nostrState.profiles}
+	repostsById={nostrState.repostsById}
 />
 
 <style>

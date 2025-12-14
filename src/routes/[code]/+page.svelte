@@ -62,12 +62,14 @@
 		event={nostrState.eventsById[data.id]}
 		eventsById={nostrState.eventsById}
 		profiles={nostrState.profiles}
+		repostsById={nostrState.repostsById}
 	/>
 {:else if data.codeType === 'npub' && data.pubkey in nostrState.profiles}
 	<Profile
 		profiles={nostrState.profiles}
 		profile={nostrState.profiles[data.pubkey]}
 		eventsById={nostrState.eventsById}
+		repostsById={nostrState.repostsById}
 	/>
 {:else if data.codeType === 'naddr' && data.addr}
 	<LongForm event={nostrState.eventsByAddr[data.addr]} profiles={nostrState.profiles} />

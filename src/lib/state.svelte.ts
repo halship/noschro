@@ -6,6 +6,7 @@ export const nostrState: NostrState = $state({
     eventsByAddr: {},
     profiles: {},
     notifications: [],
+    notificationsById: {},
     repostsById: {},
     relays: [],
     followees: [],
@@ -18,6 +19,7 @@ export function clearState() {
     nostrState.eventsByAddr = {};
     nostrState.profiles = {};
     nostrState.notifications = [];
+    nostrState.notificationsById = {};
     nostrState.repostsById = {};
     nostrState.relays = [];
     nostrState.followees = [];
