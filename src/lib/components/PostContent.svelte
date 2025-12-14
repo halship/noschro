@@ -15,14 +15,16 @@
 	export let profiles: Record<string, NostrProfile>;
 
 	let tokens = tokenize(content);
+
 	let emojis: Record<string, string> = tags
 		.filter((tag) => tag[0] === 'emoji')
 		.reduce((result, tag) => {
 			return { ...result, [tag[1]]: tag[2] };
 		}, {});
+
 	let loadImage = getSetting('load-image') === 'true';
 
-	onMount(() => {
+	onMount(async () => {
 		for (const token of tokens) {
 			if (token instanceof Reference && !(token.id in eventsById)) {
 				rxReqEvent.emit({
@@ -39,6 +41,17 @@
 			}
 		}
 	});
+
+	async function getLinkTitle(url: string): Promise<string> {
+		const response = await fetch(url);
+		const text = await response.text();
+		const titleResult = text.match(/<title>(.[^<]+)<\/title>/);
+
+		if (titleResult) {
+			return titleResult[1];
+		}
+		return url;
+	}
 </script>
 
 <div class="nostr-content leading-none mb-1">
@@ -74,9 +87,12 @@
 				>
 			{/if}
 		{:else if token instanceof Link}
-			<a href={token.url} target="_blank" class="underline"
-				>{token.url}<SquareArrowOutUpRight class="inline-block size-4" /></a
-			>
+			<a href={token.url} target="_blank" class="underline">
+				{#await getLinkTitle(token.url) then title}
+					{title}
+				{/await}
+				<SquareArrowOutUpRight class="inline-block size-4" />
+			</a>
 		{:else if token instanceof Reference}
 			{#if getSetting('expand-ref') === 'true' && token.id in eventsById}
 				<Post event={eventsById[token.id]} {profiles} {eventsById} />
