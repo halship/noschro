@@ -1,14 +1,12 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { configLoadImage, loadLimit } from '$lib/consts';
 	import { logout, tryLogin } from '$lib/signer';
 	import { clearState, nostrState } from '$lib/state.svelte';
 	import { subscribe, unsubscribe } from '$lib/timelines/base_timeline';
-	import { getLoadImage } from '$lib/util';
+	import { getSetting, setSetting } from '$lib/util';
 	import { onMount } from 'svelte';
 
-	let loadImage = $state(getLoadImage());
+	let loadImage = $state(getSetting('load-image') === 'true' ? true : false);
 
 	onMount(async () => {
 		if (!(await tryLogin())) {
@@ -17,17 +15,11 @@
 		}
 
 		await subscribe();
-
-		nostrState.timelineNum = loadLimit;
-		nostrState.events = nostrState.events.slice(0, nostrState.timelineNum);
 	});
 
 	function handleClickLoginImage() {
 		loadImage = !loadImage;
-
-		if (browser) {
-			localStorage.setItem(configLoadImage, loadImage ? 'true' : 'false');
-		}
+		setSetting('load-image', loadImage ? 'true' : 'false');
 	}
 
 	function handleLogout() {

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import Notifications from '$lib/components/Notifications.svelte';
-	import { loadLimit } from '$lib/consts';
 	import { tryLogin } from '$lib/signer';
 	import { nostrState } from '$lib/state.svelte';
 	import { rxReqOldNotifications, subscribe } from '$lib/timelines/base_timeline';
@@ -22,9 +21,6 @@
 		nostrState.notifications = [];
 		nostrState.notificationsById = {};
 		rxReqOldNotifications.emit(getNotificationsFilter(notifyType));
-
-		nostrState.timelineNum = loadLimit;
-		nostrState.events = nostrState.events.slice(0, nostrState.timelineNum);
 	});
 
 	onDestroy(() => {

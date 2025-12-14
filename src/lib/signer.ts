@@ -8,7 +8,7 @@ export let signer: EventSigner | null = null;
 export let pubkey: string | null = null;
 
 export async function tryLogin(): Promise<boolean> {
-    if (signer !== null && pubkey !== null) {
+    if (signer !== null) {
         return true;
     }
 

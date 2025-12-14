@@ -1,13 +1,11 @@
 <script lang="ts">
 	import './layout.css';
 	import { Bell, House, LogOut, Moon, Settings, Sun } from '@lucide/svelte';
-	import { goto } from '$app/navigation';
 	import { onDestroy } from 'svelte';
 	import { clearState, nostrState } from '$lib/state.svelte';
 	import type { LayoutProps } from './$types';
 	import { unsubscribe } from '$lib/timelines/base_timeline';
 	import { browser } from '$app/environment';
-	import { logout } from '$lib/signer';
 	import { configTheme } from '$lib/consts';
 
 	let { children }: LayoutProps = $props();

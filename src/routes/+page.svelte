@@ -4,7 +4,7 @@
 	import { nostrState } from '$lib/state.svelte';
 	import { MoveUp } from '@lucide/svelte';
 	import { rxReqOldTimeline, rxReqTimeline, subscribe } from '$lib/timelines/base_timeline';
-	import { onDestroy, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import { tryLogin } from '$lib/signer';
 	import { goto } from '$app/navigation';
 	import { getHomeOldTimelineFilter, getHomeTimelineFilter } from '$lib/timelines/home_timeline';
@@ -35,14 +35,10 @@
 			top: 0,
 			behavior: 'instant'
 		});
-		nostrState.timelineNum = loadLimit;
-		nostrState.events = nostrState.events.slice(0, nostrState.timelineNum);
+		nostrState.events = nostrState.events.slice(0, loadLimit);
 	}
 
 	function handleLoadMore() {
-		if (nostrState.timelineNum < maxTimelineNum) {
-			nostrState.timelineNum += loadLimit;
-		}
 		rxReqOldTimeline.emit(getHomeOldTimelineFilter());
 	}
 </script>

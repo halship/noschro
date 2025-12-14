@@ -1,32 +1,21 @@
 <script lang="ts">
 	import { neventEncode, npubEncode } from 'nostr-tools/nip19';
 	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
-	import { formatContent, formatDisplayName, getRefIds, getRefPubkeys, getNaddr } from '$lib/util';
-	import { onMount } from 'svelte';
+	import { formatDisplayName } from '$lib/util';
 	import PostHeader from './PostHeader.svelte';
-	import { rxReqProfiles } from '$lib/timelines/base_timeline';
-	import { kindMetaData } from '$lib/consts';
 	import PostUserImage from './PostUserImage.svelte';
+	import PostContent from './PostContent.svelte';
 
 	export let event: NostrEvent;
+	export let eventsById: Record<string, NostrEvent>;
 	export let profiles: Record<string, NostrProfile>;
 
 	let refIds: string[] = event.tags.filter((t) => t[0] === 'e').map((t) => t[1]);
 	let refPubkeys: string[] = event.tags.filter((t) => t[0] === 'p').map((t) => t[1]);
-
-	onMount(() => {
-		const pubkeys = event.tags
-			.filter((t) => t[0] === 'p')
-			.map((t) => t[0])
-			.filter((pub) => !(pub in profiles));
-		if (pubkeys.length > 0) {
-			rxReqProfiles.emit({
-				kinds: [kindMetaData],
-				authors: pubkeys,
-				limit: pubkeys.length
-			});
-		}
-	});
+	let naddr: string | undefined = event.tags
+		.filter((t) => t[0] === 'd')
+		.map((t) => t[1])
+		.at(0);
 
 	function getRefEventCode(ev: NostrEvent): string {
 		return neventEncode({
@@ -67,9 +56,9 @@
 			</div>
 		{/if}
 
-		{#if getRefPubkeys(event).length > 0}
+		{#if refPubkeys.length > 0}
 			<div class="mentions mb-1 text-sm text-thin">
-				{#each getRefPubkeys(event) as pubkey}
+				{#each refPubkeys as pubkey}
 					<a class="mr-2" href="/{npubEncode(pubkey)}"
 						>{@html formatMention(profiles[pubkey], pubkey)}</a
 					>
@@ -78,11 +67,9 @@
 		{/if}
 
 		{#if event.kind === 1}
-			<div class="post-content leading-none mb-1">
-				{@html formatContent(event.content, event.tags)}
-			</div>
-		{:else if event.kind === 30023}
-			<a href="/{getNaddr(event)}" class="underline">[長文投稿]</a>
+			<PostContent content={event.content} tags={event.tags} {profiles} {eventsById} />
+		{:else if event.kind === 30023 && naddr}
+			<a href="/{naddr}" class="underline">[長文投稿]</a>
 		{/if}
 	</div>
 </div>

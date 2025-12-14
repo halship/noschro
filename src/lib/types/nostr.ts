@@ -8,7 +8,6 @@ export type NostrState = {
     relays: NostrRelay[],
     followees: string[],
     isAuthoricated: boolean,
-    timelineNum: number,
 };
 
 export type NostrEvent = {
@@ -38,3 +37,5 @@ export type NostrRelay = {
     read: boolean;
     write: boolean;
 };
+
+export type SettingType = 'theme' | 'load-image';

@@ -1,11 +1,12 @@
 import { batch, createRxBackwardReq, createRxForwardReq, createRxNostr, latest, type LazyFilter, type RxNostr } from "rx-nostr";
 import { verifier } from "@rx-nostr/crypto";
-import { defaultRelays, kindDelete, kindFollowList, kindRelayList, loadBufferTime, maxTimelineNum } from "$lib/consts";
+import { defaultRelays, kindDelete, kindFollowList, kindMetaData, kindPost, kindRelayList, kindsEvent, loadBufferTime, maxTimelineNum } from "$lib/consts";
 import { bufferTime, type Subscription } from "rxjs";
 import { nostrState } from "$lib/state.svelte";
 import type { Event } from "nostr-typedef";
 import { signer, pubkey } from "$lib/signer";
 import type { NostrEvent, NostrProfile, NostrRelay } from "$lib/types/nostr";
+import { getAddr } from "$lib/util";
 
 export const rxReqTimeline = createRxForwardReq();
 export const rxReqOldTimeline = createRxBackwardReq();
@@ -48,9 +49,12 @@ export async function subscribe() {
         });
 
     // 古いタイムライン取得
-    oldTimelineSub = rxNostr.use(rxReqOldTimeline)
+    const rxReqOldTimelineBatched = rxReqOldTimeline.pipe(bufferTime(loadBufferTime), batch());
+    oldTimelineSub = rxNostr.use(rxReqOldTimelineBatched)
         .subscribe({
-            next: ({ event }) => setTimeline(event),
+            next: ({ event }) => {
+                setTimeline(event);
+            },
             error: (err) => {
                 console.error(err);
             }
@@ -106,10 +110,18 @@ export async function subscribe() {
                 const nostrEvent: NostrEvent = { ...event };
                 nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
 
+                if (!(event.pubkey in nostrState.profiles)) {
+                    rxReqProfiles.emit({
+                        kinds: [kindMetaData],
+                        authors: [event.pubkey],
+                        limit: 1,
+                    });
+                }
+
                 const identifiers = event.tags.filter((t) => t[0] === 'd')
                     .map((t) => t[1]);
                 if (identifiers.length > 0) {
-                    const key = `${event.kind}:${event.pubkey}:${identifiers[0]}`;
+                    const key = getAddr(event.kind, event.pubkey, identifiers[0]);
                     nostrState.eventsByAddr = { ...nostrState.eventsByAddr, [key]: nostrEvent };
                 }
             },
@@ -174,6 +186,7 @@ function setTimeline(event: Event) {
         return;
     }
 
+    // 削除イベントの場合、タイムラインから該当イベントを削除
     if (event.kind === kindDelete) {
         deleteEvent(event);
         return;
@@ -181,26 +194,55 @@ function setTimeline(event: Event) {
 
     const nostrEvent = { ...event };
 
-    if (nostrState.events.length < maxTimelineNum) {
-        nostrState.timelineNum += 1;
-    }
-
+    // イベントをタイムラインに追加
     const index = nostrState.events
         .findIndex((ev) => ev.created_at < nostrEvent.created_at);
     if (index < 0) {
-        nostrState.events = [...nostrState.events, nostrEvent].slice(0, nostrState.timelineNum);
+        nostrState.events = [...nostrState.events, nostrEvent].slice(0, maxTimelineNum);
     } else {
         nostrState.events = nostrState.events
-            .toSpliced(index, 0, nostrEvent).slice(0, nostrState.timelineNum);
+            .toSpliced(index, 0, nostrEvent).slice(0, maxTimelineNum);
     }
 
+    // イベントをイベント履歴に追加
     nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
 
+    // dがタグに定義されている場合、アドレスで検索できるイベント履歴にイベントを追加
     const identifiers = event.tags.filter((t) => t[0] === 'd')
         .map((t) => t[1]);
     if (identifiers.length > 0) {
-        const key = `${event.kind}:${event.pubkey}:${identifiers[0]}`;
+        const key = getAddr(event.kind, event.pubkey, identifiers[0]);
         nostrState.eventsByAddr = { ...nostrState.eventsByAddr, [key]: nostrEvent };
+    }
+
+    if (!(event.pubkey in nostrState.profiles)) {
+        rxReqProfiles.emit({
+            kinds: [kindMetaData],
+            authors: [event.pubkey],
+            limit: 1,
+        });
+    }
+
+    const ids = event.tags
+        .filter((t) => t[0] === 'e' && !(t[1] in nostrState.eventsById))
+        .map((t) => t[1]);
+    if (ids.length > 0) {
+        rxReqEvent.emit({
+            kinds: kindsEvent,
+            ids: ids,
+            limit: ids.length
+        });
+    }
+
+    const pubkeys = event.tags
+        .filter((t) => t[0] === 'p' && !(t[1] in nostrState.profiles))
+        .map((t) => t[1]);
+    if (pubkeys.length > 0) {
+        rxReqProfiles.emit({
+            kinds: [kindMetaData],
+            authors: pubkeys,
+            limit: pubkeys.length,
+        });
     }
 }
 
@@ -273,4 +315,28 @@ function getFollowees(rx: RxNostr): Promise<string[]> {
             limit: 1,
         });
     });
+}
+
+function emitReferences(tags: string[][]) {
+    const ids = tags
+        .filter((t) => t[0] === 'e' && !(t[1] in nostrState.eventsById))
+        .map((t) => t[1]);
+    if (ids.length > 0) {
+        rxReqEvent.emit({
+            kinds: [kindPost],
+            ids: ids,
+            limit: ids.length
+        });
+    }
+
+    const pubkeys = tags
+        .filter((t) => t[0] === 'p' && !(t[1] in nostrState.profiles))
+        .map((t) => t[1]);
+    if (pubkeys.length > 0) {
+        rxReqProfiles.emit({
+            kinds: [kindMetaData],
+            authors: pubkeys,
+            limit: 1
+        });
+    }
 }
