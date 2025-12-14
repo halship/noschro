@@ -7,6 +7,7 @@
     --color-thin: #808080;
     --color-dark: #000000;
     --color-repost: #009900;
+    --color-reaction: #c53c5e;
 }
 
 @layer components {

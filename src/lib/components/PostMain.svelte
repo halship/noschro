@@ -30,6 +30,14 @@
 		}
 	});
 
+	let reactionColor: string = $derived.by(() => {
+		if (event.id in nostrState.reactionsById) {
+			return 'text-reaction';
+		} else {
+			return 'text-thin';
+		}
+	});
+
 	function getRefEventCode(ev: NostrEvent): string {
 		return neventEncode({
 			id: refIds.slice(-1)[0],
@@ -126,11 +134,7 @@
 		<button onclick={handleRepost}><Repeat2 class={repostColor} /></button>
 
 		<button class="ml-8" onclick={handleReaction}>
-			{#if event.id in nostrState.reactionsById}
-				<span class="size-6">{nostrState.reactionsById[event.id]}</span>
-			{:else}
-				<Heart class="text-thin size-6" />
-			{/if}
+			<Heart class={reactionColor} />
 		</button>
 	</div>
 </div>
