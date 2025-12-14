@@ -4,7 +4,7 @@ export type NostrState = {
     eventsByAddr: Record<string, NostrEvent>,
     profiles: Record<string, NostrProfile>,
     notifications: NostrEvent[],
-    notificationsById: Record<string, NostrEvent>,
+    repostsById: Record<string, NostrEvent>,
     relays: NostrRelay[],
     followees: string[],
     isAuthoricated: boolean,

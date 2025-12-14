@@ -3,9 +3,17 @@
 	import { formatDisplayName, getRefIds, getRefPubkeys, getSetting } from '$lib/util';
 	import PostContent from './PostContent.svelte';
 
-	export let profile: NostrProfile;
-	export let eventsById: Record<string, NostrEvent>;
-	export let profiles: Record<string, NostrProfile>;
+	let {
+		profile,
+		eventsById,
+		profiles,
+		repostsById
+	}: {
+		profile: NostrProfile;
+		eventsById: Record<string, NostrEvent>;
+		profiles: Record<string, NostrProfile>;
+		repostsById: Record<string, NostrEvent>;
+	} = $props();
 </script>
 
 <div class="profile border-thin border rounded-md mt-2 overflow-hidden">
@@ -43,7 +51,13 @@
 		{/if}
 
 		<div class="user-about mt-5">
-			<PostContent content={profile.about ?? ''} tags={profile.tags} {profiles} {eventsById} />
+			<PostContent
+				content={profile.about ?? ''}
+				tags={profile.tags}
+				{profiles}
+				{eventsById}
+				{repostsById}
+			/>
 		</div>
 	</div>
 </div>

@@ -9,18 +9,29 @@
 	import { onMount } from 'svelte';
 	import Post from './Post.svelte';
 
-	export let content: string;
-	export let tags: string[][];
-	export let eventsById: Record<string, NostrEvent>;
-	export let profiles: Record<string, NostrProfile>;
+	let {
+		content,
+		tags,
+		eventsById,
+		profiles,
+		repostsById
+	}: {
+		content: string;
+		tags: string[][];
+		eventsById: Record<string, NostrEvent>;
+		profiles: Record<string, NostrProfile>;
+		repostsById: Record<string, NostrEvent>;
+	} = $props();
 
-	let tokens = tokenize(content);
+	let tokens = $derived(tokenize(content));
 
-	let emojis: Record<string, string> = tags
-		.filter((tag) => tag[0] === 'emoji')
-		.reduce((result, tag) => {
-			return { ...result, [tag[1]]: tag[2] };
-		}, {});
+	let emojis: Record<string, string> = $derived(
+		tags
+			.filter((tag) => tag[0] === 'emoji')
+			.reduce((result, tag) => {
+				return { ...result, [tag[1]]: tag[2] };
+			}, {})
+	);
 
 	let loadImage = getSetting('load-image') === 'true';
 
@@ -81,7 +92,7 @@
 			</a>
 		{:else if token instanceof Reference}
 			{#if getSetting('expand-ref') === 'true' && token.id in eventsById}
-				<Post event={eventsById[token.id]} {profiles} {eventsById} />
+				<Post event={eventsById[token.id]} {profiles} {eventsById} {repostsById} />
 			{:else}
 				<a href="/{token.code}" class="underline">[引用]</a>
 			{/if}

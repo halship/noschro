@@ -5,17 +5,30 @@
 	import PostHeader from './PostHeader.svelte';
 	import PostUserImage from './PostUserImage.svelte';
 	import PostContent from './PostContent.svelte';
+	import { Repeat2 } from '@lucide/svelte';
 
-	export let event: NostrEvent;
-	export let eventsById: Record<string, NostrEvent>;
-	export let profiles: Record<string, NostrProfile>;
+	let {
+		event,
+		eventsById,
+		profiles,
+		repostsById
+	}: {
+		event: NostrEvent;
+		eventsById: Record<string, NostrEvent>;
+		profiles: Record<string, NostrProfile>;
+		repostsById: Record<string, NostrEvent>;
+	} = $props();
 
-	let refIds: string[] = event.tags.filter((t) => t[0] === 'e').map((t) => t[1]);
-	let refPubkeys: string[] = event.tags.filter((t) => t[0] === 'p').map((t) => t[1]);
-	let naddr: string | undefined = event.tags
-		.filter((t) => t[0] === 'd')
-		.map((t) => t[1])
-		.at(0);
+	let refIds: string[] = $derived(event.tags.filter((t) => t[0] === 'e').map((t) => t[1]));
+	let refPubkeys: string[] = $derived(event.tags.filter((t) => t[0] === 'p').map((t) => t[1]));
+	let naddr: string | undefined = $derived(
+		event.tags
+			.filter((t) => t[0] === 'd')
+			.map((t) => t[1])
+			.at(0)
+	);
+
+	let repostClass: string[] = $state([]);
 
 	function getRefEventCode(ev: NostrEvent): string {
 		return neventEncode({
@@ -44,7 +57,7 @@
 	}
 </script>
 
-<div class="post-main grid grid-cols-[auto_1fr] grid-rows-[auto_1fr]">
+<div class="post-main grid grid-cols-[auto_1fr] grid-rows-[auto_1fr_auto]">
 	<PostUserImage pubkey={event.pubkey} {profiles} />
 
 	<PostHeader {event} profile={profiles[event.pubkey]} />
@@ -67,9 +80,19 @@
 		{/if}
 
 		{#if event.kind === 1}
-			<PostContent content={event.content} tags={event.tags} {profiles} {eventsById} />
+			<PostContent
+				content={event.content}
+				tags={event.tags}
+				{profiles}
+				{eventsById}
+				{repostsById}
+			/>
 		{:else if event.kind === 30023 && naddr}
 			<a href="/{naddr}" class="underline">[長文投稿]</a>
 		{/if}
+	</div>
+
+	<div class="flex mt-3">
+		<button class=""><Repeat2 /></button>
 	</div>
 </div>

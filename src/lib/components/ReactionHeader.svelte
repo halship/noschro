@@ -5,8 +5,13 @@
 	import { npubEncode } from 'nostr-tools/nip19';
 	import { kindGeneralRepost, kindReaction, kindRepost } from '$lib/consts';
 
-	export let event: NostrEvent;
-	export let profile: NostrProfile | undefined;
+	let {
+		event,
+		profile
+	}: {
+		event: NostrEvent;
+		profile: NostrProfile | undefined;
+	} = $props();
 </script>
 
 <div class="reaction-header mb-2 pb-1 flex border-thin border-b">

@@ -2,13 +2,21 @@
 	import Post from './Post.svelte';
 	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
 
-	export let events: NostrEvent[];
-	export let eventsById: Record<string, NostrEvent>;
-	export let profiles: Record<string, NostrProfile>;
+	let {
+		events,
+		eventsById,
+		profiles,
+		repostsById
+	}: {
+		events: NostrEvent[];
+		eventsById: Record<string, NostrEvent>;
+		profiles: Record<string, NostrProfile>;
+		repostsById: Record<string, NostrEvent>;
+	} = $props();
 </script>
 
 <div id="notifications">
 	{#each events as ev (ev.id)}
-		<Post event={ev} {eventsById} {profiles} />
+		<Post event={ev} {eventsById} {profiles} {repostsById} />
 	{/each}
 </div>

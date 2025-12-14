@@ -3,8 +3,13 @@
 	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
 	import { formatDisplayName } from '$lib/util';
 
-	export let event: NostrEvent;
-	export let profile: NostrProfile | undefined;
+	let {
+		event,
+		profile
+	}: {
+		event: NostrEvent;
+		profile: NostrProfile;
+	} = $props();
 
 	function getEventCode(ev: NostrEvent): string {
 		return neventEncode({
@@ -28,7 +33,7 @@
 		const day = datetime.getDay();
 
 		const dayString = day > 9 ? day.toString() : `0${day}`;
-		return `${month}/${day}`;
+		return `${month}/${dayString}`;
 	}
 </script>
 

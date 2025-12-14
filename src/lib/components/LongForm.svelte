@@ -6,13 +6,20 @@
 	import MarkdownItFootnote from 'markdown-it-footnote';
 	import PostUserImage from './PostUserImage.svelte';
 
-	export let event: NostrEvent;
-	export let profiles: Record<string, NostrProfile>;
+	let {
+		event,
+		profiles
+	}: {
+		event: NostrEvent;
+		profiles: Record<string, NostrProfile>;
+	} = $props();
 
-	let title: string | undefined = event.tags
-		.filter((t) => t[0] === 'title')
-		.map((tag) => tag[1])
-		.at(0);
+	let title: string | undefined = $derived(
+		event.tags
+			.filter((t) => t[0] === 'title')
+			.map((tag) => tag[1])
+			.at(0)
+	);
 
 	function formatLongContent(content: string) {
 		const md = new MarkdownIt().use(MarkdownItFootnote);
