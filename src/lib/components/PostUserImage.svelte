@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { NostrProfile, NostrState } from '$lib/types/nostr';
+	import type { NostrProfile } from '$lib/types/nostr';
 	import { getSetting } from '$lib/util';
 	import { npubEncode } from 'nostr-tools/nip19';
 

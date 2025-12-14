@@ -2,7 +2,6 @@
 	import { kindMetaData, kindsEvent } from '$lib/consts';
 	import { tokenize } from '$lib/formatter';
 	import { rxReqEvent, rxReqProfiles } from '$lib/timelines/base_timeline';
-	import type { NostrEvent, NostrProfile, NostrState } from '$lib/types/nostr';
 	import {
 		Emoji,
 		Image,
@@ -18,8 +17,9 @@
 	import { SquareArrowOutUpRight } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import Post from './Post.svelte';
+	import { nostrState } from '$lib/state.svelte';
 
-	let { state, content, tags }: { state: NostrState; content: string; tags: string[][] } = $props();
+	let { content, tags }: { content: string; tags: string[][] } = $props();
 
 	let tokens: Token[] = $derived(tokenize(content));
 
@@ -35,13 +35,13 @@
 
 	onMount(async () => {
 		for (const token of tokens) {
-			if (token instanceof Reference && !(token.id in state.eventsById)) {
+			if (token instanceof Reference && !(token.id in nostrState.eventsById)) {
 				rxReqEvent.emit({
 					kinds: kindsEvent,
 					ids: [token.id],
 					limit: 1
 				});
-			} else if (token instanceof User && !(token.pubkey in state.profiles)) {
+			} else if (token instanceof User && !(token.pubkey in nostrState.profiles)) {
 				rxReqProfiles.emit({
 					kinds: [kindMetaData],
 					authors: [token.pubkey],
@@ -89,8 +89,8 @@
 				{token.url}<SquareArrowOutUpRight class="inline-block size-4" />
 			</a>
 		{:else if token instanceof Reference}
-			{#if getSetting('expand-ref') === 'true' && token.id in state.eventsById}
-				<Post {state} event={state.eventsById[token.id]} />
+			{#if getSetting('expand-ref') === 'true' && token.id in nostrState.eventsById}
+				<Post event={nostrState.eventsById[token.id]} />
 			{:else}
 				<a href="/{token.code}" class="underline">[引用]</a>
 			{/if}
@@ -98,11 +98,11 @@
 			<a href="/{token.code}" class="underline">[長文投稿]</a>
 		{:else if token instanceof User}
 			<a href="/{token.code}">
-				{#if token.pubkey in state.profiles}
-					{#if state.profiles[token.pubkey].display_name}
-						@{state.profiles[token.pubkey].display_name}
-					{:else if state.profiles[token.pubkey].name}
-						@{state.profiles[token.pubkey].name}
+				{#if token.pubkey in nostrState.profiles}
+					{#if nostrState.profiles[token.pubkey].display_name}
+						@{nostrState.profiles[token.pubkey].display_name}
+					{:else if nostrState.profiles[token.pubkey].name}
+						@{nostrState.profiles[token.pubkey].name}
 					{:else}
 						@token.code.slice(0, 9)
 					{/if}

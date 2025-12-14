@@ -58,11 +58,11 @@
 </div>
 
 {#if (data.codeType === 'nevent' || data.codeType === 'note') && data.id in nostrState.eventsById}
-	<Post state={nostrState} event={nostrState.eventsById[data.id]} />
+	<Post event={nostrState.eventsById[data.id]} />
 {:else if data.codeType === 'npub' && data.pubkey in nostrState.profiles}
-	<Profile state={nostrState} profile={nostrState.profiles[data.pubkey]} />
+	<Profile profile={nostrState.profiles[data.pubkey]} />
 {:else if data.codeType === 'naddr' && data.addr in nostrState.eventsByAddr}
-	<LongForm state={nostrState} event={nostrState.eventsByAddr[data.addr]} />
+	<LongForm event={nostrState.eventsByAddr[data.addr]} />
 {:else}
 	<p class="text-center">loading...</p>
 {/if}

@@ -1,12 +1,13 @@
 <script lang="ts">
 	import PostHeader from './PostHeader.svelte';
-	import type { NostrEvent, NostrState } from '$lib/types/nostr';
+	import type { NostrEvent } from '$lib/types/nostr';
 	import DOMPurify from 'isomorphic-dompurify';
 	import MarkdownIt from 'markdown-it';
 	import MarkdownItFootnote from 'markdown-it-footnote';
 	import PostUserImage from './PostUserImage.svelte';
+	import { nostrState } from '$lib/state.svelte';
 
-	let { state, event }: { state: NostrState; event: NostrEvent } = $props();
+	let { event }: { event: NostrEvent } = $props();
 
 	let title: string | undefined = $derived(
 		event.tags
@@ -29,8 +30,8 @@
 	id={event.id}
 	class="longform border-thin border rounded-md p-2 mt-2 grid grid-cols-[auto_1fr] grid-rows-[auto_1fr]"
 >
-	<PostUserImage profile={state.profiles[event.pubkey]} />
-	<PostHeader {event} profile={state.profiles[event.pubkey]} />
+	<PostUserImage profile={nostrState.profiles[event.pubkey]} />
+	<PostHeader {event} profile={nostrState.profiles[event.pubkey]} />
 
 	{#if title}
 		<h1 class="text-3xl font-bold mb-3">{title}</h1>

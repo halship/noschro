@@ -52,7 +52,7 @@
 {:else}
 	<div id="posts">
 		{#each nostrState.events as ev (ev.id)}
-			<Post state={nostrState} event={ev} />
+			<Post event={ev} />
 		{/each}
 	</div>
 

@@ -78,7 +78,7 @@
 
 <div id="notifications">
 	{#each nostrState.notifications as ev (ev.id)}
-		<Post state={nostrState} event={ev} />
+		<Post event={ev} />
 	{/each}
 </div>
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { neventEncode, npubEncode } from 'nostr-tools/nip19';
-	import type { NostrEvent, NostrProfile, NostrState } from '$lib/types/nostr';
+	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
 	import { formatDisplayName } from '$lib/formatter';
 
 	let { event, profile }: { event: NostrEvent; profile: NostrProfile } = $props();

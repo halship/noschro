@@ -1,15 +1,17 @@
 <script lang="ts">
 	import { neventEncode, npubEncode } from 'nostr-tools/nip19';
-	import type { NostrEvent, NostrProfile, NostrState } from '$lib/types/nostr';
+	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
 	import { formatDisplayName } from '$lib/formatter';
 	import PostHeader from './PostHeader.svelte';
 	import PostUserImage from './PostUserImage.svelte';
 	import PostContent from './PostContent.svelte';
-	import { Repeat2 } from '@lucide/svelte';
+	import { Heart, Repeat2 } from '@lucide/svelte';
 	import { rxNostr } from '$lib/timelines/base_timeline';
-	import { kindRepost } from '$lib/consts';
+	import { kindReaction, kindRepost } from '$lib/consts';
+	import { getRefIds, getRefPubkeys } from '$lib/util';
+	import { nostrState } from '$lib/state.svelte';
 
-	let { state, event }: { state: NostrState; event: NostrEvent } = $props();
+	let { event }: { event: NostrEvent } = $props();
 
 	let refIds: string[] = $derived(event.tags.filter((t) => t[0] === 'e').map((t) => t[1]));
 	let refPubkeys: string[] = $derived(event.tags.filter((t) => t[0] === 'p').map((t) => t[1]));
@@ -21,7 +23,7 @@
 	);
 
 	let repostColor: string = $derived.by(() => {
-		if (event.id in state.repostsById) {
+		if (event.id in nostrState.repostsById) {
 			return 'text-repost';
 		} else {
 			return 'text-thin';
@@ -66,17 +68,34 @@
 			})
 			.subscribe((packet) => {
 				if (packet.ok) {
-					state.repostsById = { ...state.repostsById, [event.id]: packet.eventId };
-					console.log('Success to reposted');
+					nostrState.repostsById = { ...nostrState.repostsById, [event.id]: packet.eventId };
+				}
+			});
+	}
+
+	function handleReaction() {
+		const idTags = getRefIds(event.tags).map((id) => ['e', id]);
+		const pubkeyTags = getRefPubkeys(event.tags).map((pub) => ['p', pub]);
+		const tags = [...idTags, ...pubkeyTags, ['e', event.id], ['p', event.pubkey]];
+
+		rxNostr
+			?.send({
+				kind: kindReaction,
+				content: '❤',
+				tags
+			})
+			.subscribe((packet) => {
+				if (packet.ok) {
+					nostrState.reactionsById = { ...nostrState.reactionsById, [event.id]: '❤' };
 				}
 			});
 	}
 </script>
 
 <div class="post-main grid grid-cols-[auto_1fr] grid-rows-[auto_1fr_auto]">
-	{#if event.pubkey in state.profiles}
-		<PostUserImage profile={state.profiles[event.pubkey]} />
-		<PostHeader {event} profile={state.profiles[event.pubkey]} />
+	{#if event.pubkey in nostrState.profiles}
+		<PostUserImage profile={nostrState.profiles[event.pubkey]} />
+		<PostHeader {event} profile={nostrState.profiles[event.pubkey]} />
 	{/if}
 
 	<div class="break-all wrap-anywhere">
@@ -90,20 +109,28 @@
 			<div class="mentions mb-1 text-sm text-thin">
 				{#each refPubkeys as pubkey}
 					<a class="mr-2" href="/{npubEncode(pubkey)}"
-						>{@html formatMention(state.profiles[pubkey], pubkey)}</a
+						>{@html formatMention(nostrState.profiles[pubkey], pubkey)}</a
 					>
 				{/each}
 			</div>
 		{/if}
 
 		{#if event.kind === 1}
-			<PostContent {state} content={event.content} tags={event.tags} />
+			<PostContent content={event.content} tags={event.tags} />
 		{:else if event.kind === 30023 && naddr}
 			<a href="/{naddr}" class="underline">[長文投稿]</a>
 		{/if}
 	</div>
 
 	<div class="flex mt-3">
-		<button class={repostColor} onclick={handleRepost}><Repeat2 /></button>
+		<button onclick={handleRepost}><Repeat2 class={repostColor} /></button>
+
+		<button class="ml-8" onclick={handleReaction}>
+			{#if event.id in nostrState.reactionsById}
+				<span class="size-6">{nostrState.reactionsById[event.id]}</span>
+			{:else}
+				<Heart class="text-thin size-6" />
+			{/if}
+		</button>
 	</div>
 </div>

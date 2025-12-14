@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { NostrProfile, NostrState } from '$lib/types/nostr';
+	import type { NostrProfile } from '$lib/types/nostr';
 	import { getSetting } from '$lib/util';
 	import { formatDisplayName } from '$lib/formatter';
 	import PostContent from './PostContent.svelte';
 
-	let { state, profile }: { state: NostrState; profile: NostrProfile } = $props();
+	let { profile }: { profile: NostrProfile } = $props();
 </script>
 
 <div class="profile border-thin border rounded-md mt-2 overflow-hidden">
@@ -42,7 +42,7 @@
 		{/if}
 
 		<div class="user-about mt-5">
-			<PostContent {state} content={profile.about ?? ''} tags={profile.tags} />
+			<PostContent content={profile.about ?? ''} tags={profile.tags} />
 		</div>
 	</div>
 </div>
