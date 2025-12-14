@@ -7,6 +7,7 @@
 	import { getSetting } from '$lib/util';
 	import { SquareArrowOutUpRight } from '@lucide/svelte';
 	import { onMount } from 'svelte';
+	import Post from './Post.svelte';
 
 	export let content: string;
 	export let tags: string[][];
@@ -77,7 +78,11 @@
 				>{token.url}<SquareArrowOutUpRight class="inline-block size-4" /></a
 			>
 		{:else if token instanceof Reference}
-			<a href="/{token.code}" class="underline">[参照]</a>
+			{#if getSetting('expand-ref') === 'true' && token.id in eventsById}
+				<Post event={eventsById[token.id]} {profiles} {eventsById} />
+			{:else}
+				<a href="/{token.code}" class="underline">[引用]</a>
+			{/if}
 		{:else if token instanceof LongContent}
 			<a href="/{token.code}" class="underline">[長文投稿]</a>
 		{:else if token instanceof User}

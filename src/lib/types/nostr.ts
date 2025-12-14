@@ -38,4 +38,4 @@ export type NostrRelay = {
     write: boolean;
 };
 
-export type SettingType = 'theme' | 'load-image';
+export type SettingType = 'theme' | 'load-image' | 'expand-ref';
