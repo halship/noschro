@@ -23,7 +23,7 @@ export function getHomeOldTimelineFilter(): LazyFilter[] {
     const until = nostrState.events.length > 0 ? nostrState.events.slice(-1)[0].created_at : now();
     return [
         {
-            kinds: [...kindsEvent, kindReaction],
+            kinds: kindsEvent,
             authors: nostrState.followees,
             until,
             limit: loadLimit,

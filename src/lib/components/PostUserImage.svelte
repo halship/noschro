@@ -3,13 +3,13 @@
 	import { getSetting } from '$lib/util';
 	import { npubEncode } from 'nostr-tools/nip19';
 
-	let { profile }: { profile: NostrProfile } = $props();
+	let { profile }: { profile: NostrProfile | undefined } = $props();
 
 	let loadImage = getSetting('load-image') === 'true';
 </script>
 
 <div class="post-image row-span-3" class:mr-2={loadImage}>
-	{#if loadImage}
+	{#if loadImage && profile}
 		<a href="/{npubEncode(profile.pubkey)}">
 			{#if profile?.picture}
 				<img src={profile.picture} alt={profile.name} class="w-[50px] h-[50px] rounded-full" />

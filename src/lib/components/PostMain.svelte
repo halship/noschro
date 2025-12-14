@@ -101,10 +101,8 @@
 </script>
 
 <div class="post-main grid grid-cols-[auto_1fr] grid-rows-[auto_1fr_auto]">
-	{#if event.pubkey in nostrState.profiles}
-		<PostUserImage profile={nostrState.profiles[event.pubkey]} />
-		<PostHeader {event} profile={nostrState.profiles[event.pubkey]} />
-	{/if}
+	<PostUserImage profile={nostrState.profiles[event.pubkey]} />
+	<PostHeader {event} profile={nostrState.profiles[event.pubkey]} />
 
 	<div class="break-all wrap-anywhere">
 		{#if refIds.length > 0}

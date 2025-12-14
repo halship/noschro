@@ -3,7 +3,7 @@
 	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
 	import { formatDisplayName } from '$lib/formatter';
 
-	let { event, profile }: { event: NostrEvent; profile: NostrProfile } = $props();
+	let { event, profile }: { event: NostrEvent; profile: NostrProfile | undefined } = $props();
 
 	function getEventCode(ev: NostrEvent): string {
 		return neventEncode({
