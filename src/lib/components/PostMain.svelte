@@ -5,12 +5,13 @@
 	import PostHeader from './PostHeader.svelte';
 	import PostUserImage from './PostUserImage.svelte';
 	import PostContent from './PostContent.svelte';
-	import { Heart, Repeat2 } from '@lucide/svelte';
+	import { Heart, Quote, Repeat2 } from '@lucide/svelte';
 	import { rxNostr } from '$lib/timelines/base_timeline';
-	import { kindReaction, kindRepost } from '$lib/consts';
+	import { kindPost, kindReaction, kindRepost } from '$lib/consts';
 	import { getAddr, getRefIds, getRefPubkeys } from '$lib/util';
 	import { nostrState } from '$lib/state.svelte';
 	import { pubkey } from '$lib/signer';
+	import { goto } from '$app/navigation';
 
 	let { event }: { event: NostrEvent } = $props();
 
@@ -33,18 +34,6 @@
 			});
 		} else {
 			return null;
-		}
-	});
-
-	let repostColor: string = $derived.by(() => {
-		if (
-			event.id in nostrState.eventsById &&
-			nostrState.eventsById[event.id].kind === kindRepost &&
-			nostrState.eventsById[event.id].pubkey === pubkey!
-		) {
-			return 'text-repost';
-		} else {
-			return 'text-thin';
 		}
 	});
 
@@ -97,6 +86,14 @@
 		});
 	}
 
+	function handleQuote() {
+		const nevent = neventEncode({
+			id: event.id,
+			author: event.pubkey
+		});
+		goto(`/post?quote=${nevent}`);
+	}
+
 	function handleReaction() {
 		const idTags = getRefIds(event.tags).map((id) => ['e', id]);
 		const pubkeyTags = getRefPubkeys(event.tags).map((pub) => ['p', pub]);
@@ -139,9 +136,11 @@
 	</div>
 
 	<div class="flex mt-1">
-		<button onclick={handleRepost}><Repeat2 class={repostColor} /></button>
+		<button onclick={handleRepost}><Repeat2 class="text-thin" /></button>
 
-		<button class="ml-8" onclick={handleReaction}>
+		<button class="ml-8 text-thin" onclick={handleQuote}><Quote /></button>
+
+		<button class="ml-8 text-thin" onclick={handleReaction}>
 			<Heart class={reactionColor} />
 		</button>
 	</div>

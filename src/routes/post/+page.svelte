@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import PostContent from '$lib/components/PostContent.svelte';
 	import { kindPost } from '$lib/consts';
 	import { tryLogin } from '$lib/signer';
 	import { rxNostr, subscribe } from '$lib/timelines/base_timeline';
 	import { onMount } from 'svelte';
 
-	let content = $state('');
+	let quote: string | null = page.url.searchParams.get('quote');
+	let content = $state(quote ? `nostr:${quote}` : '');
 
 	onMount(async () => {
 		if (!(await tryLogin())) {
@@ -37,7 +39,7 @@
 
 <div class="border border-thin rounded-md p-2 mt-2">
 	<h2>=プレビュー</h2>
-	<div class="border border-thin rounded-md p-2 h-20 overflow-auto">
+	<div class="border border-thin rounded-md p-2 h-40 overflow-auto">
 		<PostContent {content} tags={[]} />
 	</div>
 
