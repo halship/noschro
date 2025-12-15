@@ -10,6 +10,7 @@
 	import { kindReaction, kindRepost } from '$lib/consts';
 	import { getAddr, getRefIds, getRefPubkeys } from '$lib/util';
 	import { nostrState } from '$lib/state.svelte';
+	import { pubkey } from '$lib/signer';
 
 	let { event }: { event: NostrEvent } = $props();
 
@@ -36,7 +37,11 @@
 	});
 
 	let repostColor: string = $derived.by(() => {
-		if (event.id in nostrState.repostsById) {
+		if (
+			event.id in nostrState.eventsById &&
+			nostrState.eventsById[event.id].kind === kindRepost &&
+			nostrState.eventsById[event.id].pubkey === pubkey!
+		) {
 			return 'text-repost';
 		} else {
 			return 'text-thin';
@@ -44,7 +49,11 @@
 	});
 
 	let reactionColor: string = $derived.by(() => {
-		if (event.id in nostrState.reactionsById) {
+		if (
+			event.id in nostrState.eventsById &&
+			nostrState.eventsById[event.id].kind === kindReaction &&
+			nostrState.eventsById[event.id].pubkey === pubkey!
+		) {
 			return 'text-reaction';
 		} else {
 			return 'text-thin';
@@ -78,20 +87,14 @@
 	}
 
 	function handleRepost() {
-		rxNostr
-			?.send({
-				kind: kindRepost,
-				content: JSON.stringify(event),
-				tags: [
-					['e', event.id, nostrState.relays[0].url],
-					['p', event.pubkey]
-				]
-			})
-			.subscribe((packet) => {
-				if (packet.ok) {
-					nostrState.repostsById = { ...nostrState.repostsById, [event.id]: packet.eventId };
-				}
-			});
+		rxNostr?.send({
+			kind: kindRepost,
+			content: JSON.stringify(event),
+			tags: [
+				['e', event.id, nostrState.relays[0].url],
+				['p', event.pubkey]
+			]
+		});
 	}
 
 	function handleReaction() {
@@ -99,17 +102,11 @@
 		const pubkeyTags = getRefPubkeys(event.tags).map((pub) => ['p', pub]);
 		const tags = [...idTags, ...pubkeyTags, ['e', event.id], ['p', event.pubkey]];
 
-		rxNostr
-			?.send({
-				kind: kindReaction,
-				content: '❤',
-				tags
-			})
-			.subscribe((packet) => {
-				if (packet.ok) {
-					nostrState.reactionsById = { ...nostrState.reactionsById, [event.id]: '❤' };
-				}
-			});
+		rxNostr?.send({
+			kind: kindReaction,
+			content: '❤',
+			tags
+		});
 	}
 </script>
 
