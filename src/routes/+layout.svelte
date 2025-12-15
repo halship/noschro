@@ -43,7 +43,7 @@
 <header
 	class="bg-light dark:bg-dark border-thin text-dark dark:text-light border-b p-1 inset-x-0 top-0 sticky flex justify-between z-10"
 >
-	<div>
+	<div class="ml-1">
 		{#if nostrState.isAuthoricated}
 			<a href="/post" class="block border border-thin rounded-full p-1 text-lg"><SquarePen /></a>
 		{/if}
