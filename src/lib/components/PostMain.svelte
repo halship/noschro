@@ -73,7 +73,7 @@
 				kind: kindRepost,
 				content: JSON.stringify(event),
 				tags: [
-					['e', event.id],
+					['e', event.id, nostrState.relays[0].url],
 					['p', event.pubkey]
 				]
 			})
