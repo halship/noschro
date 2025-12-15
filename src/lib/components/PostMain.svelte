@@ -8,7 +8,7 @@
 	import { Heart, Repeat2 } from '@lucide/svelte';
 	import { rxNostr } from '$lib/timelines/base_timeline';
 	import { kindReaction, kindRepost } from '$lib/consts';
-	import { getRefIds, getRefPubkeys } from '$lib/util';
+	import { getAddr, getRefIds, getRefPubkeys } from '$lib/util';
 	import { nostrState } from '$lib/state.svelte';
 
 	let { event }: { event: NostrEvent } = $props();
@@ -18,12 +18,18 @@
 		const result = event.tags.filter((t) => t[0] === 'p').map((t) => t[1]);
 		return [...new Set(result)];
 	});
-	let naddr: string | undefined = $derived(
-		event.tags
+	let naddr: string | null = $derived.by(() => {
+		const identifier = event.tags
 			.filter((t) => t[0] === 'd')
 			.map((t) => t[1])
-			.at(0)
-	);
+			.at(0);
+
+		if (identifier) {
+			return getAddr(event.kind, event.pubkey, identifier);
+		} else {
+			return null;
+		}
+	});
 
 	let repostColor: string = $derived.by(() => {
 		if (event.id in nostrState.repostsById) {

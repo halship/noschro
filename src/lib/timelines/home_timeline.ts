@@ -58,7 +58,7 @@ export function getNotificationsFilter(notifyType: NotifyType): LazyFilter {
         };
     } else {
         return {
-            kinds: [kindPost],
+            kinds: [...kindsEvent, kindReaction],
             '#p': [pubkey!],
             until,
             limit,
