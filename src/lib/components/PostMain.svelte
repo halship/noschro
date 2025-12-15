@@ -113,10 +113,10 @@
 	<PostUserImage profile={nostrState.profiles[event.pubkey]} />
 	<PostHeader {event} profile={nostrState.profiles[event.pubkey]} />
 
-	<div class="max-h-120 overflow-auto">
+	<div class="py-1 max-h-140 overflow-y-auto">
 		{#if refIds.length > 0}
-			<div class="ref-link underline mb-1">
-				<a href="/{getRefEventCode(event)}">[返信元]</a>
+			<div class="ref-link my-2">
+				<a href="/{getRefEventCode(event)}" class="border border-thin rounded-md p-1">←返信元</a>
 			</div>
 		{/if}
 
@@ -133,7 +133,7 @@
 		{#if event.kind === 1}
 			<PostContent content={event.content} tags={event.tags} />
 		{:else if event.kind === 30023 && naddr}
-			<a href="/{naddr}" class="underline">[長文投稿]</a>
+			<a href="/{naddr}" class="border border-thin rounded-md p-1">長文投稿</a>
 		{/if}
 	</div>
 

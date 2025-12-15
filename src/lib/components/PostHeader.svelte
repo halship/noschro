@@ -31,7 +31,7 @@
 	}
 </script>
 
-<div class="post-header mb-1 flex justify-between">
+<div class="post-header flex justify-between">
 	<div class="min-w-0 w-0 grow shrink text-nowrap overflow-hidden">
 		<a href="/{npubEncode(event.pubkey)}">
 			<span class="user-display-name font-bold mr-1">
