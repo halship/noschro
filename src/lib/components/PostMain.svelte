@@ -113,7 +113,7 @@
 	<PostUserImage profile={nostrState.profiles[event.pubkey]} />
 	<PostHeader {event} profile={nostrState.profiles[event.pubkey]} />
 
-	<div class="break-all wrap-anywhere">
+	<div class="max-h-120 overflow-auto">
 		{#if refIds.length > 0}
 			<div class="ref-link underline mb-1">
 				<a href="/{getRefEventCode(event)}">[返信元]</a>
