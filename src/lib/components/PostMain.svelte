@@ -40,14 +40,11 @@
 	});
 
 	let repostColor: string = $derived.by(() => {
-		if (!(event.id in nostrState.actionsById)) {
+		if (!(event.id in nostrState.repostsById)) {
 			return 'text-thin';
 		}
-		const id = nostrState.actionsById[event.id];
-		if (
-			nostrState.eventsById[id].kind === kindRepost &&
-			nostrState.eventsById[id].pubkey === pubkey!
-		) {
+		const id = nostrState.repostsById[event.id];
+		if (nostrState.eventsById[id].pubkey === pubkey!) {
 			return 'text-repost';
 		} else {
 			return 'text-thin';
@@ -55,14 +52,11 @@
 	});
 
 	let reactionColor: string = $derived.by(() => {
-		if (!(event.id in nostrState.actionsById)) {
+		if (!(event.id in nostrState.reactionsById)) {
 			return 'text-thin';
 		}
-		const id = nostrState.actionsById[event.id];
-		if (
-			nostrState.eventsById[id].kind === kindReaction &&
-			nostrState.eventsById[id].pubkey === pubkey!
-		) {
+		const id = nostrState.reactionsById[event.id];
+		if (nostrState.eventsById[id].pubkey === pubkey!) {
 			return 'text-reaction';
 		} else {
 			return 'text-thin';

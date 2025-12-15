@@ -243,10 +243,14 @@ function setTimeline(event: Event) {
     }
 
     // ユーザがしたアクションの場合、履歴に追加
-    if ((event.kind === kindRepost || event.kind === kindGeneralRepost || event.kind === kindReaction) &&
+    if ((event.kind === kindRepost || event.kind === kindGeneralRepost) &&
         event.pubkey === pubkey!) {
         const id = event.tags.filter((t) => t[0] === 'e').map((t) => t[1]).at(0);
-        nostrState.actionsById = { ...nostrState.actionsById, [id!]: event.id };
+        nostrState.repostsById = { ...nostrState.repostsById, [id!]: event.id };
+    }
+    if ((event.kind === kindReaction) && event.pubkey === pubkey!) {
+        const id = event.tags.filter((t) => t[0] === 'e').map((t) => t[1]).at(0);
+        nostrState.reactionsById = { ...nostrState.reactionsById, [id!]: event.id };
     }
 
     const nostrEvent = { ...event };
