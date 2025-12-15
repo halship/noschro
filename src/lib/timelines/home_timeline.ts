@@ -5,16 +5,22 @@ import type { NotifyType } from "$lib/types/nostr";
 import { now, type LazyFilter } from "rx-nostr";
 
 export function getHomeTimelineFilter(): LazyFilter[] {
+    const nowTime = now();
     return [
         {
             kinds: kindsEvent,
             authors: nostrState.followees,
-            since: now(),
+            since: nowTime,
         },
         {
             kinds: [kindReaction],
             '#p': [pubkey!],
-            since: now(),
+            since: nowTime,
+        },
+        {
+            kinds: [kindReaction],
+            authors: [pubkey!],
+            since: nowTime,
         }
     ];
 }
