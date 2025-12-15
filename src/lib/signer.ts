@@ -12,25 +12,26 @@ export async function tryLogin(): Promise<boolean> {
         return true;
     }
 
-    signer = null;
-    pubkey = null;
-
     const savedLogin = browser ? localStorage.getItem(configLogin) : null;
     if (savedLogin === null) {
         nostrState.isAuthoricated = false;
         return false;
     }
 
-    if (savedLogin.startsWith('nsec')) {
-        signer = seckeySigner(savedLogin);
-        pubkey = await signer.getPublicKey();
-        nostrState.isAuthoricated = true;
-        return true;
-    } else if (savedLogin === '<NIP-7>') {
-        signer = nip07Signer();
-        pubkey = await signer.getPublicKey();
-        nostrState.isAuthoricated = true;
-        return true;
+    try {
+        if (savedLogin.startsWith('nsec')) {
+            signer = seckeySigner(savedLogin);
+            pubkey = await signer.getPublicKey();
+            nostrState.isAuthoricated = true;
+            return true;
+        } else if (savedLogin === '<NIP-7>') {
+            signer = nip07Signer();
+            pubkey = await signer.getPublicKey();
+            nostrState.isAuthoricated = true;
+            return true;
+        }
+    } catch (err) {
+        return false;
     }
 
     return false;

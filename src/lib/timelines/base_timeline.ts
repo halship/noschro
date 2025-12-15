@@ -252,14 +252,6 @@ function setTimeline(event: Event) {
             limit: pubkeys.length,
         });
     }
-
-    if ((event.kind === kindRepost || event.kind === kindGeneralRepost) &&
-        event.pubkey === pubkey!) {
-        nostrState.repostsById = { ...nostrState.repostsById, [ids.slice(-1)[0]]: '' };
-    }
-    if ((event.kind === kindReaction) && event.pubkey === pubkey!) {
-        nostrState.reactionsById = { ...nostrState.reactionsById, [ids.slice(-1)[0]]: event.content };
-    }
 }
 
 function deleteEvent(event: Event) {
