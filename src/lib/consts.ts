@@ -16,8 +16,9 @@ export const kindRepost = 6;
 export const kindReaction = 7;
 export const kindGeneralRepost = 16;
 export const kindRelayList = 10002;
+export const kindLingPost = 30023;
 
-export const kindsEvent = [kindPost, kindDelete, kindRepost, kindGeneralRepost];
+export const kindsEvent = [kindPost, kindDelete, kindRepost, kindGeneralRepost, kindLingPost];
 
 export const configLogin = 'login';
 export const configTheme = 'theme';
