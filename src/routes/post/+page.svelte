@@ -38,7 +38,7 @@
 	<textarea
 		bind:value={content}
 		onkeydown={handleKeyPost}
-		class="block w-full h-20 border border-thin rounded-md"
+		class="block w-full h-20 border border-thin rounded-md resize-none"
 	></textarea>
 
 	<button
