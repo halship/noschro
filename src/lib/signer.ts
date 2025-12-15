@@ -8,9 +8,12 @@ export let signer: EventSigner | null = null;
 export let pubkey: string | null = null;
 
 export async function tryLogin(): Promise<boolean> {
-    if (signer !== null) {
+    if (signer !== null && pubkey !== null) {
         return true;
     }
+
+    signer = null;
+    pubkey = null;
 
     const savedLogin = browser ? localStorage.getItem(configLogin) : null;
     if (savedLogin === null) {
