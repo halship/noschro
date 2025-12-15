@@ -1,5 +1,5 @@
 import DOMPurify from 'isomorphic-dompurify';
-import { Emoji, Image, Video, Link, Reference, Text, User, Space, type Token, LongContent, Br } from './types/token';
+import { Emoji, Image, Video, Link, Reference, Text, User, Space, type Token, LongContent, Br, Tab } from './types/token';
 import { decodeNostrURI } from 'nostr-tools/nip19';
 import { getSetting } from './util';
 
@@ -9,7 +9,7 @@ export function tokenize(content: string): Token[] {
     let text: string = '';
 
     while (i < content.length) {
-        const urlResult = content.slice(i).match(/^https?:\/\/([\w!?/+\-=_~;.,*&@#$%()'[\]]+)/);
+        const urlResult = content.slice(i).match(/^https?:\/\/([\w!?/+\-=_~:;.,*&@#$%()'[\]]+)/);
         const codeResult = content.slice(i).match(/^nostr:[a-z0-9]+/);
         const emojiResult = content.slice(i).match(/^:[a-zA-Z0-9_]+:/);
 
@@ -75,7 +75,19 @@ export function tokenize(content: string): Token[] {
             result.push(new Text(text));
             text = '';
 
-            result.push(new Space());
+            result.push(new Space('half'));
+            i++;
+        } else if (content.slice(i).startsWith('　')) {
+            result.push(new Text(text));
+            text = '';
+
+            result.push(new Space('full'));
+            i++;
+        } else if (content.slice(i).startsWith('\t')) {
+            result.push(new Text(text));
+            text = '';
+
+            result.push(new Tab());
             i++;
         } else {
             // その他の場合

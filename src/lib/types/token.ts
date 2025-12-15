@@ -73,5 +73,11 @@ export class Br implements Token {
 }
 
 export class Space implements Token {
-    public constructor() { }
+    public kind: string;
+
+    public constructor(kind: 'half' | 'full') {
+        this.kind = kind;
+    }
 }
+
+export class Tab implements Token { }

@@ -10,6 +10,7 @@
 		LongContent,
 		Reference,
 		Space,
+		Tab,
 		Text,
 		User,
 		Video,
@@ -61,7 +62,13 @@
 		{:else if token instanceof Br}
 			<br />
 		{:else if token instanceof Space}
-			&nbsp;
+			{#if token.kind === 'half'}
+				&nbsp;
+			{:else}
+				&emsp;
+			{/if}
+		{:else if token instanceof Tab}
+			&nbsp;&nbsp;
 		{:else if token instanceof Image}
 			{#if loadImage}
 				<a href={token.url} target="_blank">
