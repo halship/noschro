@@ -31,11 +31,17 @@
 	class="longform border-thin border rounded-md p-2 mt-2 grid grid-cols-[auto_1fr] grid-rows-[auto_1fr]"
 >
 	<PostUserImage profile={nostrState.profiles[event.pubkey]} />
-	<PostHeader {event} profile={nostrState.profiles[event.pubkey]} />
+	<PostHeader
+		{event}
+		profile={nostrState.profiles[event.pubkey]}
+		user_status={nostrState.userGeneralStatuses[event.pubkey]}
+	/>
 
 	{#if title}
 		<h1 class="text-3xl font-bold mb-3">{title}</h1>
 	{/if}
 
-	<div class="longform-content">{@html formatLongContent(event.content)}</div>
+	<div class="longform-content wrap-anywhere break-all">
+		{@html formatLongContent(event.content)}
+	</div>
 </div>
