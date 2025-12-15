@@ -1,3 +1,4 @@
+import { loadLimit } from "./consts";
 import type { NostrState } from "./types/nostr";
 
 export const nostrState: NostrState = $state({
@@ -10,6 +11,7 @@ export const nostrState: NostrState = $state({
     relays: [],
     followees: [],
     isAuthoricated: false,
+    timelineNum: loadLimit,
 });
 
 export function clearState() {
@@ -21,4 +23,5 @@ export function clearState() {
     nostrState.notificationsById = {};
     nostrState.relays = [];
     nostrState.followees = [];
+    nostrState.timelineNum = loadLimit;
 }

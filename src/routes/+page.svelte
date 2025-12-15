@@ -19,6 +19,8 @@
 
 		await subscribe();
 
+		nostrState.timelineNum = loadLimit;
+
 		if (nostrState.events.length === 0) {
 			console.log('Start to loading home timeline');
 			rxReqOldTimeline.emit(getHomeOldTimelineFilter());
@@ -35,7 +37,8 @@
 			top: 0,
 			behavior: 'instant'
 		});
-		nostrState.events = nostrState.events.slice(0, loadLimit);
+		nostrState.timelineNum = loadLimit;
+		nostrState.events = nostrState.events.slice(0, nostrState.timelineNum);
 	}
 
 	function handleLoadMore() {

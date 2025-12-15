@@ -1,6 +1,6 @@
-import { batch, createRxBackwardReq, createRxForwardReq, createRxNostr, latest, type LazyFilter, type RxNostr } from "rx-nostr";
+import { batch, createRxBackwardReq, createRxForwardReq, createRxNostr, latest, type RxNostr } from "rx-nostr";
 import { verifier } from "@rx-nostr/crypto";
-import { defaultRelays, kindDelete, kindFollowList, kindGeneralRepost, kindMetaData, kindPost, kindReaction, kindRelayList, kindRepost, kindsEvent, loadBufferTime, maxTimelineNum } from "$lib/consts";
+import { defaultRelays, kindDelete, kindFollowList, kindMetaData, kindPost, kindRelayList, kindsEvent, loadBufferTime, loadLimit } from "$lib/consts";
 import { bufferTime, type Subscription } from "rxjs";
 import { nostrState } from "$lib/state.svelte";
 import type { Event } from "nostr-typedef";
@@ -53,6 +53,7 @@ export async function subscribe() {
     oldTimelineSub = rxNostr.use(rxReqOldTimelineBatched)
         .subscribe({
             next: ({ event }) => {
+                nostrState.timelineNum += loadLimit;
                 setTimeline(event);
             },
             error: (err) => {
@@ -143,11 +144,11 @@ export async function subscribe() {
                     .findIndex((ev) => ev.created_at < event.created_at);
                 if (index < 0) {
                     nostrState.notifications = [...nostrState.notifications, nostrEvent]
-                        .slice(0, maxTimelineNum);
+                        .slice(0, nostrState.timelineNum);
                 } else {
                     nostrState.notifications = nostrState.notifications
                         .toSpliced(index, 0, nostrEvent)
-                        .slice(0, maxTimelineNum);
+                        .slice(0, nostrState.timelineNum);
                 }
 
                 nostrState.notificationsById = { ...nostrState.notificationsById, [event.id]: nostrEvent };
@@ -206,10 +207,10 @@ function setTimeline(event: Event) {
     const index = nostrState.events
         .findIndex((ev) => ev.created_at < nostrEvent.created_at);
     if (index < 0) {
-        nostrState.events = [...nostrState.events, nostrEvent].slice(0, maxTimelineNum);
+        nostrState.events = [...nostrState.events, nostrEvent].slice(0, nostrState.timelineNum);
     } else {
         nostrState.events = nostrState.events
-            .toSpliced(index, 0, nostrEvent).slice(0, maxTimelineNum);
+            .toSpliced(index, 0, nostrEvent).slice(0, nostrState.timelineNum);
     }
 
     // イベントをイベント履歴に追加
