@@ -57,7 +57,7 @@
 <div class="nostr-content leading-none wrap-anywhere break-all mb-1">
 	{#each tokens as token}
 		{#if token instanceof Text}
-			{token.value}
+			<span>{token.value}</span>
 		{:else if token instanceof Br}
 			<br />
 		{:else if token instanceof Space}
@@ -120,7 +120,7 @@
 			</a>
 		{:else if token instanceof Emoji}
 			{#if loadImage && token.code in emojis}
-				<img src={emojis[token.code]} alt="emoji" class="inline-block max-h-[1em]" />
+				<img src={emojis[token.code]} alt="emoji" class="inline-block max-h-[1.2em]" />
 			{:else}
 				:{token.code}:
 			{/if}

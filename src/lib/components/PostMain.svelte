@@ -111,7 +111,11 @@
 
 <div class="post-main grid grid-cols-[auto_1fr] grid-rows-[auto_1fr_auto]">
 	<PostUserImage profile={nostrState.profiles[event.pubkey]} />
-	<PostHeader {event} profile={nostrState.profiles[event.pubkey]} />
+	<PostHeader
+		{event}
+		profile={nostrState.profiles[event.pubkey]}
+		user_status={nostrState.userGeneralStatuses[event.pubkey]}
+	/>
 
 	<div class="py-1 max-h-140 overflow-y-auto">
 		{#if refIds.length > 0 && refPubkeys.length > 0}

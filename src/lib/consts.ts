@@ -17,6 +17,7 @@ export const kindReaction = 7;
 export const kindGeneralRepost = 16;
 export const kindRelayList = 10002;
 export const kindLongPost = 30023;
+export const kindUserStatus = 30315;
 
 export const kindsEvent = [kindPost, kindDelete, kindRepost, kindGeneralRepost, kindLongPost];
 

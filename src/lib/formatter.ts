@@ -113,17 +113,15 @@ export function formatDisplayName(displayName: string, tags: string[][]): string
                     const emojiCode = emojiResult[0].slice(1, -1);
 
                     if (emojiCode in emojis) {
-                        result.push('<img src="');
-                        result.push(emojis[emojiCode]);
-                        result.push('" class="inline-block max-w-[1em]">');
+                        result.push(`<img src="${emojis[emojiCode]}" class="inline-block max-w-[1.2em]">`);
                     } else {
-                        result.push(emojiResult[0]);
+                        result.push(`<span>${emojiResult[0]}</span>`);
                     }
                 } else {
-                    result.push(emojiResult[0]);
+                    result.push(`<span>${emojiResult[0]}</span>`);
                 }
             } else {
-                result.push(emojiResult[0]);
+                result.push(`<span>${emojiResult[0]}</span>`);
             }
 
             i += emojiResult[0].length;
@@ -155,7 +153,7 @@ export function formatReaction(content: string, tags: string[][]): string {
     const emojiResult = content.match(/^:[a-zA-Z0-9_]+:$/);
 
     if (emojiResult) {
-        return `<img src="${emojis[content.slice(1, -1)]}" class="inline-block max-w-[1em]">`;
+        return `<img src="${emojis[content.slice(1, -1)]}" class="inline-block max-w-[1.2em]">`;
     }
 
     if (content === '+') {

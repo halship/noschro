@@ -3,6 +3,7 @@ export type NostrState = {
     eventsById: Record<string, NostrEvent>,
     eventsByAddr: Record<string, NostrEvent>,
     profiles: Record<string, NostrProfile>,
+    userGeneralStatuses: Record<string, UserGeneralStatus>,
     notifications: NostrEvent[],
     relays: NostrRelay[],
     followees: string[],
@@ -27,6 +28,12 @@ export type NostrProfile = {
     banner?: string;
     about?: string;
     tags: string[][];
+    created_at: number;
+};
+
+export type UserGeneralStatus = {
+    pubkey: string;
+    content: string;
     created_at: number;
 };
 

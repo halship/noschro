@@ -1,11 +1,11 @@
 import { batch, createRxBackwardReq, createRxForwardReq, createRxNostr, latest, uniq, type RxNostr } from "rx-nostr";
 import { verifier } from "@rx-nostr/crypto";
-import { defaultRelays, kindDelete, kindFollowList, kindMetaData, kindPost, kindRelayList, kindsEvent, loadBufferTime, loadLimit } from "$lib/consts";
-import { bufferTime, Subject, type Subscription } from "rxjs";
+import { defaultRelays, kindDelete, kindFollowList, kindMetaData, kindPost, kindRelayList, kindsEvent, kindUserStatus, loadBufferTime, loadLimit } from "$lib/consts";
+import { bufferTime, map, Subject, type Subscription } from "rxjs";
 import { nostrState } from "$lib/state.svelte";
 import type { Event } from "nostr-typedef";
 import { signer, pubkey } from "$lib/signer";
-import type { NostrEvent, NostrProfile, NostrRelay } from "$lib/types/nostr";
+import type { NostrEvent, NostrProfile, NostrRelay, UserGeneralStatus } from "$lib/types/nostr";
 import { getAddr } from "$lib/util";
 
 export const rxReqTimeline = createRxForwardReq();
@@ -15,6 +15,7 @@ export const rxReqFollow = createRxBackwardReq();
 export const rxReqProfiles = createRxForwardReq();
 export const rxReqEvent = createRxBackwardReq();
 export const rxReqOldNotifications = createRxBackwardReq();
+export const rxReqUserStates = createRxBackwardReq();
 
 export let flushesTimeline$ = new Subject<void>();
 export let flushesProfiles$ = new Subject<void>();
@@ -29,6 +30,7 @@ let relaysSub: Subscription | null = null;
 let followSub: Subscription | null = null;
 let eventSub: Subscription | null = null;
 let oldNotificationsSub: Subscription | null = null;
+let userStatesSub: Subscription | null = null;
 
 export async function subscribe() {
     if (signer === null || pubkey === null) {
@@ -100,6 +102,12 @@ export async function subscribe() {
                     };
 
                     nostrState.profiles = { ...nostrState.profiles, [event.pubkey]: profile };
+
+                    rxReqUserStates.emit({
+                        kinds: [kindUserStatus],
+                        authors: [event.pubkey],
+                        limit: 1,
+                    });
                 } catch (err) {
                     console.error('Failed to parse profile metadata');
                 }
@@ -169,6 +177,34 @@ export async function subscribe() {
             }
         });
 
+    // ユーザのステータスを取得
+    const rxReqUserStatesBatched = rxReqUserStates.pipe(bufferTime(loadBufferTime), batch());
+    userStatesSub = rxNostr.use(rxReqUserStatesBatched)
+        .pipe(uniq(flushesProfiles$))
+        .subscribe({
+            next: ({ event }) => {
+                if ((event.pubkey in nostrState.userGeneralStatuses) &&
+                    nostrState.userGeneralStatuses[event.pubkey].created_at > event.created_at) {
+                    return;
+                }
+
+                const kind = event.tags.filter((t) => t[0] === 'd')
+                    .map((t) => t[1])
+                    .at(0);
+                if (kind === 'general' && event.content.length > 0) {
+                    const userStatus: UserGeneralStatus = {
+                        pubkey: event.pubkey,
+                        content: event.content,
+                        created_at: event.created_at,
+                    };
+                    nostrState.userGeneralStatuses = { ...nostrState.userGeneralStatuses, [event.pubkey]: userStatus };
+                }
+            },
+            error: (err) => {
+                console.error(err);
+            }
+        })
+
     nostrState.relays = await getRelays(rxNostr);
     nostrState.followees = await getFollowees(rxNostr);
 }
@@ -188,6 +224,8 @@ export function unsubscribe() {
     eventSub = null;
     oldNotificationsSub?.unsubscribe();
     oldNotificationsSub = null;
+    userStatesSub?.unsubscribe();
+    userStatesSub = null;
 
     flushesTimeline$.next();
     flushesProfiles$.next();
