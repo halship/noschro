@@ -65,8 +65,7 @@
 		<PostContent {content} tags={[]} />
 	</div>
 
-	<hr class="my-5" />
-
+	<h2 class="mt-5">= 入力</h2>
 	<textarea
 		bind:value={content}
 		onkeydown={handleKeyPost}
