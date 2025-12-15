@@ -39,11 +39,29 @@
 		}
 	});
 
-	let reactionColor: string = $derived.by(() => {
+	let repostColor: string = $derived.by(() => {
+		if (!(event.id in nostrState.actionsById)) {
+			return 'text-thin';
+		}
+		const id = nostrState.actionsById[event.id];
 		if (
-			event.id in nostrState.eventsById &&
-			nostrState.eventsById[event.id].kind === kindReaction &&
-			nostrState.eventsById[event.id].pubkey === pubkey!
+			nostrState.eventsById[id].kind === kindRepost &&
+			nostrState.eventsById[id].pubkey === pubkey!
+		) {
+			return 'text-repost';
+		} else {
+			return 'text-thin';
+		}
+	});
+
+	let reactionColor: string = $derived.by(() => {
+		if (!(event.id in nostrState.actionsById)) {
+			return 'text-thin';
+		}
+		const id = nostrState.actionsById[event.id];
+		if (
+			nostrState.eventsById[id].kind === kindReaction &&
+			nostrState.eventsById[id].pubkey === pubkey!
 		) {
 			return 'text-reaction';
 		} else {
@@ -117,7 +135,7 @@
 		user_status={nostrState.userGeneralStatuses[event.pubkey]}
 	/>
 
-	<div class="py-1 max-h-140 overflow-y-auto">
+	<div class="mt-1 py-1 max-h-140 overflow-y-auto">
 		{#if refIds.length > 0 && refPubkeys.length > 0}
 			<div class="ref-link my-2">
 				<a href="/{refEventCode}" class="border border-thin rounded-md p-1">←返信元</a>
@@ -142,7 +160,7 @@
 	</div>
 
 	<div class="flex mt-1">
-		<button onclick={handleRepost}><Repeat2 class="text-thin" /></button>
+		<button onclick={handleRepost}><Repeat2 class={repostColor} /></button>
 
 		<button class="ml-8 text-thin" onclick={handleQuote}><Quote /></button>
 

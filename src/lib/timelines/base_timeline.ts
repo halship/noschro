@@ -1,6 +1,6 @@
 import { batch, createRxBackwardReq, createRxForwardReq, createRxNostr, latest, uniq, type RxNostr } from "rx-nostr";
 import { verifier } from "@rx-nostr/crypto";
-import { defaultRelays, kindDelete, kindFollowList, kindMetaData, kindPost, kindRelayList, kindsEvent, kindUserStatus, loadBufferTime, loadLimit } from "$lib/consts";
+import { defaultRelays, kindDelete, kindFollowList, kindGeneralRepost, kindMetaData, kindPost, kindReaction, kindRelayList, kindRepost, kindsEvent, kindUserStatus, loadBufferTime, loadLimit } from "$lib/consts";
 import { bufferTime, map, Subject, type Subscription } from "rxjs";
 import { nostrState } from "$lib/state.svelte";
 import type { Event } from "nostr-typedef";
@@ -240,6 +240,13 @@ function setTimeline(event: Event) {
     if (event.kind === kindDelete) {
         deleteEvent(event);
         return;
+    }
+
+    // ユーザがしたアクションの場合、履歴に追加
+    if ((event.kind === kindRepost || event.kind === kindGeneralRepost || event.kind === kindReaction) &&
+        event.pubkey === pubkey!) {
+        const id = event.tags.filter((t) => t[0] === 'e').map((t) => t[1]).at(0);
+        nostrState.actionsById = { ...nostrState.actionsById, [id!]: event.id };
     }
 
     const nostrEvent = { ...event };

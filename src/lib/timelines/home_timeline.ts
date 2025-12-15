@@ -25,14 +25,30 @@ export function getHomeTimelineFilter(): LazyFilter[] {
     ];
 }
 
-export function getHomeOldTimelineFilter(): LazyFilter[] {
+export function getHomeOldTimelineFilter(limit?: number): LazyFilter[] {
     const until = nostrState.events.length > 0 ? nostrState.events.slice(-1)[0].created_at : now();
+    const since = until - getLoadTime();
     return [
         {
             kinds: kindsEvent,
             authors: nostrState.followees,
             until,
-            limit: loadLimit,
+            since: limit ? undefined : since,
+            limit,
+        },
+        {
+            kinds: [kindReaction],
+            '#p': [pubkey!],
+            until,
+            since: limit ? undefined : since,
+            limit,
+        },
+        {
+            kinds: [kindReaction],
+            authors: [pubkey!],
+            until,
+            since: limit ? undefined : since,
+            limit,
         }
     ];
 }
@@ -69,5 +85,13 @@ export function getNotificationsFilter(notifyType: NotifyType): LazyFilter {
             until,
             limit,
         };
+    }
+}
+
+function getLoadTime(): number {
+    if (nostrState.followees.length < 50) {
+        return 1200;
+    } else {
+        return 600;
     }
 }
