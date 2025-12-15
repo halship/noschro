@@ -52,7 +52,7 @@
 	});
 </script>
 
-<div class="nostr-content leading-none mb-1">
+<div class="nostr-content leading-none wrap-anywhere break-all mb-1">
 	{#each tokens as token}
 		{#if token instanceof Text}
 			{@html token.value}

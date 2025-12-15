@@ -3,12 +3,31 @@
 	import { page } from '$app/state';
 	import PostContent from '$lib/components/PostContent.svelte';
 	import { kindPost } from '$lib/consts';
-	import { tryLogin } from '$lib/signer';
+	import { tokenize } from '$lib/formatter';
+	import { pubkey, tryLogin } from '$lib/signer';
+	import { nostrState } from '$lib/state.svelte';
 	import { rxNostr, subscribe } from '$lib/timelines/base_timeline';
+	import { Reference, User, type Token } from '$lib/types/token';
 	import { onMount } from 'svelte';
 
-	let quote: string | null = page.url.searchParams.get('quote');
-	let content = $state(quote ? `nostr:${quote}` : '');
+	let content: string = $state(
+		page.url.searchParams.get('quote') ? `nostr:${page.url.searchParams.get('quote')}` : ''
+	);
+	let tokens: Token[] = $derived(tokenize(content));
+
+	const quotes = $derived(
+		tokens
+			.filter((token) => token instanceof Reference)
+			.map((token) => token.id)
+			.map((id) => ['q', id, nostrState.relays[0].url, pubkey!])
+	);
+
+	const pubkeys = $derived(
+		tokens
+			.filter((token) => token instanceof User)
+			.map((token) => token.pubkey)
+			.map((pub) => ['p', pub])
+	);
 
 	onMount(async () => {
 		if (!(await tryLogin())) {
@@ -20,9 +39,12 @@
 	});
 
 	function handlePost() {
+		const tags: string[][] = [...quotes, ...pubkeys];
+
 		rxNostr?.send({
 			kind: kindPost,
-			content: content
+			content: content,
+			tags
 		});
 		content = '';
 		goto('/');
