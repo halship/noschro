@@ -137,7 +137,7 @@
 		{/if}
 	</div>
 
-	<div class="flex mt-3">
+	<div class="flex mt-1">
 		<button onclick={handleRepost}><Repeat2 class={repostColor} /></button>
 
 		<button class="ml-8" onclick={handleReaction}>
