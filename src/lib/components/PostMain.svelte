@@ -51,12 +51,12 @@
 		}
 	});
 
-	function getRefEventCode(ev: NostrEvent): string {
-		return neventEncode({
+	let refEventCode: string = $derived(
+		neventEncode({
 			id: refIds.slice(-1)[0],
 			author: refPubkeys.slice(-1)[0]
-		});
-	}
+		})
+	);
 
 	function formatMention(profile: NostrProfile | undefined, pubkey: string): string {
 		const npub = npubEncode(pubkey).slice(0, 9);
@@ -114,9 +114,9 @@
 	<PostHeader {event} profile={nostrState.profiles[event.pubkey]} />
 
 	<div class="py-1 max-h-140 overflow-y-auto">
-		{#if refIds.length > 0}
+		{#if refIds.length > 0 && refPubkeys.length > 0}
 			<div class="ref-link my-2">
-				<a href="/{getRefEventCode(event)}" class="border border-thin rounded-md p-1">←返信元</a>
+				<a href="/{refEventCode}" class="border border-thin rounded-md p-1">←返信元</a>
 			</div>
 		{/if}
 
