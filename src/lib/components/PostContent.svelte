@@ -92,10 +92,12 @@
 			{#if getSetting('expand-ref') === 'true' && token.id in nostrState.eventsById}
 				<Post event={nostrState.eventsById[token.id]} />
 			{:else}
-				<a href="/{token.code}" class="border border-thin rounded-md p-1">引用</a>
+				<a href="/{token.code}" class="border border-thin rounded-md p-1 inline-block my-1">引用</a>
 			{/if}
 		{:else if token instanceof LongContent}
-			<a href="/{token.code}" class="border border-thin rounded-md p-1">長文投稿</a>
+			<a href="/{token.code}" class="border border-thin rounded-md p-1 inline-block my-1"
+				>長文投稿</a
+			>
 		{:else if token instanceof User}
 			<a href="/{token.code}">
 				{#if token.pubkey in nostrState.profiles}

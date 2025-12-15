@@ -55,7 +55,7 @@
 {/if}
 
 <div class="border border-thin rounded-md p-2 mt-2">
-	<h2 class="text-lg">■ 秘密鍵でログイン</h2>
+	<h2 class="text-lg">= 秘密鍵でログイン</h2>
 
 	<input
 		type="password"
@@ -71,7 +71,7 @@
 	{#if data.hasNip07}
 		<hr class="my-5" />
 
-		<h2 class="text-lg">■ 拡張機能でログイン</h2>
+		<h2 class="text-lg">= 拡張機能でログイン</h2>
 		<button class="rounded border border-dark dark:border-light p-1 mt-2" onclick={handleLoginNip07}
 			>ログイン</button
 		>

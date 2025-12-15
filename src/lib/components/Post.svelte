@@ -2,7 +2,14 @@
 	import type { NostrEvent } from '$lib/types/nostr';
 	import PostMain from './PostMain.svelte';
 	import ReactionHeader from './ReactionHeader.svelte';
-	import { kindGeneralRepost, kindPost, kindReaction, kindRepost, kindsEvent } from '$lib/consts';
+	import {
+		kindGeneralRepost,
+		kindLongPost,
+		kindPost,
+		kindReaction,
+		kindRepost,
+		kindsEvent
+	} from '$lib/consts';
 	import { onMount } from 'svelte';
 	import { rxReqEvent } from '$lib/timelines/base_timeline';
 	import { nostrState } from '$lib/state.svelte';
@@ -23,7 +30,7 @@
 </script>
 
 <div id={event.id} class="post border-thin border rounded-md p-2 mt-2">
-	{#if event.kind === kindPost}
+	{#if event.kind === kindPost || event.kind === kindLongPost}
 		<PostMain {event} />
 	{:else if event.kind === kindRepost || event.kind === kindReaction || event.kind === kindGeneralRepost}
 		<ReactionHeader {event} profile={nostrState.profiles[event.pubkey]} />

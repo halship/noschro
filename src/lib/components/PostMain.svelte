@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { neventEncode, npubEncode } from 'nostr-tools/nip19';
+	import { naddrEncode, neventEncode, npubEncode } from 'nostr-tools/nip19';
 	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
 	import { formatDisplayName } from '$lib/formatter';
 	import PostHeader from './PostHeader.svelte';
@@ -25,7 +25,11 @@
 			.at(0);
 
 		if (identifier) {
-			return getAddr(event.kind, event.pubkey, identifier);
+			return naddrEncode({
+				kind: event.kind,
+				pubkey: event.pubkey,
+				identifier: identifier
+			});
 		} else {
 			return null;
 		}
