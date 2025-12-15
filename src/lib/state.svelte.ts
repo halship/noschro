@@ -7,7 +7,6 @@ export const nostrState: NostrState = $state({
     eventsByAddr: {},
     profiles: {},
     notifications: [],
-    notificationsById: {},
     relays: [],
     followees: [],
     isAuthoricated: false,
@@ -20,7 +19,6 @@ export function clearState() {
     nostrState.eventsByAddr = {};
     nostrState.profiles = {};
     nostrState.notifications = [];
-    nostrState.notificationsById = {};
     nostrState.relays = [];
     nostrState.followees = [];
     nostrState.timelineNum = loadLimit;

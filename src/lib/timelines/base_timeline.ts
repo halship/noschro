@@ -1,7 +1,7 @@
-import { batch, createRxBackwardReq, createRxForwardReq, createRxNostr, latest, type RxNostr } from "rx-nostr";
+import { batch, createRxBackwardReq, createRxForwardReq, createRxNostr, latest, uniq, type RxNostr } from "rx-nostr";
 import { verifier } from "@rx-nostr/crypto";
 import { defaultRelays, kindDelete, kindFollowList, kindMetaData, kindPost, kindRelayList, kindsEvent, loadBufferTime, loadLimit } from "$lib/consts";
-import { bufferTime, type Subscription } from "rxjs";
+import { bufferTime, Subject, type Subscription } from "rxjs";
 import { nostrState } from "$lib/state.svelte";
 import type { Event } from "nostr-typedef";
 import { signer, pubkey } from "$lib/signer";
@@ -15,6 +15,10 @@ export const rxReqFollow = createRxBackwardReq();
 export const rxReqProfiles = createRxForwardReq();
 export const rxReqEvent = createRxBackwardReq();
 export const rxReqOldNotifications = createRxBackwardReq();
+
+export let flushesTimeline$ = new Subject<void>();
+export let flushesProfiles$ = new Subject<void>();
+export let flushesNotifications$ = new Subject<void>();
 
 export let rxNostr: RxNostr | null = null;
 
@@ -41,6 +45,7 @@ export async function subscribe() {
 
     // タイムライン取得
     timelineSub = rxNostr.use(rxReqTimeline)
+        .pipe(uniq(flushesTimeline$))
         .subscribe({
             next: ({ event }) => setTimeline(event),
             error: (err) => {
@@ -51,6 +56,7 @@ export async function subscribe() {
     // 古いタイムライン取得
     const rxReqOldTimelineBatched = rxReqOldTimeline.pipe(bufferTime(loadBufferTime), batch());
     oldTimelineSub = rxNostr.use(rxReqOldTimelineBatched)
+        .pipe(uniq(flushesTimeline$))
         .subscribe({
             next: ({ event }) => {
                 nostrState.timelineNum += loadLimit;
@@ -65,6 +71,7 @@ export async function subscribe() {
     const rxReqProfilesBatched = rxReqProfiles
         .pipe(bufferTime(loadBufferTime), batch());
     profilesSub = rxNostr.use(rxReqProfilesBatched)
+        .pipe(uniq(flushesProfiles$))
         .subscribe({
             next: ({ event }) => {
                 if ((event.pubkey in nostrState.profiles) &&
@@ -102,6 +109,7 @@ export async function subscribe() {
     // イベント取得
     const rxReqEventBatched = rxReqEvent.pipe(bufferTime(loadBufferTime), batch());
     eventSub = rxNostr.use(rxReqEventBatched)
+        .pipe(uniq(flushesTimeline$))
         .subscribe({
             next: ({ event }) => {
                 if (event.id in nostrState.eventsById) {
@@ -133,12 +141,9 @@ export async function subscribe() {
 
     // 古い通知を取得
     oldNotificationsSub = rxNostr.use(rxReqOldNotifications)
+        .pipe(uniq(flushesNotifications$))
         .subscribe({
             next: ({ event }) => {
-                if (event.id in nostrState.notificationsById) {
-                    return;
-                }
-
                 const nostrEvent: NostrEvent = { ...event };
                 const index = nostrState.notifications
                     .findIndex((ev) => ev.created_at < event.created_at);
@@ -150,8 +155,6 @@ export async function subscribe() {
                         .toSpliced(index, 0, nostrEvent)
                         .slice(0, nostrState.timelineNum);
                 }
-
-                nostrState.notificationsById = { ...nostrState.notificationsById, [event.id]: nostrEvent };
 
                 if (!(event.pubkey in nostrState.profiles)) {
                     rxReqProfiles.emit({
@@ -186,15 +189,15 @@ export function unsubscribe() {
     oldNotificationsSub?.unsubscribe();
     oldNotificationsSub = null;
 
+    flushesTimeline$.next();
+    flushesProfiles$.next();
+    flushesNotifications$.next();
+
     rxNostr?.dispose();
     rxNostr = null;
 }
 
 function setTimeline(event: Event) {
-    if (event.id in nostrState.eventsById) {
-        return;
-    }
-
     // 削除イベントの場合、タイムラインから該当イベントを削除
     if (event.kind === kindDelete) {
         deleteEvent(event);
