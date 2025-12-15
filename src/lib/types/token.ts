@@ -67,3 +67,11 @@ export class Emoji implements Token {
         this.code = code;
     }
 }
+
+export class Br implements Token {
+    public constructor() { }
+}
+
+export class Space implements Token {
+    public constructor() { }
+}

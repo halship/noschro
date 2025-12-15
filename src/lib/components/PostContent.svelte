@@ -3,11 +3,13 @@
 	import { tokenize } from '$lib/formatter';
 	import { rxReqEvent, rxReqProfiles } from '$lib/timelines/base_timeline';
 	import {
+		Br,
 		Emoji,
 		Image,
 		Link,
 		LongContent,
 		Reference,
+		Space,
 		Text,
 		User,
 		Video,
@@ -55,7 +57,11 @@
 <div class="nostr-content leading-none wrap-anywhere break-all mb-1">
 	{#each tokens as token}
 		{#if token instanceof Text}
-			{@html token.value}
+			{token.value}
+		{:else if token instanceof Br}
+			<br />
+		{:else if token instanceof Space}
+			&nbsp;
 		{:else if token instanceof Image}
 			{#if loadImage}
 				<a href={token.url} target="_blank">
