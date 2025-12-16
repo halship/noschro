@@ -6,7 +6,7 @@
 	import { tokenize } from '$lib/formatter';
 	import { pubkey, tryLogin } from '$lib/signer';
 	import { nostrState } from '$lib/state.svelte';
-	import { rxNostr, subscribe } from '$lib/timelines/base_timeline';
+	import { rxNostr, subscribeBase } from '$lib/timelines/base_timeline';
 	import { Reference, User, type Token } from '$lib/types/token';
 	import { onMount } from 'svelte';
 
@@ -35,7 +35,7 @@
 			return;
 		}
 
-		await subscribe();
+		await subscribeBase();
 	});
 
 	function handlePost() {

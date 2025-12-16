@@ -3,18 +3,16 @@
 	import Post from '$lib/components/Post.svelte';
 	import { nostrState } from '$lib/state.svelte';
 	import { MoveUp } from '@lucide/svelte';
-	import {
-		getFollowees,
-		getRelays,
-		rxNostr,
-		rxReqOldTimeline,
-		rxReqTimeline,
-		subscribe
-	} from '$lib/timelines/base_timeline';
-	import { onMount } from 'svelte';
+	import { subscribeBase } from '$lib/timelines/base_timeline';
+	import { onDestroy, onMount } from 'svelte';
 	import { tryLogin } from '$lib/signer';
 	import { goto } from '$app/navigation';
-	import { getHomeOldTimelineFilter, getHomeTimelineFilter } from '$lib/timelines/home_timeline';
+	import {
+		getHomeOldTimelineFilter,
+		rxReqOldTimeline,
+		subscribeHome,
+		unsubscribeHome
+	} from '$lib/timelines/home_timeline';
 
 	let isScrolled: boolean = $state(false);
 
@@ -24,14 +22,12 @@
 			return;
 		}
 
-		await subscribe();
+		await subscribeBase();
+		await subscribeHome();
+	});
 
-		nostrState.timelineNum = loadLimit;
-
-		if (nostrState.events.length === 0) {
-			rxReqOldTimeline.emit(getHomeOldTimelineFilter());
-			rxReqTimeline.emit(getHomeTimelineFilter());
-		}
+	onDestroy(() => {
+		unsubscribeHome();
 	});
 
 	function handleScroll() {

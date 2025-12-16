@@ -1,10 +1,10 @@
 <script lang="ts">
 	import './layout.css';
-	import { Bell, House, LogOut, Moon, Settings, SquarePen, Sun } from '@lucide/svelte';
+	import { Bell, House, Moon, Settings, SquarePen, Sun } from '@lucide/svelte';
 	import { onDestroy } from 'svelte';
 	import { clearState, nostrState } from '$lib/state.svelte';
 	import type { LayoutProps } from './$types';
-	import { unsubscribe } from '$lib/timelines/base_timeline';
+	import { closeNostr } from '$lib/timelines/base_timeline';
 	import { browser } from '$app/environment';
 
 	let { children }: LayoutProps = $props();
@@ -14,7 +14,7 @@
 	);
 
 	onDestroy(() => {
-		unsubscribe();
+		closeNostr();
 		clearState();
 	});
 

@@ -6,7 +6,7 @@
 	import { kindMetaData, kindsEvent } from '$lib/consts.js';
 	import { tryLogin } from '$lib/signer.js';
 	import { nostrState } from '$lib/state.svelte.js';
-	import { rxReqEvent, rxReqProfiles, subscribe } from '$lib/timelines/base_timeline.js';
+	import { rxReqEvent, rxReqProfiles, subscribeBase } from '$lib/timelines/base_timeline.js';
 	import { onMount } from 'svelte';
 
 	let { data } = $props();
@@ -17,7 +17,7 @@
 			return;
 		}
 
-		await subscribe();
+		await subscribeBase();
 
 		if (
 			(data.codeType === 'nevent' || data.codeType === 'note') &&

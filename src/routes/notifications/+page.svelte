@@ -3,12 +3,14 @@
 	import Post from '$lib/components/Post.svelte';
 	import { tryLogin } from '$lib/signer';
 	import { nostrState } from '$lib/state.svelte';
+	import { subscribeBase } from '$lib/timelines/base_timeline';
 	import {
 		flushesNotifications$,
+		getNotificationsFilter,
 		rxReqOldNotifications,
-		subscribe
-	} from '$lib/timelines/base_timeline';
-	import { getNotificationsFilter } from '$lib/timelines/home_timeline';
+		subscribeNotifications,
+		unsubscribeNotifications
+	} from '$lib/timelines/notifications';
 	import type { NotifyType } from '$lib/types/nostr';
 	import { AtSign, Bell, Repeat2, Heart } from '@lucide/svelte';
 	import { onDestroy, onMount } from 'svelte';
@@ -21,14 +23,12 @@
 			return;
 		}
 
-		await subscribe();
-		nostrState.notifications = [];
-		flushesNotifications$.next();
-		rxReqOldNotifications.emit(getNotificationsFilter(notifyType));
+		await subscribeBase();
+		await subscribeNotifications();
 	});
 
 	onDestroy(() => {
-		nostrState.notifications = [];
+		unsubscribeNotifications();
 	});
 
 	function handleNotifyButton(ntype: NotifyType) {

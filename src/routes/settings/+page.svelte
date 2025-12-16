@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { logout, tryLogin } from '$lib/signer';
-	import { clearState, nostrState } from '$lib/state.svelte';
-	import { subscribe, unsubscribe } from '$lib/timelines/base_timeline';
+	import { clearState } from '$lib/state.svelte';
+	import { closeNostr, subscribeBase } from '$lib/timelines/base_timeline';
 	import { getSetting, setSetting } from '$lib/util';
 	import { onMount } from 'svelte';
 
@@ -15,7 +15,7 @@
 			return;
 		}
 
-		await subscribe();
+		await subscribeBase();
 	});
 
 	function handleClickLoginImage() {
@@ -29,7 +29,7 @@
 	}
 
 	function handleLogout() {
-		unsubscribe();
+		closeNostr();
 		clearState();
 		logout();
 		goto('/login');

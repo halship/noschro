@@ -1,36 +1,30 @@
 import { batch, createRxBackwardReq, createRxForwardReq, createRxNostr, latest, uniq, type RxNostr } from "rx-nostr";
 import { verifier } from "@rx-nostr/crypto";
-import { defaultRelays, kindDelete, kindFollowList, kindGeneralRepost, kindMetaData, kindPost, kindReaction, kindRelayList, kindRepost, kindsEvent, kindUserStatus, loadBufferTime, loadLimit } from "$lib/consts";
-import { bufferTime, map, Subject, type Subscription } from "rxjs";
+import { defaultRelays, kindFollowList, kindMetaData, kindRelayList, kindUserStatus, loadBufferTime } from "$lib/consts";
+import { bufferTime, Subject, type Subscription } from "rxjs";
 import { nostrState } from "$lib/state.svelte";
-import type { Event } from "nostr-typedef";
 import { signer, pubkey } from "$lib/signer";
 import type { NostrEvent, NostrProfile, NostrRelay, UserGeneralStatus } from "$lib/types/nostr";
 import { getAddr } from "$lib/util";
+import { flushesTimeline$, unsubscribeHome } from "./home_timeline";
+import { flushesNotifications$ } from "./notifications";
 
-export const rxReqTimeline = createRxForwardReq();
-export const rxReqOldTimeline = createRxBackwardReq();
 export const rxReqRelays = createRxBackwardReq();
 export const rxReqFollow = createRxBackwardReq();
 export const rxReqProfiles = createRxForwardReq();
 export const rxReqEvent = createRxBackwardReq();
-export const rxReqOldNotifications = createRxBackwardReq();
 export const rxReqUserStates = createRxBackwardReq();
 
-export let flushesTimeline$ = new Subject<void>();
 export let flushesProfiles$ = new Subject<void>();
-export let flushesNotifications$ = new Subject<void>();
 
 export let rxNostr: RxNostr | null = null;
 
-let timelineSub: Subscription | null = null;
-let oldTimelineSub: Subscription | null = null;
 let profilesSub: Subscription | null = null;
 let eventSub: Subscription | null = null;
 let oldNotificationsSub: Subscription | null = null;
 let userStatesSub: Subscription | null = null;
 
-export async function subscribe() {
+export async function subscribeBase() {
     if (signer === null || pubkey === null) {
         throw Error('signer or pubkey is null');
     }
@@ -43,30 +37,6 @@ export async function subscribe() {
         connectionStrategy: 'lazy-keep',
     });
     rxNostr.setDefaultRelays(defaultRelays);
-
-    // タイムライン取得
-    timelineSub = rxNostr.use(rxReqTimeline)
-        .pipe(uniq(flushesTimeline$))
-        .subscribe({
-            next: ({ event }) => setTimeline(event),
-            error: (err) => {
-                console.error(err);
-            }
-        });
-
-    // 古いタイムライン取得
-    const rxReqOldTimelineBatched = rxReqOldTimeline.pipe(bufferTime(loadBufferTime), batch());
-    oldTimelineSub = rxNostr.use(rxReqOldTimelineBatched)
-        .pipe(uniq(flushesTimeline$))
-        .subscribe({
-            next: ({ event }) => {
-                nostrState.timelineNum += loadLimit;
-                setTimeline(event);
-            },
-            error: (err) => {
-                console.error(err);
-            }
-        });
 
     // プロフィール取得
     const rxReqProfilesBatched = rxReqProfiles
@@ -146,36 +116,6 @@ export async function subscribe() {
             }
         });
 
-    // 古い通知を取得
-    oldNotificationsSub = rxNostr.use(rxReqOldNotifications)
-        .pipe(uniq(flushesNotifications$))
-        .subscribe({
-            next: ({ event }) => {
-                const nostrEvent: NostrEvent = { ...event };
-                const index = nostrState.notifications
-                    .findIndex((ev) => ev.created_at < event.created_at);
-                if (index < 0) {
-                    nostrState.notifications = [...nostrState.notifications, nostrEvent]
-                        .slice(0, nostrState.timelineNum);
-                } else {
-                    nostrState.notifications = nostrState.notifications
-                        .toSpliced(index, 0, nostrEvent)
-                        .slice(0, nostrState.timelineNum);
-                }
-
-                if (!(event.pubkey in nostrState.profiles)) {
-                    rxReqProfiles.emit({
-                        kinds: [kindMetaData],
-                        authors: [event.pubkey],
-                        limit: 1,
-                    });
-                }
-            },
-            error: (err) => {
-                console.error(err);
-            }
-        });
-
     // ユーザのステータスを取得
     const rxReqUserStatesBatched = rxReqUserStates.pipe(bufferTime(loadBufferTime), batch());
     userStatesSub = rxNostr.use(rxReqUserStatesBatched)
@@ -209,11 +149,8 @@ export async function subscribe() {
     nostrState.followees = await getFollowees();
 }
 
-export function unsubscribe() {
-    timelineSub?.unsubscribe();
-    timelineSub = null;
-    oldTimelineSub?.unsubscribe();
-    oldTimelineSub = null;
+export function closeNostr() {
+    unsubscribeHome();
     profilesSub?.unsubscribe();
     profilesSub = null;
     eventSub?.unsubscribe();
@@ -294,84 +231,4 @@ export function getFollowees(): Promise<string[]> {
             limit: 1,
         });
     });
-}
-
-function setTimeline(event: Event) {
-    // 削除イベントの場合、タイムラインから該当イベントを削除
-    if (event.kind === kindDelete) {
-        deleteEvent(event);
-        return;
-    }
-
-    // ユーザがしたアクションの場合、履歴に追加
-    if ((event.kind === kindRepost || event.kind === kindGeneralRepost) &&
-        event.pubkey === pubkey!) {
-        const id = event.tags.filter((t) => t[0] === 'e').map((t) => t[1]).at(0);
-        nostrState.repostsById = { ...nostrState.repostsById, [id!]: event.id };
-    }
-    if ((event.kind === kindReaction) && event.pubkey === pubkey!) {
-        const id = event.tags.filter((t) => t[0] === 'e').map((t) => t[1]).at(0);
-        nostrState.reactionsById = { ...nostrState.reactionsById, [id!]: event.id };
-    }
-
-    const nostrEvent = { ...event };
-
-    // イベントをタイムラインに追加
-    const index = nostrState.events
-        .findIndex((ev) => ev.created_at < nostrEvent.created_at);
-    if (index < 0) {
-        nostrState.events = [...nostrState.events, nostrEvent].slice(0, nostrState.timelineNum);
-    } else {
-        nostrState.events = nostrState.events
-            .toSpliced(index, 0, nostrEvent).slice(0, nostrState.timelineNum);
-    }
-
-    // イベントをイベント履歴に追加
-    nostrState.eventsById = { ...nostrState.eventsById, [event.id]: nostrEvent };
-
-    // dがタグに定義されている場合、アドレスで検索できるイベント履歴にイベントを追加
-    const identifiers = event.tags.filter((t) => t[0] === 'd')
-        .map((t) => t[1]);
-    if (identifiers.length > 0) {
-        const key = getAddr(event.kind, event.pubkey, identifiers[0]);
-        nostrState.eventsByAddr = { ...nostrState.eventsByAddr, [key]: nostrEvent };
-    }
-
-    if (!(event.pubkey in nostrState.profiles)) {
-        rxReqProfiles.emit({
-            kinds: [kindMetaData],
-            authors: [event.pubkey],
-            limit: 1,
-        });
-    }
-
-    const ids = event.tags
-        .filter((t) => t[0] === 'e' && !(t[1] in nostrState.eventsById))
-        .map((t) => t[1]);
-    if (ids.length > 0) {
-        rxReqEvent.emit({
-            kinds: kindsEvent,
-            ids: ids,
-            limit: ids.length
-        });
-    }
-
-    const pubkeys = event.tags
-        .filter((t) => t[0] === 'p' && !(t[1] in nostrState.profiles))
-        .map((t) => t[1]);
-    if (pubkeys.length > 0) {
-        rxReqProfiles.emit({
-            kinds: [kindMetaData],
-            authors: pubkeys,
-            limit: pubkeys.length,
-        });
-    }
-}
-
-function deleteEvent(event: Event) {
-    const ids = event.tags
-        .filter((t) => t[0] === 'e' || t[0] === 'a')
-        .map((t) => t[0]);
-
-    nostrState.events = nostrState.events.filter((ev) => !ids.includes(ev.id));
 }
