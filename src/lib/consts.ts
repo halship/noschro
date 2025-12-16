@@ -21,6 +21,4 @@ export const kindUserStatus = 30315;
 
 export const kindsEvent = [kindPost, kindDelete, kindRepost, kindGeneralRepost, kindLongPost];
 
-export const configLogin = 'login';
-export const configTheme = 'theme';
-export const configLoadImage = 'load-image';
+export const reactionEmoji = '⭐';

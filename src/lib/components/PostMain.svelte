@@ -5,10 +5,10 @@
 	import PostHeader from './PostHeader.svelte';
 	import PostUserImage from './PostUserImage.svelte';
 	import PostContent from './PostContent.svelte';
-	import { Heart, Quote, Repeat2 } from '@lucide/svelte';
+	import { Quote, Repeat2, Star } from '@lucide/svelte';
 	import { rxNostr } from '$lib/timelines/base_timeline';
-	import { kindPost, kindReaction, kindRepost } from '$lib/consts';
-	import { getAddr, getRefIds, getRefPubkeys } from '$lib/util';
+	import { kindReaction, kindRepost, reactionEmoji } from '$lib/consts';
+	import { getRefIds, getRefPubkeys } from '$lib/util';
 	import { nostrState } from '$lib/state.svelte';
 	import { pubkey } from '$lib/signer';
 	import { goto } from '$app/navigation';
@@ -115,7 +115,7 @@
 
 		rxNostr?.send({
 			kind: kindReaction,
-			content: '❤',
+			content: reactionEmoji,
 			tags
 		});
 	}
@@ -159,7 +159,7 @@
 		<button class="ml-8 text-thin" onclick={handleQuote}><Quote /></button>
 
 		<button class="ml-8 text-thin" onclick={handleReaction}>
-			<Heart class={reactionColor} />
+			<Star class={reactionColor} />
 		</button>
 	</div>
 </div>

@@ -6,14 +6,11 @@
 	import type { LayoutProps } from './$types';
 	import { unsubscribe } from '$lib/timelines/base_timeline';
 	import { browser } from '$app/environment';
-	import { configTheme } from '$lib/consts';
 
 	let { children }: LayoutProps = $props();
 
 	let theme: string = $state(
-		browser && localStorage.getItem(configTheme) !== null
-			? localStorage.getItem(configTheme)!
-			: 'light'
+		browser && localStorage.getItem('theme') !== null ? localStorage.getItem('theme')! : 'light'
 	);
 
 	onDestroy(() => {
