@@ -42,6 +42,7 @@ export async function subscribe() {
     rxNostr = createRxNostr({
         verifier,
         signer,
+        connectionStrategy: 'lazy-keep',
     });
     rxNostr.setDefaultRelays(defaultRelays);
 
