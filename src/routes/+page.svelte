@@ -25,8 +25,6 @@
 		}
 
 		await subscribe();
-		nostrState.relays = await getRelays();
-		nostrState.followees = await getFollowees();
 
 		nostrState.timelineNum = loadLimit;
 

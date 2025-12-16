@@ -204,7 +204,11 @@ export async function subscribe() {
             error: (err) => {
                 console.error(err);
             }
-        })
+        });
+
+    nostrState.relays = await getRelays();
+    rxNostr.setDefaultRelays(nostrState.relays);
+    nostrState.followees = await getFollowees();
 }
 
 export function unsubscribe() {
