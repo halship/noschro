@@ -26,8 +26,6 @@ export let rxNostr: RxNostr | null = null;
 let timelineSub: Subscription | null = null;
 let oldTimelineSub: Subscription | null = null;
 let profilesSub: Subscription | null = null;
-let relaysSub: Subscription | null = null;
-let followSub: Subscription | null = null;
 let eventSub: Subscription | null = null;
 let oldNotificationsSub: Subscription | null = null;
 let userStatesSub: Subscription | null = null;
@@ -218,10 +216,6 @@ export function unsubscribe() {
     oldTimelineSub = null;
     profilesSub?.unsubscribe();
     profilesSub = null;
-    relaysSub?.unsubscribe();
-    relaysSub = null;
-    followSub?.unsubscribe();
-    followSub = null;
     eventSub?.unsubscribe();
     eventSub = null;
     oldNotificationsSub?.unsubscribe();
@@ -239,7 +233,7 @@ export function unsubscribe() {
 
 export function getRelays(): Promise<NostrRelay[]> {
     return new Promise((resolve) => {
-        relaysSub = rxNostr!.use(rxReqRelays)
+        const relaysSub = rxNostr!.use(rxReqRelays)
             .pipe(latest())
             .subscribe({
                 next: ({ event }) => {
@@ -259,6 +253,7 @@ export function getRelays(): Promise<NostrRelay[]> {
                         console.log(relay.url);
                     }
 
+                    relaysSub.unsubscribe();
                     resolve(relays);
                 },
                 error: (err) => {
@@ -276,7 +271,7 @@ export function getRelays(): Promise<NostrRelay[]> {
 
 export function getFollowees(): Promise<string[]> {
     return new Promise((resolve) => {
-        followSub = rxNostr!.use(rxReqFollow)
+        const followSub = rxNostr!.use(rxReqFollow)
             .pipe(latest())
             .subscribe({
                 next: ({ event }) => {
@@ -285,6 +280,7 @@ export function getFollowees(): Promise<string[]> {
 
                     console.log(`[${kindFollowList}] Set follow list`);
 
+                    followSub.unsubscribe();
                     resolve(followees);
                 },
                 error: (err) => {
