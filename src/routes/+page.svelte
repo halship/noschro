@@ -29,7 +29,6 @@
 		nostrState.timelineNum = loadLimit;
 
 		if (nostrState.events.length === 0) {
-			console.log('Start to loading home timeline');
 			rxReqOldTimeline.emit(getHomeOldTimelineFilter());
 			rxReqTimeline.emit(getHomeTimelineFilter());
 		}
