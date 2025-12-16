@@ -6,6 +6,13 @@ export const defaultRelays = [
     'wss://nos.lol/',
     'wss://relay.damus.io/',
     'wss://yabu.me',
+    'wss://relay-jp.nostr.wirednet.jp/',
+    'wss://nrelay-jp.c-stellar.net/',
+];
+export const globalRelays = [
+    'wss://yabu.me',
+    'wss://relay-jp.nostr.wirednet.jp/',
+    'wss://nrelay-jp.c-stellar.net/',
 ];
 
 export const kindMetaData = 0;

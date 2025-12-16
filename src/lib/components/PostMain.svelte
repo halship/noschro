@@ -66,7 +66,7 @@
 	let refEventCode: string = $derived(
 		neventEncode({
 			id: refIds.slice(-1)[0],
-			author: refPubkeys.slice(-1)[0]
+			author: refPubkeys.slice(-1).at(0)
 		})
 	);
 
@@ -130,7 +130,7 @@
 	/>
 
 	<div class="mt-1 py-1 max-h-140 overflow-y-auto">
-		{#if refIds.length > 0 && refPubkeys.length > 0}
+		{#if refIds.length > 0}
 			<div class="ref-link my-2">
 				<a href="/{refEventCode}" class="border border-thin rounded-md p-1">←返信元</a>
 			</div>

@@ -205,9 +205,6 @@ export async function subscribe() {
                 console.error(err);
             }
         })
-
-    nostrState.relays = await getRelays(rxNostr);
-    nostrState.followees = await getFollowees(rxNostr);
 }
 
 export function unsubscribe() {
@@ -234,6 +231,69 @@ export function unsubscribe() {
 
     rxNostr?.dispose();
     rxNostr = null;
+}
+
+export function getRelays(): Promise<NostrRelay[]> {
+    return new Promise((resolve) => {
+        relaysSub = rxNostr!.use(rxReqRelays)
+            .pipe(latest())
+            .subscribe({
+                next: ({ event }) => {
+                    const relays = event.tags.filter((t) => t[0] === 'r')
+                        .map((t) => {
+                            if (t.length < 3) {
+                                return { url: t[1], read: true, write: true };
+                            } else if (t[2] === 'read') {
+                                return { url: t[1], read: true, write: false };
+                            } else {
+                                return { url: t[1], read: false, write: true };
+                            }
+                        });
+
+                    console.log(`[${kindRelayList}] Set default relays`);
+                    for (const relay of relays) {
+                        console.log(relay.url);
+                    }
+
+                    resolve(relays);
+                },
+                error: (err) => {
+                    console.error(err);
+                }
+            });
+
+        rxReqRelays.emit({
+            kinds: [kindRelayList],
+            authors: [pubkey!],
+            limit: 1,
+        });
+    });
+}
+
+export function getFollowees(): Promise<string[]> {
+    return new Promise((resolve) => {
+        followSub = rxNostr!.use(rxReqFollow)
+            .pipe(latest())
+            .subscribe({
+                next: ({ event }) => {
+                    const followees = event.tags.filter((t) => t[0] === 'p')
+                        .map((t) => t[1]);
+
+                    console.log(`[${kindFollowList}] Set follow list`);
+
+                    resolve(followees);
+                },
+                error: (err) => {
+                    console.error(err);
+                }
+            });
+
+        rxReqFollow.emit({
+            kinds: [kindFollowList],
+            authors: [pubkey!],
+            limit: 1,
+        });
+    });
 }
 
 function setTimeline(event: Event) {
@@ -314,91 +374,4 @@ function deleteEvent(event: Event) {
         .map((t) => t[0]);
 
     nostrState.events = nostrState.events.filter((ev) => !ids.includes(ev.id));
-}
-
-function getRelays(rx: RxNostr): Promise<NostrRelay[]> {
-    return new Promise((resolve) => {
-        relaysSub = rx.use(rxReqRelays)
-            .pipe(latest())
-            .subscribe({
-                next: ({ event }) => {
-                    const relays = event.tags.filter((t) => t[0] === 'r')
-                        .map((t) => {
-                            if (t.length < 3) {
-                                return { url: t[1], read: true, write: true };
-                            } else if (t[2] === 'read') {
-                                return { url: t[1], read: true, write: false };
-                            } else {
-                                return { url: t[1], read: false, write: true };
-                            }
-                        });
-
-                    console.log(`[${kindRelayList}] Set default relays`);
-                    for (const relay of relays) {
-                        console.log(relay.url);
-                    }
-
-                    resolve(relays);
-                },
-                error: (err) => {
-                    console.error(err);
-                }
-            });
-
-        rxReqRelays.emit({
-            kinds: [kindRelayList],
-            authors: [pubkey!],
-            limit: 1,
-        });
-    });
-}
-
-function getFollowees(rx: RxNostr): Promise<string[]> {
-    return new Promise((resolve) => {
-        followSub = rx.use(rxReqFollow)
-            .pipe(latest())
-            .subscribe({
-                next: ({ event }) => {
-                    const followees = event.tags.filter((t) => t[0] === 'p')
-                        .map((t) => t[1]);
-
-                    console.log(`[${kindFollowList}] Set follow list`);
-
-                    resolve(followees);
-                },
-                error: (err) => {
-                    console.error(err);
-                }
-            });
-
-        rxReqFollow.emit({
-            kinds: [kindFollowList],
-            authors: [pubkey!],
-            limit: 1,
-        });
-    });
-}
-
-function emitReferences(tags: string[][]) {
-    const ids = tags
-        .filter((t) => t[0] === 'e' && !(t[1] in nostrState.eventsById))
-        .map((t) => t[1]);
-    if (ids.length > 0) {
-        rxReqEvent.emit({
-            kinds: [kindPost],
-            ids: ids,
-            limit: ids.length
-        });
-    }
-
-    const pubkeys = tags
-        .filter((t) => t[0] === 'p' && !(t[1] in nostrState.profiles))
-        .map((t) => t[1]);
-    if (pubkeys.length > 0) {
-        rxReqProfiles.emit({
-            kinds: [kindMetaData],
-            authors: pubkeys,
-            limit: 1
-        });
-    }
 }

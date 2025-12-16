@@ -3,7 +3,14 @@
 	import Post from '$lib/components/Post.svelte';
 	import { nostrState } from '$lib/state.svelte';
 	import { MoveUp } from '@lucide/svelte';
-	import { rxReqOldTimeline, rxReqTimeline, subscribe } from '$lib/timelines/base_timeline';
+	import {
+		getFollowees,
+		getRelays,
+		rxNostr,
+		rxReqOldTimeline,
+		rxReqTimeline,
+		subscribe
+	} from '$lib/timelines/base_timeline';
 	import { onMount } from 'svelte';
 	import { tryLogin } from '$lib/signer';
 	import { goto } from '$app/navigation';
@@ -18,6 +25,8 @@
 		}
 
 		await subscribe();
+		nostrState.relays = await getRelays();
+		nostrState.followees = await getFollowees();
 
 		nostrState.timelineNum = loadLimit;
 
