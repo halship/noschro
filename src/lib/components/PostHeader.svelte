@@ -1,17 +1,20 @@
 <script lang="ts">
 	import { neventEncode, npubEncode } from 'nostr-tools/nip19';
-	import type { NostrEvent, NostrProfile, UserGeneralStatus } from '$lib/types/nostr';
-	import { formatDisplayName } from '$lib/formatter';
-	import { Satellite } from '@lucide/svelte';
+	import type { NostrEvent, NostrProfile, UserStatus } from '$lib/types/nostr';
+	import FormatedText from './FormatedText.svelte';
+	import { getEmojis } from '$lib/util';
+	import UserStatusLine from './UserStatusLine.svelte';
 
 	let {
 		event,
 		profile,
-		user_status
+		user_general_status,
+		user_music_status
 	}: {
 		event: NostrEvent;
 		profile: NostrProfile | undefined;
-		user_status: UserGeneralStatus | undefined;
+		user_general_status: UserStatus | undefined;
+		user_music_status: UserStatus | undefined;
 	} = $props();
 
 	function getEventCode(ev: NostrEvent): string {
@@ -46,7 +49,7 @@
 			<a href="/{npubEncode(event.pubkey)}">
 				<span class="user-display-name font-bold mr-1">
 					{#if profile?.display_name}
-						{@html formatDisplayName(profile.display_name!, profile.tags)}
+						<FormatedText text={profile.display_name} emojis={getEmojis(profile.tags)} />
 					{:else if profile?.name}
 						{profile?.name!}
 					{:else}
@@ -67,10 +70,10 @@
 		>
 	</div>
 
-	{#if user_status}
-		<div class="user-status text-xs text-thin">
-			<Satellite class="inline-block size-[1.2em]" />
-			<span class="align-bottom">{user_status.content}</span>
-		</div>
+	{#if user_general_status}
+		<UserStatusLine user_status={user_general_status} />
+	{/if}
+	{#if user_music_status}
+		<UserStatusLine user_status={user_music_status} />
 	{/if}
 </div>

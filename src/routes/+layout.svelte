@@ -73,6 +73,6 @@
 	</div>
 </header>
 
-<div id="main" class="bg-light dark:bg-dark text-dark dark:text-light max-w-3xl mx-auto p-2">
+<div id="main" class="bg-light dark:bg-dark text-dark dark:text-light max-w-2xl mx-auto p-2">
 	{@render children()}
 </div>

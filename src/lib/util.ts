@@ -10,6 +10,14 @@ export function getRefPubkeys(tags: string[][]): string[] {
     return [...result];
 }
 
+export function getEmojis(tags: string[][]): Record<string, string> {
+    return tags
+        .filter((tag) => tag[0] === 'emoji')
+        .reduce((result, tag) => {
+            return { ...result, [tag[1]]: tag[2] };
+        }, {});
+}
+
 export function getSetting(key: SettingType): string | null {
     if (browser) {
         return localStorage.getItem(key);

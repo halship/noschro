@@ -4,7 +4,7 @@ import { defaultRelays, kindFollowList, kindMetaData, kindRelayList, kindUserSta
 import { bufferTime, Subject, type Subscription } from "rxjs";
 import { nostrState } from "$lib/state.svelte";
 import { signer, pubkey } from "$lib/signer";
-import type { NostrEvent, NostrProfile, NostrRelay, UserGeneralStatus } from "$lib/types/nostr";
+import type { NostrEvent, NostrProfile, NostrRelay, UserStatus } from "$lib/types/nostr";
 import { getAddr } from "$lib/util";
 import { flushesTimeline$, unsubscribeHome } from "./home_timeline";
 import { flushesNotifications$ } from "./notifications";
@@ -130,13 +130,16 @@ export async function subscribeBase() {
                 const kind = event.tags.filter((t) => t[0] === 'd')
                     .map((t) => t[1])
                     .at(0);
-                if (kind === 'general' && event.content.length > 0) {
-                    const userStatus: UserGeneralStatus = {
-                        pubkey: event.pubkey,
-                        content: event.content,
-                        created_at: event.created_at,
-                    };
+                const userStatus: UserStatus = {
+                    pubkey: event.pubkey,
+                    content: event.content,
+                    tags: event.tags,
+                    created_at: event.created_at,
+                };
+                if (kind === 'general' && event.content.trim().length > 0) {
                     nostrState.userGeneralStatuses = { ...nostrState.userGeneralStatuses, [event.pubkey]: userStatus };
+                } else if (kind === 'music' && event.content.trim().length > 0) {
+                    nostrState.userMusicStatuses = { ...nostrState.userMusicStatuses, [event.pubkey]: userStatus };
                 }
             },
             error: (err) => {
