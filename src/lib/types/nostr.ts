@@ -36,6 +36,7 @@ export type NostrProfile = {
 export type UserGeneralStatus = {
     pubkey: string;
     content: string;
+    tags: string[][];
     created_at: number;
 };
 

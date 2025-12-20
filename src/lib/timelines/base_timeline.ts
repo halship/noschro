@@ -134,6 +134,7 @@ export async function subscribeBase() {
                     const userStatus: UserGeneralStatus = {
                         pubkey: event.pubkey,
                         content: event.content,
+                        tags: event.tags,
                         created_at: event.created_at,
                     };
                     nostrState.userGeneralStatuses = { ...nostrState.userGeneralStatuses, [event.pubkey]: userStatus };

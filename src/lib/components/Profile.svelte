@@ -1,10 +1,11 @@
 <script lang="ts">
 	import type { NostrProfile } from '$lib/types/nostr';
-	import { getSetting } from '$lib/util';
-	import { formatDisplayName } from '$lib/formatter';
+	import { getEmojis, getSetting } from '$lib/util';
 	import PostContent from './PostContent.svelte';
+	import FormatedText from './FormatedText.svelte';
 
 	let { profile }: { profile: NostrProfile } = $props();
+	let emojis = $derived(getEmojis(profile.tags));
 </script>
 
 <div class="profile border-thin border rounded-md mt-2 overflow-hidden">
@@ -31,7 +32,7 @@
 	<div class="p-2">
 		<div class="user-display-name font-bold text-lg wrap-break-word">
 			{#if profile.display_name}
-				{@html formatDisplayName(profile.display_name!, profile.tags)}
+				<FormatedText text={profile.display_name} {emojis} />
 			{:else if profile.name}
 				@{profile.name}
 			{/if}

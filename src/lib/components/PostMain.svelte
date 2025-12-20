@@ -1,17 +1,17 @@
 <script lang="ts">
 	import { naddrEncode, neventEncode, npubEncode } from 'nostr-tools/nip19';
-	import type { NostrEvent, NostrProfile } from '$lib/types/nostr';
-	import { formatDisplayName } from '$lib/formatter';
+	import type { NostrEvent } from '$lib/types/nostr';
 	import PostHeader from './PostHeader.svelte';
 	import PostUserImage from './PostUserImage.svelte';
 	import PostContent from './PostContent.svelte';
 	import { Quote, Repeat2, Star } from '@lucide/svelte';
 	import { rxNostr } from '$lib/timelines/base_timeline';
 	import { kindReaction, kindRepost, reactionEmoji } from '$lib/consts';
-	import { getRefIds, getRefPubkeys } from '$lib/util';
+	import { getEmojis, getRefIds, getRefPubkeys } from '$lib/util';
 	import { nostrState } from '$lib/state.svelte';
 	import { pubkey } from '$lib/signer';
 	import { goto } from '$app/navigation';
+	import FormatedText from './FormatedText.svelte';
 
 	let { event }: { event: NostrEvent } = $props();
 
@@ -70,25 +70,6 @@
 		})
 	);
 
-	function formatMention(profile: NostrProfile | undefined, pubkey: string): string {
-		const npub = npubEncode(pubkey).slice(0, 9);
-		let result = ['@'];
-
-		if (profile) {
-			if (profile.display_name) {
-				result.push(formatDisplayName(profile.display_name, profile.tags));
-			} else if (profile.name) {
-				result.push(profile.name);
-			} else {
-				result.push(npub);
-			}
-		} else {
-			result.push(npub);
-		}
-
-		return result.join('');
-	}
-
 	function handleRepost() {
 		rxNostr?.send({
 			kind: kindRepost,
@@ -139,9 +120,22 @@
 		{#if refPubkeys.length > 0}
 			<div class="mentions mb-1 text-sm text-thin">
 				{#each refPubkeys as pubkey}
-					<a class="mr-2" href="/{npubEncode(pubkey)}"
-						>{@html formatMention(nostrState.profiles[pubkey], pubkey)}</a
-					>
+					<a class="mr-2" href="/{npubEncode(pubkey)}">
+						{#if pubkey in nostrState.profiles}
+							{#if nostrState.profiles[pubkey].display_name}
+								@<FormatedText
+									text={nostrState.profiles[pubkey].display_name}
+									emojis={getEmojis(nostrState.profiles[pubkey].tags)}
+								/>
+							{:else if nostrState.profiles[pubkey].name}
+								@{nostrState.profiles[pubkey].name}
+							{:else}
+								@{npubEncode(pubkey).slice(0, 9)}
+							{/if}
+						{:else}
+							@{npubEncode(pubkey).slice(0, 9)}
+						{/if}
+					</a>
 				{/each}
 			</div>
 		{/if}
