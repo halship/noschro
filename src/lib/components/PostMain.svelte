@@ -107,7 +107,8 @@
 	<PostHeader
 		{event}
 		profile={nostrState.profiles[event.pubkey]}
-		user_status={nostrState.userGeneralStatuses[event.pubkey]}
+		user_general_status={nostrState.userGeneralStatuses[event.pubkey]}
+		user_music_status={nostrState.userMusicStatuses[event.pubkey]}
 	/>
 
 	<div class="mt-1 py-1 max-h-140 overflow-y-auto">

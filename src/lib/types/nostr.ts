@@ -3,7 +3,8 @@ export type NostrState = {
     eventsById: Record<string, NostrEvent>,
     eventsByAddr: Record<string, NostrEvent>,
     profiles: Record<string, NostrProfile>,
-    userGeneralStatuses: Record<string, UserGeneralStatus>,
+    userGeneralStatuses: Record<string, UserStatus>,
+    userMusicStatuses: Record<string, UserStatus>,
     repostsById: Record<string, string>,
     reactionsById: Record<string, string>,
     notifications: NostrEvent[],
@@ -33,7 +34,7 @@ export type NostrProfile = {
     created_at: number;
 };
 
-export type UserGeneralStatus = {
+export type UserStatus = {
     pubkey: string;
     content: string;
     tags: string[][];

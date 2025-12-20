@@ -1,19 +1,20 @@
 <script lang="ts">
 	import { neventEncode, npubEncode } from 'nostr-tools/nip19';
-	import type { NostrEvent, NostrProfile, UserGeneralStatus } from '$lib/types/nostr';
-	import { Satellite } from '@lucide/svelte';
+	import type { NostrEvent, NostrProfile, UserStatus } from '$lib/types/nostr';
 	import FormatedText from './FormatedText.svelte';
 	import { getEmojis } from '$lib/util';
-	import UserStatus from './UserStatus.svelte';
+	import UserStatusLine from './UserStatusLine.svelte';
 
 	let {
 		event,
 		profile,
-		user_status
+		user_general_status,
+		user_music_status
 	}: {
 		event: NostrEvent;
 		profile: NostrProfile | undefined;
-		user_status: UserGeneralStatus | undefined;
+		user_general_status: UserStatus | undefined;
+		user_music_status: UserStatus | undefined;
 	} = $props();
 
 	function getEventCode(ev: NostrEvent): string {
@@ -69,7 +70,10 @@
 		>
 	</div>
 
-	{#if user_status}
-		<UserStatus {user_status} />
+	{#if user_general_status}
+		<UserStatusLine user_status={user_general_status} />
+	{/if}
+	{#if user_music_status}
+		<UserStatusLine user_status={user_music_status} />
 	{/if}
 </div>
