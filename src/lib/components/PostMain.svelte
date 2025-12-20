@@ -15,9 +15,7 @@
 
 	let { event }: { event: NostrEvent } = $props();
 
-	let refIds: string[] = $derived(
-		event.tags.filter((t) => t[0] === 'e' || t[0] === 'q').map((t) => t[1])
-	);
+	let refIds: string[] = $derived(event.tags.filter((t) => t[0] === 'e').map((t) => t[1]));
 	let refPubkeys: string[] = $derived.by(() => {
 		const result = event.tags.filter((t) => t[0] === 'p').map((t) => t[1]);
 		return [...new Set(result)];
