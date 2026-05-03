@@ -9,7 +9,7 @@
 	});
 </script>
 
-<header class="sticky top-0 flex border-b border-gray-600 bg-gray-900">
+<header class="sticky top-0 flex border-b border-gray-600 bg-gray-800">
 	<div class="flex flex-1">
 		<a href={resolve('/')} class="flex-none p-3" class:active-tab={activeTab === 'timeline'}
 			>タイムライン</a
