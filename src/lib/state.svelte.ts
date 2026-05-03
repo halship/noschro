@@ -16,6 +16,10 @@ export const appState = $state<AppState>({
 });
 
 export function addEvent(event: NostrEvent) {
+	if (!(event.pubkey in appState.profilesByPubkey)) {
+		requestProfile(event.pubkey);
+	}
+
 	appState.eventsById = { ...appState.eventsById, [event.id]: event };
 
 	if (appState.timelineIds.includes(event.id)) return;
@@ -39,9 +43,5 @@ export function addEvent(event: NostrEvent) {
 
 	if (appState.timelineIds.length > TIMELINE_LIMIT) {
 		appState.timelineIds = appState.timelineIds.slice(0, TIMELINE_LIMIT);
-	}
-
-	if (!(event.pubkey in appState.profilesByPubkey)) {
-		requestProfile(event.pubkey);
 	}
 }
