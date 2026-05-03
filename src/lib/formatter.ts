@@ -19,3 +19,13 @@ export function pubkeyToColor(pubkey: string): string {
 	const hue = hash % 360;
 	return `hsl(${hue}, 40%, 50%)`;
 }
+
+export function formatLink(url: string): string {
+	if (url.startsWith('https://')) {
+		return url.substring(8);
+	} else if (url.startsWith('http://')) {
+		return url.substring(7);
+	} else {
+		return url;
+	}
+}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { formatLink } from '$lib/formatter';
 	import type { ContentToken } from '$lib/models/content_token';
 
 	type Props = {
@@ -12,6 +13,10 @@
 	{#each contentTokens as token (token)}
 		{#if token.type === 'text'}
 			{token.text}
+		{:else if token.type === 'link'}
+			<a href={token.url} class="underline">{formatLink(token.url)}</a>
+		{:else if token.type === 'image'}
+			<img src={token.url} class="h-80 rounded-md" alt="content" />
 		{/if}
 	{/each}
 </div>
