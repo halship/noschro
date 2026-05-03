@@ -1,13 +1,17 @@
 import { TIMELINE_LIMIT } from './constants';
+import type { Profile } from './models/profile';
 import type { NostrEvent } from './nostr_type';
+import { requestProfile } from './subscriptions/profiles';
 
 export type AppState = {
 	eventsById: Record<string, NostrEvent>;
+	profilesByPubkey: Record<string, Profile>;
 	timelineIds: string[];
 };
 
 export const appState = $state<AppState>({
 	eventsById: {},
+	profilesByPubkey: {},
 	timelineIds: []
 });
 
@@ -35,5 +39,9 @@ export function addEvent(event: NostrEvent) {
 
 	if (appState.timelineIds.length > TIMELINE_LIMIT) {
 		appState.timelineIds = appState.timelineIds.slice(0, TIMELINE_LIMIT);
+	}
+
+	if (!(event.pubkey in appState.profilesByPubkey)) {
+		requestProfile(event.pubkey);
 	}
 }

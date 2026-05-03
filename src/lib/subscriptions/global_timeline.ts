@@ -9,7 +9,6 @@ export function subscribeGlobalTimeline() {
 
 	const sub = rxNostr.use(rxReq).subscribe((packet) => {
 		const event = { ...packet.event } as NostrEvent;
-		if (event.kind !== 1) return;
 		addEvent(event);
 	});
 
