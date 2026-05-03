@@ -3,6 +3,8 @@
 	import type { Post } from '$lib/models/post';
 	import type { Profile } from '$lib/models/profile';
 	import { User } from '@lucide/svelte';
+	import PostContent from './PostContent.svelte';
+	import { parseContent } from '$lib/models/content_token';
 
 	type Props = {
 		post: Post;
@@ -12,8 +14,13 @@
 	let { post, profile }: Props = $props();
 
 	let displayName = $derived.by(() => {
-		if (profile === undefined || profile?.displayName === undefined) {
+		if (
+			profile === undefined ||
+			(profile?.displayName === undefined && profile?.name === undefined)
+		) {
 			return formatPubkey(post.pubkey);
+		} else if (profile.displayName === undefined) {
+			return profile.name;
 		} else {
 			return profile.displayName;
 		}
@@ -39,16 +46,16 @@
 
 	<div class="flex flex-1 flex-col">
 		<div class="flex gap-2 px-2 pt-2">
-			<div class="flex-none">{displayName}</div>
+			<div class="flex-none font-bold">{displayName}</div>
 
-			{#if profile?.name !== undefined}
+			{#if profile?.name !== undefined && profile.name !== profile.displayName}
 				<div class="flex-none">@{profile.name}</div>
 			{/if}
 
 			<div class="flex-1 text-right">{formatTimestamp(post.createdAt)}</div>
 		</div>
 
-		<div class="px-2 pb-2 wrap-anywhere break-all">{post.content}</div>
+		<PostContent contentTokens={parseContent(post.content)} />
 	</div>
 </div>
 
