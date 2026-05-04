@@ -1,5 +1,5 @@
 import { rxNostr } from '$lib/client';
-import type { NostrEvent } from '$lib/nostr_type';
+import { createEvent } from '$lib/nostr_type';
 import { appState } from '$lib/state.svelte';
 import { batch, createRxBackwardReq } from 'rx-nostr';
 import { bufferTime } from 'rxjs';
@@ -10,11 +10,19 @@ const batchedReq = rxReq.pipe(bufferTime(1000), batch());
 
 export function subscribeEvents() {
 	const sub = rxNostr.use(batchedReq).subscribe((packet) => {
-		const event = packet.event as NostrEvent;
+		const event = createEvent(packet.event);
 		appState.eventsById = { ...appState.eventsById, [event.id]: event };
 
 		if (!(event.pubkey in appState.profilesByPubkey)) {
 			requestProfiles([event.pubkey]);
+		}
+
+		if (event.rootId && !(event.rootId in appState.eventsById)) {
+			requestEvents([event.rootId]);
+		}
+
+		if (event.replyToId && !(event.replyToId in appState.eventsById)) {
+			requestEvents([event.replyToId]);
 		}
 	});
 

@@ -1,7 +1,7 @@
 import { createRxBackwardReq, createRxForwardReq, now } from 'rx-nostr';
 import { rxNostr } from '$lib/client';
-import type { NostrEvent } from '$lib/nostr_type';
-import { addEvent, appState } from '$lib/state.svelte';
+import { createEvent } from '$lib/nostr_type';
+import { addEventToTimeline, appState } from '$lib/state.svelte';
 import { TIMELINE_LIMIT } from '$lib/constants';
 import { requestProfiles } from './profiles';
 
@@ -10,23 +10,25 @@ export function subscribeGlobalTimeline() {
 	const rxReqBack = createRxBackwardReq();
 
 	const subBack = rxNostr.use(rxReqBack).subscribe((packet) => {
-		const event = { ...packet.event } as NostrEvent;
+		const event = createEvent(packet.event);
+		addEventToTimeline(event);
 
 		if (!(event.pubkey in appState.profilesByPubkey)) {
 			requestProfiles([event.pubkey]);
 		}
 
-		addEvent(event);
+		addEventToTimeline(event);
 	});
 
 	const sub = rxNostr.use(rxReq).subscribe((packet) => {
-		const event = { ...packet.event } as NostrEvent;
+		const event = createEvent(packet.event);
+		addEventToTimeline(event);
 
 		if (!(event.pubkey in appState.profilesByPubkey)) {
 			requestProfiles([event.pubkey]);
 		}
 
-		addEvent(event);
+		addEventToTimeline(event);
 	});
 
 	rxReqBack.emit([

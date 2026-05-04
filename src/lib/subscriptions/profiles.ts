@@ -1,6 +1,6 @@
 import { rxNostr } from '$lib/client';
 import { toProfile } from '$lib/models/profile';
-import type { NostrEvent } from '$lib/nostr_type';
+import { createEvent } from '$lib/nostr_type';
 import { appState } from '$lib/state.svelte';
 import { batch, createRxForwardReq, latestEach } from 'rx-nostr';
 import { bufferTime } from 'rxjs';
@@ -13,7 +13,7 @@ export function subscribeProfiles() {
 		.use(batchedReq)
 		.pipe(latestEach((packet) => packet.event.pubkey))
 		.subscribe((packet) => {
-			const event = packet.event as NostrEvent;
+			const event = createEvent(packet.event);
 
 			const profile = toProfile(event);
 			if (profile !== null) {

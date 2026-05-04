@@ -9,6 +9,7 @@
 	import { requestEvents, subscribeEvents } from '$lib/subscriptions/events';
 	import type { TimelineItem } from '$lib/models/timeline';
 	import { subscribeProfiles } from '$lib/subscriptions/profiles';
+	import Timeline from '$lib/components/Timeline.svelte';
 
 	let { data }: PageProps = $props();
 
@@ -22,6 +23,23 @@
 			};
 		} else {
 			return undefined;
+		}
+	});
+
+	let replyItems: TimelineItem[] = $derived.by(() => {
+		if (currentItem) {
+			return currentItem.post.replyToIds
+				.filter((id) => id in appState.eventsById)
+				.map((id) => {
+					const post = toPost(appState.eventsById[id]);
+					const profile = appState.profilesByPubkey[post.pubkey];
+					return {
+						post,
+						profile
+					};
+				});
+		} else {
+			return [];
 		}
 	});
 
@@ -40,6 +58,11 @@
 		};
 	});
 </script>
+
+{#if replyItems.length > 0}
+	<Timeline items={replyItems} />
+	<div class="h-1 w-full bg-gray-600"></div>
+{/if}
 
 {#if currentItem}
 	<PostItem post={currentItem.post} profile={currentItem.profile} />

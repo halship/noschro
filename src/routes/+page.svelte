@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { initNostr } from '$lib/client';
-	import PostItem from '$lib/components/PostItem.svelte';
+	import Timeline from '$lib/components/Timeline.svelte';
 	import { GLOBAL_RELAY } from '$lib/constants';
 	import { toPost } from '$lib/models/post';
 	import type { TimelineItem } from '$lib/models/timeline';
@@ -39,6 +39,4 @@
 	<title>noschro - タイムライン</title>
 </svelte:head>
 
-{#each timelineItems as item (item.post.id)}
-	<PostItem post={item.post} profile={item.profile} />
-{/each}
+<Timeline items={timelineItems} />
