@@ -5,6 +5,8 @@
 	import { User } from '@lucide/svelte';
 	import PostContent from './PostContent.svelte';
 	import { parseContent } from '$lib/models/content_token';
+	import { resolve } from '$app/paths';
+	import { npubEncode } from 'nostr-tools/nip19';
 
 	type Props = {
 		post: Post;
@@ -25,30 +27,35 @@
 			return profile.displayName;
 		}
 	});
+
 	let iconColor = $derived(pubkeyToColor(post.pubkey));
+
+	let userNpub = $derived(npubEncode(post.pubkey));
 </script>
 
 <div class="flex border-b border-gray-600">
 	<div class="p-2">
-		{#if profile !== undefined && profile.picture !== undefined}
-			<img
-				src={profile.picture}
-				aria-hidden="true"
-				alt="profile picture"
-				class="h-12 w-12 rounded-full"
-			/>
-		{:else}
-			<div class="default-icon" style:background-color={iconColor}>
-				<User class="h-full w-full rounded-full text-gray-900" />
-			</div>
-		{/if}
+		<a href={resolve('/[ncode]', { ncode: userNpub })}>
+			{#if profile !== undefined && profile.picture !== undefined}
+				<img
+					src={profile.picture}
+					aria-hidden="true"
+					alt="profile picture"
+					class="h-12 w-12 rounded-full"
+				/>
+			{:else}
+				<div class="default-icon" style:background-color={iconColor}>
+					<User class="h-full w-full rounded-full text-gray-900" />
+				</div>
+			{/if}
+		</a>
 	</div>
 
 	<div class="flex flex-1 flex-col">
-		<div class="flex gap-2 px-2 pt-2">
+		<div class="flex flex-wrap gap-x-2 px-2 pt-2">
 			<div class="flex-none font-bold">{displayName}</div>
 
-			{#if profile?.name !== undefined && profile.name !== profile.displayName}
+			{#if profile?.displayName !== undefined && profile?.name !== undefined}
 				<div class="flex-none">@{profile.name}</div>
 			{/if}
 

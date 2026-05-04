@@ -35,6 +35,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>noschro - タイムライン</title>
+</svelte:head>
+
 {#each timelineItems as item (item.post.id)}
 	<PostItem post={item.post} profile={item.profile} />
 {/each}
