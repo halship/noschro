@@ -6,7 +6,7 @@
 	import PostContent from './PostContent.svelte';
 	import { parseContent } from '$lib/models/content_token';
 	import { resolve } from '$app/paths';
-	import { npubEncode } from 'nostr-tools/nip19';
+	import { npubEncode, neventEncode } from 'nostr-tools/nip19';
 
 	type Props = {
 		post: Post;
@@ -31,11 +31,19 @@
 	let iconColor = $derived(pubkeyToColor(post.pubkey));
 
 	let userNpub = $derived(npubEncode(post.pubkey));
+
+	let postNevent = $derived(
+		neventEncode({
+			id: post.id,
+			author: post.pubkey,
+			kind: 1
+		})
+	);
 </script>
 
 <div class="flex border-b border-gray-600">
 	<div class="p-2">
-		<a href={resolve('/[ncode]', { ncode: userNpub })}>
+		<a href={resolve('/[npub=npub]', { npub: userNpub })}>
 			{#if profile !== undefined && profile.picture !== undefined}
 				<img
 					src={profile.picture}
@@ -59,7 +67,11 @@
 				<div class="flex-none">@{profile.name}</div>
 			{/if}
 
-			<div class="flex-1 text-right">{formatTimestamp(post.createdAt)}</div>
+			<div class="flex-1 text-right">
+				<a href={resolve('/[nevent=nevent]', { nevent: postNevent })}
+					>{formatTimestamp(post.createdAt)}</a
+				>
+			</div>
 		</div>
 
 		<PostContent contentTokens={parseContent(post.content)} />

@@ -1,5 +1,5 @@
 import { rxNostr } from '$lib/client';
-import { getRefEventIds, getRefPubkeys, type NostrEvent } from '$lib/nostr_type';
+import type { NostrEvent } from '$lib/nostr_type';
 import { appState } from '$lib/state.svelte';
 import { batch, createRxBackwardReq } from 'rx-nostr';
 import { bufferTime } from 'rxjs';
@@ -13,8 +13,9 @@ export function subscribeEvents() {
 		const event = packet.event as NostrEvent;
 		appState.eventsById = { ...appState.eventsById, [event.id]: event };
 
-		requestEvents(getRefEventIds(event.tags));
-		requestProfiles(getRefPubkeys(event.tags));
+		if (!(event.pubkey in appState.profilesByPubkey)) {
+			requestProfiles([event.pubkey]);
+		}
 	});
 
 	return () => {
@@ -26,6 +27,6 @@ export function requestEvents(ids: string[]) {
 	rxReq.emit({
 		kinds: [1],
 		ids: ids,
-		limit: 1
+		limit: ids.length
 	});
 }
