@@ -26,10 +26,10 @@ export function subscribeProfiles() {
 	};
 }
 
-export function requestProfile(pubkey: string) {
+export function requestProfiles(pubkeys: string[]) {
 	rxReq.emit({
 		kinds: [0],
-		authors: [pubkey],
-		limit: 1
+		authors: pubkeys,
+		limit: pubkeys.length
 	});
 }
