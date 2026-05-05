@@ -4,4 +4,5 @@ export const GLOBAL_RELAY = [
 	'wss://relay-jp.nostr.wirednet.jp'
 ];
 
-export const TIMELINE_LIMIT = 30;
+export const TIMELINE_LIMIT = 500;
+export const LOAD_LIMIT = 30;

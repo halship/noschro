@@ -17,8 +17,6 @@ export const appState = $state<AppState>({
 export function addEventToTimeline(event: NostrEvent) {
 	appState.eventsById = { ...appState.eventsById, [event.id]: event };
 
-	if (appState.timelineIds.includes(event.id)) return;
-
 	const createdAt = appState.eventsById[event.id].created_at;
 
 	const index = appState.timelineIds.findIndex((id) => {
@@ -27,14 +25,13 @@ export function addEventToTimeline(event: NostrEvent) {
 
 	if (index === -1) {
 		appState.timelineIds = [...appState.timelineIds, event.id];
-		return;
+	} else {
+		appState.timelineIds = [
+			...appState.timelineIds.slice(0, index),
+			event.id,
+			...appState.timelineIds.slice(index)
+		];
 	}
-
-	appState.timelineIds = [
-		...appState.timelineIds.slice(0, index),
-		event.id,
-		...appState.timelineIds.slice(index)
-	];
 
 	if (appState.timelineIds.length > TIMELINE_LIMIT) {
 		appState.timelineIds = appState.timelineIds.slice(0, TIMELINE_LIMIT);
