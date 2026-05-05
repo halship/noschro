@@ -29,7 +29,7 @@
 </script>
 
 <div class="flex border-b border-border">
-	<div class="p-2">
+	<div class="m-2">
 		<a href={resolve('/[npub=npub]', { npub: userNpub })}>
 			{#if profile && profile.picture}
 				<img
@@ -46,8 +46,8 @@
 		</a>
 	</div>
 
-	<div class="flex flex-1 flex-col">
-		<div class="flex flex-wrap gap-x-2 px-2 pt-2">
+	<div class="m-2 flex flex-1 flex-col">
+		<div class="mb-2 flex flex-wrap gap-x-2">
 			<div class="flex-none font-bold break-all">
 				{#if profile?.displayName}
 					<Content tokens={parseContent(profile.displayName, profile.tags)} />
@@ -69,7 +69,7 @@
 			</div>
 		</div>
 
-		<p class="px-2 pb-2 wrap-anywhere break-all whitespace-pre-wrap">
+		<p class="wrap-anywhere break-all whitespace-pre-wrap">
 			<Content tokens={parseContent(post.content, post.tags)} />
 		</p>
 	</div>
