@@ -8,7 +8,7 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-<div class="relative mx-auto my-0 flex min-h-dvh max-w-2xl flex-col border border-border">
+<div class="relative mx-auto my-0 flex min-h-dvh max-w-2xl flex-col border border-border bg-bg">
 	<Header />
 
 	<main class=" flex-1">
