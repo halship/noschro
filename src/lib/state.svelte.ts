@@ -6,12 +6,14 @@ export type AppState = {
 	eventsById: Record<string, NostrEvent>;
 	profilesByPubkey: Record<string, Profile>;
 	timelineIds: string[];
+	isOpenedSetting: boolean;
 };
 
 export const appState = $state<AppState>({
 	eventsById: {},
 	profilesByPubkey: {},
-	timelineIds: []
+	timelineIds: [],
+	isOpenedSetting: false
 });
 
 export function addEventToTimeline(event: NostrEvent) {
