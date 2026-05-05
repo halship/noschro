@@ -10,6 +10,7 @@ export type Profile = {
 	picture?: string;
 	banner?: string;
 	about?: string;
+	tags: string[][];
 };
 
 export function toProfile(event: NostrEvent): Profile | null {
@@ -31,6 +32,7 @@ export function toProfile(event: NostrEvent): Profile | null {
 		displayName: metadata.display_name,
 		picture: metadata.picture,
 		banner: metadata.banner,
-		about: metadata.about
+		about: metadata.about,
+		tags: event.tags
 	};
 }

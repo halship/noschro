@@ -3,8 +3,8 @@
 	import { appState } from '$lib/state.svelte';
 	import { User } from '@lucide/svelte';
 	import type { PageProps } from './$types';
-	import PostContent from '$lib/components/PostContent.svelte';
-	import { parseContent } from '$lib/models/content_token';
+	import Content from '$lib/components/Content.svelte';
+	import { parseContent } from '$lib/models/token';
 	import { onMount } from 'svelte';
 	import { initNostr } from '$lib/client';
 	import { GLOBAL_RELAY } from '$lib/constants';
@@ -68,5 +68,7 @@
 {/if}
 
 {#if profile?.about}
-	<PostContent contentTokens={parseContent(profile.about)} />
+	<p class="px-2 pb-2 wrap-anywhere break-all whitespace-pre-wrap">
+		<Content tokens={parseContent(profile.about, profile.tags)} />
+	</p>
 {/if}

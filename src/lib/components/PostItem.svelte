@@ -3,8 +3,8 @@
 	import type { Post } from '$lib/models/post';
 	import type { Profile } from '$lib/models/profile';
 	import { User } from '@lucide/svelte';
-	import PostContent from './PostContent.svelte';
-	import { parseContent } from '$lib/models/content_token';
+	import Content from './Content.svelte';
+	import { parseContent } from '$lib/models/token';
 	import { resolve } from '$app/paths';
 	import { npubEncode, neventEncode } from 'nostr-tools/nip19';
 
@@ -14,19 +14,6 @@
 	};
 
 	let { post, profile }: Props = $props();
-
-	let displayName = $derived.by(() => {
-		if (
-			profile === undefined ||
-			(profile?.displayName === undefined && profile?.name === undefined)
-		) {
-			return formatPubkey(post.pubkey);
-		} else if (profile.displayName === undefined || profile.displayName.trim() === '') {
-			return profile.name;
-		} else {
-			return profile.displayName;
-		}
-	});
 
 	let iconColor = $derived(pubkeyToColor(post.pubkey));
 
@@ -44,7 +31,7 @@
 <div class="flex border-b border-gray-600">
 	<div class="p-2">
 		<a href={resolve('/[npub=npub]', { npub: userNpub })}>
-			{#if profile !== undefined && profile.picture !== undefined}
+			{#if profile && profile.picture}
 				<img
 					src={profile.picture}
 					aria-hidden="true"
@@ -61,7 +48,15 @@
 
 	<div class="flex flex-1 flex-col">
 		<div class="flex flex-wrap gap-x-2 px-2 pt-2">
-			<div class="flex-none font-bold break-all">{displayName}</div>
+			<div class="flex-none font-bold break-all">
+				{#if profile?.displayName}
+					<Content tokens={parseContent(profile.displayName, profile.tags)} />
+				{:else if profile?.name}
+					{profile.name}
+				{:else}
+					{formatPubkey(post.pubkey)}
+				{/if}
+			</div>
 
 			{#if profile?.displayName !== undefined && profile.displayName.trim() !== '' && profile?.name !== undefined}
 				<div class="flex-none break-all">@{profile.name}</div>
@@ -74,7 +69,9 @@
 			</div>
 		</div>
 
-		<PostContent contentTokens={parseContent(post.content)} />
+		<p class="px-2 pb-2 wrap-anywhere break-all whitespace-pre-wrap">
+			<Content tokens={parseContent(post.content, post.tags)} />
+		</p>
 	</div>
 </div>
 
