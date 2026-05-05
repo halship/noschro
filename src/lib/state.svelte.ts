@@ -40,22 +40,3 @@ export function addEventToTimeline(event: NostrEvent) {
 		appState.timelineIds = appState.timelineIds.slice(0, TIMELINE_LIMIT);
 	}
 }
-
-export function getReplyToIds(id: string): string[] {
-	let ids = [id];
-
-	while (ids[0] in appState.eventsById) {
-		const event = appState.eventsById[ids[0]];
-
-		if (event.replyToId) {
-			ids = [event.replyToId, ...ids];
-		} else if (event.rootId) {
-			ids = [event.rootId, ...ids];
-			break;
-		} else {
-			break;
-		}
-	}
-
-	return ids;
-}

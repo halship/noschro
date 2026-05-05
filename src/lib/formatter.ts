@@ -29,3 +29,11 @@ export function formatLink(url: string): string {
 		return url;
 	}
 }
+
+export function omitContent(content: string): string {
+	if (content.length > 30) {
+		return `${content.slice(0, 30)}…`;
+	} else {
+		return content;
+	}
+}

@@ -17,10 +17,6 @@ export function subscribeEvents() {
 			requestProfiles([event.pubkey]);
 		}
 
-		if (event.rootId && !(event.rootId in appState.eventsById)) {
-			requestEvents([event.rootId]);
-		}
-
 		if (event.replyToId && !(event.replyToId in appState.eventsById)) {
 			requestEvents([event.replyToId]);
 		}

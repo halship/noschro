@@ -1,7 +1,6 @@
 import type * as Nostr from 'nostr-typedef';
 
 export type NostrEvent = Nostr.Event & {
-	rootId?: string;
 	replyToId?: string;
 };
 
@@ -12,7 +11,6 @@ export function createEvent(event: Nostr.Event): NostrEvent {
 
 	return {
 		...event,
-		rootId,
-		replyToId
+		replyToId: replyToId ? replyToId : rootId
 	};
 }

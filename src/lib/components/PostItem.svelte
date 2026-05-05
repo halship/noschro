@@ -21,7 +21,7 @@
 			(profile?.displayName === undefined && profile?.name === undefined)
 		) {
 			return formatPubkey(post.pubkey);
-		} else if (profile.displayName === undefined) {
+		} else if (profile.displayName === undefined || profile.displayName.trim() === '') {
 			return profile.name;
 		} else {
 			return profile.displayName;
@@ -61,10 +61,10 @@
 
 	<div class="flex flex-1 flex-col">
 		<div class="flex flex-wrap gap-x-2 px-2 pt-2">
-			<div class="flex-none font-bold">{displayName}</div>
+			<div class="flex-none font-bold break-all">{displayName}</div>
 
-			{#if profile?.displayName !== undefined && profile?.name !== undefined}
-				<div class="flex-none">@{profile.name}</div>
+			{#if profile?.displayName !== undefined && profile.displayName.trim() !== '' && profile?.name !== undefined}
+				<div class="flex-none break-all">@{profile.name}</div>
 			{/if}
 
 			<div class="flex-1 text-right">
