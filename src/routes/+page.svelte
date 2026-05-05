@@ -55,7 +55,6 @@
 {/each}
 
 {#if canLoadOldTimeline}
-	<button class="w-full bg-gray-800 p-2 text-center" onclick={handleLoadMore}
-		>▼さらに読み込む▼</button
+	<button class="w-full bg-sub-bg p-2 text-center" onclick={handleLoadMore}>▼さらに読み込む▼</button
 	>
 {/if}

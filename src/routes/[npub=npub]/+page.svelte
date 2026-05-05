@@ -34,10 +34,10 @@
 			src={profile.banner}
 			aria-hidden="true"
 			alt="User banner"
-			class="h-60 w-full border-b border-gray-600 bg-gray-900 object-cover"
+			class="h-60 w-full border-b object-cover"
 		/>
 	{:else}
-		<div class="h-60 w-full border-b border-gray-600 bg-gray-900"></div>
+		<div class="h-60 w-full border-b"></div>
 	{/if}
 
 	{#if profile?.picture}
@@ -45,14 +45,14 @@
 			src={profile.picture}
 			aria-hidden="true"
 			alt="User picture"
-			class="absolute bottom-2 left-2 h-30 w-30 rounded-full border-2 border-gray-600"
+			class="absolute bottom-2 left-2 h-30 w-30 rounded-full border-2"
 		/>
 	{:else}
 		<div
-			class="absolute bottom-2 left-2 h-30 w-30 rounded-full border-2 border-gray-600"
+			class="absolute bottom-2 left-2 h-30 w-30 rounded-full border-2"
 			style:background-color={pubkeyToColor(data.pubkey)}
 		>
-			<User class="h-full w-full rounded-full text-gray-900" />
+			<User class="text-app-text h-full w-full rounded-full" />
 		</div>
 	{/if}
 </div>

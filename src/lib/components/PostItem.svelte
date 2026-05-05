@@ -28,7 +28,7 @@
 	);
 </script>
 
-<div class="flex border-b border-gray-600">
+<div class="flex border-b border-border">
 	<div class="p-2">
 		<a href={resolve('/[npub=npub]', { npub: userNpub })}>
 			{#if profile && profile.picture}
@@ -40,7 +40,7 @@
 				/>
 			{:else}
 				<div class="default-icon" style:background-color={iconColor}>
-					<User class="h-full w-full rounded-full text-gray-900" />
+					<User class="text-app-text size-full rounded-full" />
 				</div>
 			{/if}
 		</a>

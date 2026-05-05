@@ -8,10 +8,10 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-<div class="relative mx-auto my-0 flex min-h-dvh max-w-2xl flex-col border border-gray-700">
+<div class="relative mx-auto my-0 flex min-h-dvh max-w-2xl flex-col border border-border">
 	<Header />
 
-	<main class="flex-1 bg-gray-900">
+	<main class=" flex-1">
 		{@render children()}
 	</main>
 </div>
