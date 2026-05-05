@@ -1,5 +1,5 @@
 const URL_RE = /https?:\/\/[a-zA-Z0-9?&#./=\-_~%:@+]+/g;
-const IMAGE_EXT_RE = /\.(png|jpe?g|git|webp|avif)(\?.*)?$/g;
+const IMAGE_EXT_RE = /\.(png|jpe?g|git|webp|avif)(\?.*)?$/;
 
 export type ContentToken =
 	| { type: 'text'; text: string }

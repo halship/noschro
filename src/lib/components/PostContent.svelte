@@ -10,7 +10,7 @@
 </script>
 
 <p class="px-2 pb-2 wrap-anywhere break-all whitespace-pre-wrap">
-	{#each contentTokens as token (token)}
+	{#each contentTokens as token, i (i)}
 		{#if token.type === 'text'}
 			{token.text}
 		{:else if token.type === 'link'}
