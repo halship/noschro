@@ -28,7 +28,7 @@
 	);
 </script>
 
-<div class="flex border-b border-border">
+<div class="flex border-b border-gray-400 dark:border-gray-700">
 	<div class="m-2">
 		<a href={resolve('/[npub=npub]', { npub: userNpub })}>
 			{#if profile && profile.picture}

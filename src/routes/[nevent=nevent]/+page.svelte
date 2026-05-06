@@ -59,6 +59,8 @@
 	{#each replyItems as item (item.post.id)}
 		<PostItem post={item.post} profile={item.profile} />
 	{/each}
+
+	<div class="h-2 dark:bg-gray-700"></div>
 {/if}
 
 {#if currentItem}

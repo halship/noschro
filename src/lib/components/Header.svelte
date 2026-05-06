@@ -14,23 +14,20 @@
 	}
 </script>
 
-<header class="sticky top-0 flex border-b border-border bg-sub-bg">
+<header
+	class="bg-sub-bg sticky top-0 flex border-b border-gray-400 bg-gray-300 dark:border-gray-700 dark:bg-gray-800"
+>
 	<div class="flex flex-1">
-		<a href={resolve('/')} class="flex-none p-3" class:active-tab={activeTab === 'timeline'}
-			>タイムライン</a
+		<a
+			href={resolve('/')}
+			class="flex-none border-gray-400 p-3 dark:border-gray-600"
+			class:border-b-5={activeTab === 'timeline'}
+			class:font-bold={activeTab === 'timeline'}>タイムライン</a
 		>
 	</div>
 	<div>
-		<button class="text-app-text flex-none p-3 hover:text-strong-text" onclick={handleSetting}
+		<button class="flex-none p-3 dark:hover:text-gray-300" onclick={handleSetting}
 			><Settings /></button
 		>
 	</div>
 </header>
-
-<style>
-	.active-tab {
-		color: var(--color-app-text);
-		font-weight: bold;
-		border-bottom: 3px solid var(--color-border);
-	}
-</style>
