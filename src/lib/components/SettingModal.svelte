@@ -1,13 +1,9 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 
-	type Props = {
-		isOpended: boolean;
-	};
-
-	let { isOpended }: Props = $props();
-
-	let selectedTheme: 'system' | 'light' | 'dark' = $state('system');
+	let selectedTheme: string = $state(
+		browser ? (localStorage.getItem('theme') ?? 'system') : 'system'
+	);
 
 	function handleChangeTheme() {
 		const theme =
@@ -26,7 +22,6 @@
 
 <dialog
 	class="fixed top-14 mx-auto my-2 flex min-w-auto flex-col gap-1 border-2 border-gray-400 bg-gray-200 text-gray-700 outline-4 outline-gray-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:outline-gray-900"
-	hidden={!isOpended}
 >
 	<div class="border-b border-gray-400 bg-gray-300 p-2 dark:border-gray-700 dark:bg-gray-800">
 		設定

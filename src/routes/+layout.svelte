@@ -19,5 +19,7 @@
 		{@render children()}
 	</main>
 
-	<SettingModal isOpended={appState.isOpenedSetting} />
+	{#if appState.isOpenedSetting}
+		<SettingModal />
+	{/if}
 </div>
