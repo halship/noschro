@@ -17,6 +17,8 @@ export const appState = $state<AppState>({
 });
 
 export function addEventToTimeline(event: NostrEvent) {
+	if (appState.timelineIds.includes(event.id)) return;
+
 	appState.eventsById = { ...appState.eventsById, [event.id]: event };
 
 	const createdAt = appState.eventsById[event.id].created_at;
