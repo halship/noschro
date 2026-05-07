@@ -14,11 +14,16 @@ export function subscribeProfiles() {
 		.pipe(latestEach((packet) => packet.event.pubkey))
 		.subscribe((packet) => {
 			const event = createEvent(packet.event);
+			const pubkeys = [event.pubkey, ...event.replyToPubkeys].filter(
+				(pubkey) => !(pubkey in appState.profilesByPubkey)
+			);
 
 			const profile = toProfile(event);
 			if (profile !== null) {
 				appState.profilesByPubkey = { ...appState.profilesByPubkey, [event.pubkey]: profile };
 			}
+
+			requestProfiles(pubkeys);
 		});
 
 	return () => {
@@ -27,6 +32,8 @@ export function subscribeProfiles() {
 }
 
 export function requestProfiles(pubkeys: string[]) {
+	if (pubkeys.length === 0) return;
+
 	rxReq.emit({
 		kinds: [0],
 		authors: pubkeys,

@@ -1,4 +1,4 @@
-const URL_RE = /https?:\/\/[a-zA-Z0-9?&#./=\-_~%:@+]+/g;
+const URL_RE = /https?:\/\/[a-zA-Z0-9?&#./=\-_~%:@+,]+/g;
 const IMAGE_EXT_RE = /\.(png|jpe?g|git|webp|avif)(\?.*)?$/;
 const EMOJI_RE = /:([a-zA-Z0-9_\\+\\-]+):/g;
 

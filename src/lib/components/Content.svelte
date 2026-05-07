@@ -16,7 +16,7 @@
 		<a href={token.url} rel="external" target="_blank" class="underline">{formatLink(token.url)}</a>
 	{:else if token.type === 'image'}
 		<a href={token.url} rel="external" target="_blank"
-			><img src={token.url} class="max-h-80 rounded-md border" alt="content" /></a
+			><img src={token.url} class="my-1 max-h-80 rounded-md border" alt="content" /></a
 		>
 	{:else if token.type === 'emoji'}
 		<img src={token.url} alt={token.shortcode} class="inline-block size-5" />

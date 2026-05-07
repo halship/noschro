@@ -2,15 +2,22 @@ import type { NostrEvent } from '$lib/nostr_type';
 import { toPost, type Post } from './post';
 import type { Profile } from './profile';
 
+export type NostrUser = {
+	pubkey: string;
+	name?: string;
+	displayName?: string;
+};
+
 export type TimelineItem = {
 	id: string;
 	post: Post;
 	profile?: Profile;
-	replyTo?: {
+	replyToEvent?: {
 		id: string;
 		post?: Post;
 		profile?: Profile;
 	};
+	replyToUsers: NostrUser[];
 };
 
 export function toTimelineItem(
@@ -23,6 +30,14 @@ export function toTimelineItem(
 	const event = eventsById[id];
 	const post = toPost(event);
 	const profile = profilesByPubkey[post.pubkey];
+	const replyToUsers = event.replyToPubkeys.map((pubkey) => {
+		if (pubkey in profilesByPubkey) {
+			const profile = profilesByPubkey[pubkey];
+			return { pubkey, name: profile.name, displayName: profile.displayName };
+		} else {
+			return { pubkey };
+		}
+	});
 
 	if (event.replyToId) {
 		if (event.replyToId in eventsById) {
@@ -33,23 +48,25 @@ export function toTimelineItem(
 				id,
 				post,
 				profile,
-				replyTo: {
+				replyToEvent: {
 					id: event.replyToId,
 					post: replyToPost,
 					profile: replyToProfile
-				}
+				},
+				replyToUsers
 			};
 		} else {
 			return {
 				id,
 				post,
 				profile,
-				replyTo: {
+				replyToEvent: {
 					id: event.replyToId
-				}
+				},
+				replyToUsers
 			};
 		}
 	} else {
-		return { id, post, profile };
+		return { id, post, profile, replyToUsers };
 	}
 }

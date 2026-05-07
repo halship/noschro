@@ -41,10 +41,11 @@ export function requestOldGlobalTimeline(until: number, limit: number) {
 
 function handlePacket(packet: EventPacket) {
 	const event = createEvent(packet.event);
+	const pubkeys = [event.pubkey, ...event.replyToPubkeys].filter(
+		(pubkey) => !(pubkey in appState.profilesByPubkey)
+	);
 
-	if (!(event.pubkey in appState.profilesByPubkey)) {
-		requestProfiles([event.pubkey]);
-	}
+	requestProfiles(pubkeys);
 
 	if (event.replyToId && !(event.replyToId in appState.eventsById)) {
 		requestEvents([event.replyToId]);

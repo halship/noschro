@@ -47,11 +47,11 @@
 </svelte:head>
 
 {#each timelineItems as item (item.id)}
-	{#if item.replyTo}
-		<ReplyPreview post={item.replyTo.post} />
+	{#if item.replyToEvent}
+		<ReplyPreview post={item.replyToEvent.post} />
 	{/if}
 
-	<PostItem post={item.post} profile={item.profile} />
+	<PostItem post={item.post} profile={item.profile} replyToUsers={item.replyToUsers} />
 {/each}
 
 {#if canLoadOldTimeline}

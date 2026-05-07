@@ -16,19 +16,19 @@
 	);
 
 	let replyItems: TimelineItem[] = $derived.by(() => {
-		if (!currentItem?.replyTo) return [];
+		if (!currentItem?.replyToEvent) return [];
 
 		let result: TimelineItem[] = [];
 		let item = toTimelineItem(
 			appState.eventsById,
 			appState.profilesByPubkey,
-			currentItem?.replyTo?.id
+			currentItem?.replyToEvent?.id
 		);
 
 		while (item) {
 			result = [item, ...result];
-			item = item.replyTo
-				? toTimelineItem(appState.eventsById, appState.profilesByPubkey, item.replyTo.id)
+			item = item.replyToEvent
+				? toTimelineItem(appState.eventsById, appState.profilesByPubkey, item.replyToEvent.id)
 				: undefined;
 		}
 
@@ -55,14 +55,18 @@
 	<title>noschro - 投稿</title>
 </svelte:head>
 
-{#if currentItem?.replyTo}
+{#if currentItem?.replyToEvent}
 	{#each replyItems as item (item.post.id)}
-		<PostItem post={item.post} profile={item.profile} />
+		<PostItem post={item.post} profile={item.profile} replyToUsers={item.replyToUsers} />
 	{/each}
 
 	<div class="h-2 dark:bg-gray-700"></div>
 {/if}
 
 {#if currentItem}
-	<PostItem post={currentItem.post} profile={currentItem.profile} />
+	<PostItem
+		post={currentItem.post}
+		profile={currentItem.profile}
+		replyToUsers={currentItem.replyToUsers}
+	/>
 {/if}

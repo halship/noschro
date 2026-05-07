@@ -7,13 +7,15 @@
 	import { parseContent } from '$lib/models/token';
 	import { resolve } from '$app/paths';
 	import { npubEncode, neventEncode } from 'nostr-tools/nip19';
+	import type { NostrUser } from '$lib/models/timeline';
 
 	type Props = {
 		post: Post;
 		profile?: Profile;
+		replyToUsers: NostrUser[];
 	};
 
-	let { post, profile }: Props = $props();
+	let { post, profile, replyToUsers }: Props = $props();
 
 	let iconColor = $derived(pubkeyToColor(post.pubkey));
 
@@ -47,7 +49,7 @@
 	</div>
 
 	<div class="m-2 flex flex-1 flex-col">
-		<div class="mb-2 flex flex-wrap gap-x-2">
+		<div class="mb-1 flex flex-wrap gap-x-2">
 			<div class="flex-none font-bold break-all">
 				{#if profile?.displayName}
 					<Content tokens={parseContent(profile.displayName, profile.tags)} />
@@ -69,7 +71,20 @@
 			</div>
 		</div>
 
-		<p class="wrap-anywhere break-all whitespace-pre-wrap">
+		{#if replyToUsers.length > 0}
+			<div class="mb-1 wrap-anywhere break-all">
+				<span>To:</span>
+				{#each replyToUsers as user (user.pubkey)}
+					<a
+						href={resolve('/[npub=npub]', { npub: npubEncode(user.pubkey) })}
+						class="ml-1 text-gray-500"
+						>@{user.displayName ?? user.name ?? formatPubkey(user.pubkey)}</a
+					>
+				{/each}
+			</div>
+		{/if}
+
+		<p class="mb-1 wrap-anywhere break-all whitespace-pre-wrap">
 			<Content tokens={parseContent(post.content, post.tags)} />
 		</p>
 	</div>
