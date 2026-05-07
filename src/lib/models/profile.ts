@@ -1,5 +1,8 @@
 import type { NostrEvent } from '$lib/nostr_type';
 import type * as Nostr from 'nostr-typedef';
+import { NOSTR_URI_RE } from './token';
+import { decodeNostrURI } from 'nostr-tools/nip19';
+import { appState } from '$lib/state.svelte';
 
 export type Profile = {
 	id: string;
@@ -11,6 +14,8 @@ export type Profile = {
 	banner?: string;
 	about?: string;
 	tags: string[][];
+	quoteIds: string[];
+	contentPubkeys: string[];
 };
 
 export function toProfile(event: NostrEvent): Profile | null {
@@ -24,6 +29,29 @@ export function toProfile(event: NostrEvent): Profile | null {
 		return null;
 	}
 
+	const decodedCodes = metadata.about
+		? metadata.about
+				.matchAll(NOSTR_URI_RE)
+				.map((match) => decodeNostrURI(match[1]))
+				.toArray()
+		: [];
+
+	const quoteIds = decodedCodes
+		.filter((code) => code.type === 'nevent' || code.type === 'note')
+		.map((code) => {
+			if (code.type === 'nevent') {
+				return code.data.id;
+			} else {
+				return code.data;
+			}
+		})
+		.filter((id) => !(id in appState.eventsById));
+
+	const contentPubkeys = decodedCodes
+		.filter((code) => code.type === 'npub')
+		.map((code) => code.data)
+		.filter((pubkey) => !(pubkey in appState.profilesByPubkey));
+
 	return {
 		id: event.id,
 		pubkey: event.pubkey,
@@ -33,6 +61,8 @@ export function toProfile(event: NostrEvent): Profile | null {
 		picture: metadata.picture,
 		banner: metadata.banner,
 		about: metadata.about,
-		tags: event.tags
+		tags: event.tags,
+		quoteIds,
+		contentPubkeys
 	};
 }

@@ -12,6 +12,7 @@ const rxReqBack = createRxBackwardReq();
 const flushes$ = new Subject<void>();
 
 export function subscribeGlobalTimeline() {
+	flushes$.next();
 	const subBack = rxNostr.use(rxReqBack).pipe(uniq(flushes$)).subscribe(handlePacket);
 	const sub = rxNostr.use(rxReq).pipe(uniq(flushes$)).subscribe(handlePacket);
 	const nowTimestamp = now();
@@ -27,7 +28,6 @@ export function subscribeGlobalTimeline() {
 		sub.unsubscribe();
 		subBack.unsubscribe();
 		appState.timelineIds = [];
-		flushes$.next();
 	};
 }
 
@@ -41,17 +41,16 @@ export function requestOldGlobalTimeline(until: number, limit: number) {
 
 function handlePacket(packet: EventPacket) {
 	const event = createEvent(packet.event);
+
+	const ids = (event.replyToId ? [event.replyToId, ...event.quotedIds] : event.quotedIds).filter(
+		(id) => !(id in appState.eventsById)
+	);
 	const pubkeys = [event.pubkey, ...event.replyToPubkeys].filter(
 		(pubkey) => !(pubkey in appState.profilesByPubkey)
 	);
-	const ids = event.quotedIds.filter((id) => !(id in appState.eventsById));
 
-	requestProfiles(pubkeys);
 	requestEvents(ids);
-
-	if (event.replyToId && !(event.replyToId in appState.eventsById)) {
-		requestEvents([event.replyToId]);
-	}
+	requestProfiles(pubkeys);
 
 	addEventToTimeline(event);
 }

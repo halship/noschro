@@ -1,15 +1,19 @@
 <script lang="ts">
-	import { formatLink } from '$lib/formatter';
+	import { resolve } from '$app/paths';
+	import { formatLink, formatPubkey } from '$lib/formatter';
 	import type { Quote } from '$lib/models/quote';
 	import type { NostrToken } from '$lib/models/token';
+	import type { NostrUser } from '$lib/models/user';
+	import { npubEncode } from 'nostr-tools/nip19';
 	import QuoteItem from './QuoteItem.svelte';
 
 	type Props = {
 		tokens: NostrToken[];
 		quotes?: Record<string, Quote>;
+		users?: Record<string, NostrUser>;
 	};
 
-	let { tokens, quotes }: Props = $props();
+	let { tokens, quotes, users }: Props = $props();
 </script>
 
 {#each tokens as token, i (i)}
@@ -33,5 +37,13 @@
 		{:else}
 			<span>{token.raw}</span>
 		{/if}
+	{:else if token.type === 'user'}
+		<a href={resolve('/[npub=npub]', { npub: npubEncode(token.pubkey) })} class="text-gray-500">
+			{#if users}
+				@{users[token.pubkey].displayName ?? users[token.pubkey].name ?? formatPubkey(token.pubkey)}
+			{:else}
+				@{formatPubkey(token.pubkey)}
+			{/if}
+		</a>
 	{/if}
 {/each}

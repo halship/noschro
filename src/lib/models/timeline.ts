@@ -1,4 +1,5 @@
 import type { NostrEvent } from '$lib/nostr_type';
+import { getContentUsers, getQuotes } from './common';
 import { toPost, type Post } from './post';
 import type { Profile } from './profile';
 import type { Quote } from './quote';
@@ -15,6 +16,7 @@ export type TimelineItem = {
 	};
 	replyToUsers: NostrUser[];
 	quotes?: Record<string, Quote>;
+	contentUsers?: Record<string, NostrUser>;
 };
 
 export function toTimelineItem(
@@ -38,10 +40,8 @@ export function toTimelineItem(
 			return { pubkey };
 		}
 	});
-	const quotes =
-		event.quotedIds.length > 0
-			? getQuotes(eventsById, profilesByPubkey, event.quotedIds)
-			: undefined;
+	const quotes = getQuotes(eventsById, profilesByPubkey, event.quotedIds);
+	const contentUsers = getContentUsers(profilesByPubkey, event.contentPubkeys);
 
 	return {
 		id,
@@ -49,7 +49,8 @@ export function toTimelineItem(
 		profile,
 		replyToEvent,
 		replyToUsers,
-		quotes
+		quotes,
+		contentUsers
 	};
 }
 
@@ -74,23 +75,4 @@ function getReplyToEvent(
 		post: replyToPost,
 		profile: replyToProfile
 	};
-}
-
-function getQuotes(
-	eventsById: Record<string, NostrEvent>,
-	profilesByPubkey: Record<string, Profile>,
-	quotedIds: string[]
-): Record<string, Quote> {
-	return quotedIds
-		.filter((id) => id in eventsById)
-		.map((id) => {
-			const event = eventsById[id];
-			const post = toPost(event);
-			const profile = profilesByPubkey[post.pubkey];
-			const quotes = getQuotes(eventsById, profilesByPubkey, event.quotedIds);
-			return { post, profile, quotes };
-		})
-		.reduce((result, quote) => {
-			return { ...result, [quote.post.id]: quote };
-		}, {});
 }

@@ -11,19 +11,17 @@ const batchedReq = rxReq.pipe(bufferTime(1000), batch());
 export function subscribeEvents() {
 	const sub = rxNostr.use(batchedReq).subscribe((packet) => {
 		const event = createEvent(packet.event);
-		const pubkeys = [event.pubkey, ...event.replyToPubkeys].filter(
-			(pubkey) => !(pubkey in appState.profilesByPubkey)
+		const ids = (event.replyToId ? [event.replyToId, ...event.quotedIds] : event.quotedIds).filter(
+			(id) => !(id in appState.eventsById)
 		);
-		const ids = event.quotedIds.filter((id) => !(id in appState.eventsById));
+		const pubkeys = [
+			...new Set([event.pubkey, ...event.replyToPubkeys, ...event.contentPubkeys])
+		].filter((pubkey) => !(pubkey in appState.profilesByPubkey));
 
 		appState.eventsById = { ...appState.eventsById, [event.id]: event };
 
-		requestProfiles(pubkeys);
 		requestEvents(ids);
-
-		if (event.replyToId && !(event.replyToId in appState.eventsById)) {
-			requestEvents([event.replyToId]);
-		}
+		requestProfiles(pubkeys);
 	});
 
 	return () => {

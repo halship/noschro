@@ -6,6 +6,7 @@ export type NostrEvent = Nostr.Event & {
 	replyToId?: string;
 	replyToPubkeys: string[];
 	quotedIds: string[];
+	contentPubkeys: string[];
 };
 
 export function createEvent(event: Nostr.Event): NostrEvent {
@@ -32,10 +33,15 @@ export function createEvent(event: Nostr.Event): NostrEvent {
 			}
 		});
 
+	const contentPubkeys = decodedCodes
+		.filter((code) => code.type === 'npub')
+		.map((code) => code.data);
+
 	return {
 		...event,
 		replyToId: replyToId ? replyToId : rootId,
 		replyToPubkeys,
-		quotedIds
+		quotedIds,
+		contentPubkeys
 	};
 }

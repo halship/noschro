@@ -10,7 +10,8 @@ export type NostrToken =
 	| { type: 'link'; url: string }
 	| { type: 'image'; url: string }
 	| { type: 'emoji'; shortcode: string; url: string }
-	| { type: 'quote'; eventId: string; raw: string };
+	| { type: 'quote'; eventId: string; raw: string }
+	| { type: 'user'; pubkey: string; raw: string };
 
 export function parseContent(content: string, tags: string[][]): NostrToken[] {
 	const emojiMap = getEmojiMap(tags);
@@ -142,6 +143,12 @@ function parseNostrURITokens(tokens: NostrToken[]): NostrToken[] {
 				result.push({
 					type: 'quote',
 					eventId: decodedURI.data,
+					raw: match[0]
+				});
+			} else if (decodedURI.type === 'npub') {
+				result.push({
+					type: 'user',
+					pubkey: decodedURI.data,
 					raw: match[0]
 				});
 			} else {

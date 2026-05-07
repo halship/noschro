@@ -9,14 +9,23 @@
 	import { initNostr } from '$lib/client';
 	import { GLOBAL_RELAY } from '$lib/constants';
 	import { requestProfiles, subscribeProfiles } from '$lib/subscriptions/profiles';
+	import { getContentUsers, getQuotes } from '$lib/models/common';
+	import { subscribeEvents } from '$lib/subscriptions/events';
 
 	let { data }: PageProps = $props();
 
 	let profile = $derived(appState.profilesByPubkey[data.pubkey]);
 
+	let quotes = $derived(
+		getQuotes(appState.eventsById, appState.profilesByPubkey, profile.quoteIds)
+	);
+
+	let users = $derived(getContentUsers(appState.profilesByPubkey, profile.contentPubkeys));
+
 	onMount(() => {
 		initNostr([...GLOBAL_RELAY]);
 		const unsubscribeProfiles = subscribeProfiles();
+		const unsubscribeEvents = subscribeEvents();
 
 		if (!(data.pubkey in appState.profilesByPubkey)) {
 			requestProfiles([data.pubkey]);
@@ -24,6 +33,7 @@
 
 		return () => {
 			unsubscribeProfiles();
+			unsubscribeEvents();
 		};
 	});
 </script>
@@ -69,6 +79,6 @@
 
 {#if profile?.about}
 	<p class="px-2 pb-2 wrap-anywhere break-all whitespace-pre-wrap">
-		<Content tokens={parseContent(profile.about, profile.tags)} />
+		<Content tokens={parseContent(profile.about, profile.tags)} {quotes} {users} />
 	</p>
 {/if}

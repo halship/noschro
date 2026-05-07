@@ -7,14 +7,16 @@
 	import { parseContent } from '$lib/models/token';
 	import { neventEncode, npubEncode } from 'nostr-tools/nip19';
 	import Content from './Content.svelte';
+	import type { NostrUser } from '$lib/models/user';
 
 	type Props = {
 		post: Post;
 		profile?: Profile;
 		quotes?: Record<string, Quote>;
+		users?: Record<string, NostrUser>;
 	};
 
-	let { post, profile, quotes }: Props = $props();
+	let { post, profile, quotes, users }: Props = $props();
 
 	let userNpub = $derived(npubEncode(post.pubkey));
 
@@ -49,6 +51,6 @@
 	</div>
 
 	<p class="mb-1 wrap-anywhere break-all whitespace-pre-wrap">
-		<Content tokens={post.contentTokens} {quotes} />
+		<Content tokens={post.contentTokens} {quotes} {users} />
 	</p>
 </div>

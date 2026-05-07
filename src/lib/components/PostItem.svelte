@@ -15,9 +15,10 @@
 		profile?: Profile;
 		replyToUsers: NostrUser[];
 		quotes?: Record<string, Quote>;
+		contentUsers?: Record<string, NostrUser>;
 	};
 
-	let { post, profile, replyToUsers, quotes }: Props = $props();
+	let { post, profile, replyToUsers, quotes, contentUsers }: Props = $props();
 
 	let iconColor = $derived(pubkeyToColor(post.pubkey));
 
@@ -87,7 +88,7 @@
 		{/if}
 
 		<p class="mb-1 wrap-anywhere break-all whitespace-pre-wrap">
-			<Content tokens={post.contentTokens} {quotes} />
+			<Content tokens={post.contentTokens} {quotes} users={contentUsers} />
 		</p>
 	</div>
 </div>

@@ -62,6 +62,7 @@
 			profile={item.profile}
 			replyToUsers={item.replyToUsers}
 			quotes={item.quotes}
+			contentUsers={item.contentUsers}
 		/>
 	{/each}
 
@@ -74,5 +75,6 @@
 		profile={currentItem.profile}
 		replyToUsers={currentItem.replyToUsers}
 		quotes={currentItem.quotes}
+		contentUsers={currentItem.contentUsers}
 	/>
 {/if}
