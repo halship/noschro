@@ -51,7 +51,12 @@
 		<ReplyPreview post={item.replyToEvent.post} />
 	{/if}
 
-	<PostItem post={item.post} profile={item.profile} replyToUsers={item.replyToUsers} />
+	<PostItem
+		post={item.post}
+		profile={item.profile}
+		replyToUsers={item.replyToUsers}
+		quotes={item.quotes}
+	/>
 {/each}
 
 {#if canLoadOldTimeline}

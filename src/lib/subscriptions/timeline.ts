@@ -44,8 +44,10 @@ function handlePacket(packet: EventPacket) {
 	const pubkeys = [event.pubkey, ...event.replyToPubkeys].filter(
 		(pubkey) => !(pubkey in appState.profilesByPubkey)
 	);
+	const ids = event.quotedIds.filter((id) => !(id in appState.eventsById));
 
 	requestProfiles(pubkeys);
+	requestEvents(ids);
 
 	if (event.replyToId && !(event.replyToId in appState.eventsById)) {
 		requestEvents([event.replyToId]);

@@ -1,12 +1,8 @@
 import type { NostrEvent } from '$lib/nostr_type';
 import { toPost, type Post } from './post';
 import type { Profile } from './profile';
-
-export type NostrUser = {
-	pubkey: string;
-	name?: string;
-	displayName?: string;
-};
+import type { Quote } from './quote';
+import type { NostrUser } from './user';
 
 export type TimelineItem = {
 	id: string;
@@ -18,6 +14,7 @@ export type TimelineItem = {
 		profile?: Profile;
 	};
 	replyToUsers: NostrUser[];
+	quotes?: Record<string, Quote>;
 };
 
 export function toTimelineItem(
@@ -30,6 +27,9 @@ export function toTimelineItem(
 	const event = eventsById[id];
 	const post = toPost(event);
 	const profile = profilesByPubkey[post.pubkey];
+	const replyToEvent = event.replyToId
+		? getReplyToEvent(eventsById, profilesByPubkey, event.replyToId)
+		: undefined;
 	const replyToUsers = event.replyToPubkeys.map((pubkey) => {
 		if (pubkey in profilesByPubkey) {
 			const profile = profilesByPubkey[pubkey];
@@ -38,35 +38,59 @@ export function toTimelineItem(
 			return { pubkey };
 		}
 	});
+	const quotes =
+		event.quotedIds.length > 0
+			? getQuotes(eventsById, profilesByPubkey, event.quotedIds)
+			: undefined;
 
-	if (event.replyToId) {
-		if (event.replyToId in eventsById) {
-			const replyToPost = toPost(eventsById[event.replyToId]);
-			const replyToProfile = profilesByPubkey[replyToPost.pubkey];
+	return {
+		id,
+		post,
+		profile,
+		replyToEvent,
+		replyToUsers,
+		quotes
+	};
+}
 
-			return {
-				id,
-				post,
-				profile,
-				replyToEvent: {
-					id: event.replyToId,
-					post: replyToPost,
-					profile: replyToProfile
-				},
-				replyToUsers
-			};
-		} else {
-			return {
-				id,
-				post,
-				profile,
-				replyToEvent: {
-					id: event.replyToId
-				},
-				replyToUsers
-			};
-		}
-	} else {
-		return { id, post, profile, replyToUsers };
+function getReplyToEvent(
+	eventsById: Record<string, NostrEvent>,
+	profilesByPubkey: Record<string, Profile>,
+	replyToId: string
+): {
+	id: string;
+	post?: Post;
+	profile?: Profile;
+} {
+	if (!(replyToId in eventsById)) {
+		return { id: replyToId };
 	}
+
+	const replyToPost = toPost(eventsById[replyToId]);
+	const replyToProfile = profilesByPubkey[replyToPost.pubkey];
+
+	return {
+		id: replyToId,
+		post: replyToPost,
+		profile: replyToProfile
+	};
+}
+
+function getQuotes(
+	eventsById: Record<string, NostrEvent>,
+	profilesByPubkey: Record<string, Profile>,
+	quotedIds: string[]
+): Record<string, Quote> {
+	return quotedIds
+		.filter((id) => id in eventsById)
+		.map((id) => {
+			const event = eventsById[id];
+			const post = toPost(event);
+			const profile = profilesByPubkey[post.pubkey];
+			const quotes = getQuotes(eventsById, profilesByPubkey, event.quotedIds);
+			return { post, profile, quotes };
+		})
+		.reduce((result, quote) => {
+			return { ...result, [quote.post.id]: quote };
+		}, {});
 }

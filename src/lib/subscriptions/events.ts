@@ -14,10 +14,12 @@ export function subscribeEvents() {
 		const pubkeys = [event.pubkey, ...event.replyToPubkeys].filter(
 			(pubkey) => !(pubkey in appState.profilesByPubkey)
 		);
+		const ids = event.quotedIds.filter((id) => !(id in appState.eventsById));
 
 		appState.eventsById = { ...appState.eventsById, [event.id]: event };
 
 		requestProfiles(pubkeys);
+		requestEvents(ids);
 
 		if (event.replyToId && !(event.replyToId in appState.eventsById)) {
 			requestEvents([event.replyToId]);

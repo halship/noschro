@@ -1,12 +1,15 @@
 <script lang="ts">
 	import { formatLink } from '$lib/formatter';
+	import type { Quote } from '$lib/models/quote';
 	import type { NostrToken } from '$lib/models/token';
+	import QuoteItem from './QuoteItem.svelte';
 
 	type Props = {
 		tokens: NostrToken[];
+		quotes?: Record<string, Quote>;
 	};
 
-	let { tokens }: Props = $props();
+	let { tokens, quotes }: Props = $props();
 </script>
 
 {#each tokens as token, i (i)}
@@ -20,5 +23,15 @@
 		>
 	{:else if token.type === 'emoji'}
 		<img src={token.url} alt={token.shortcode} class="inline-block size-5" />
+	{:else if token.type === 'quote'}
+		{#if quotes && token.eventId in quotes}
+			<QuoteItem
+				post={quotes[token.eventId].post}
+				profile={quotes[token.eventId].profile}
+				quotes={quotes[token.eventId].quotes}
+			/>
+		{:else}
+			<span>{token.raw}</span>
+		{/if}
 	{/if}
 {/each}

@@ -57,7 +57,12 @@
 
 {#if currentItem?.replyToEvent}
 	{#each replyItems as item (item.post.id)}
-		<PostItem post={item.post} profile={item.profile} replyToUsers={item.replyToUsers} />
+		<PostItem
+			post={item.post}
+			profile={item.profile}
+			replyToUsers={item.replyToUsers}
+			quotes={item.quotes}
+		/>
 	{/each}
 
 	<div class="h-2 dark:bg-gray-700"></div>
@@ -68,5 +73,6 @@
 		post={currentItem.post}
 		profile={currentItem.profile}
 		replyToUsers={currentItem.replyToUsers}
+		quotes={currentItem.quotes}
 	/>
 {/if}

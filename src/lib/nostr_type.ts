@@ -1,8 +1,11 @@
 import type * as Nostr from 'nostr-typedef';
+import { NOSTR_URI_RE } from './models/token';
+import { decodeNostrURI } from 'nostr-tools/nip19';
 
 export type NostrEvent = Nostr.Event & {
 	replyToId?: string;
 	replyToPubkeys: string[];
+	quotedIds: string[];
 };
 
 export function createEvent(event: Nostr.Event): NostrEvent {
@@ -14,9 +17,25 @@ export function createEvent(event: Nostr.Event): NostrEvent {
 		.map((tag) => tag[1])
 		.slice(1);
 
+	const decodedCodes = event.content
+		.matchAll(NOSTR_URI_RE)
+		.map((match) => decodeNostrURI(match[1]))
+		.toArray();
+
+	const quotedIds = decodedCodes
+		.filter((code) => code.type === 'nevent' || code.type === 'note')
+		.map((code) => {
+			if (code.type === 'nevent') {
+				return code.data.id;
+			} else {
+				return code.data;
+			}
+		});
+
 	return {
 		...event,
 		replyToId: replyToId ? replyToId : rootId,
-		replyToPubkeys
+		replyToPubkeys,
+		quotedIds
 	};
 }

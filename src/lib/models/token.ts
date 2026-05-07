@@ -1,18 +1,23 @@
+import { decodeNostrURI } from 'nostr-tools/nip19';
+
 const URL_RE = /https?:\/\/[a-zA-Z0-9?&#./=\-_~%:@+,]+/g;
 const IMAGE_EXT_RE = /\.(png|jpe?g|git|webp|avif)(\?.*)?$/;
 const EMOJI_RE = /:([a-zA-Z0-9_\\+\\-]+):/g;
+export const NOSTR_URI_RE: RegExp = /nostr:([a-z0-9]+)/g;
 
 export type NostrToken =
 	| { type: 'text'; text: string }
 	| { type: 'link'; url: string }
 	| { type: 'image'; url: string }
-	| { type: 'emoji'; shortcode: string; url: string };
+	| { type: 'emoji'; shortcode: string; url: string }
+	| { type: 'quote'; eventId: string; raw: string };
 
 export function parseContent(content: string, tags: string[][]): NostrToken[] {
 	const emojiMap = getEmojiMap(tags);
 
 	let tokens = parseUrlContent(content);
 	tokens = parseEmojiTokens(tokens, emojiMap);
+	tokens = parseNostrURITokens(tokens);
 
 	return tokens;
 }
@@ -87,6 +92,64 @@ function parseEmojiTokens(tokens: NostrToken[], emojiMap: Map<string, string>): 
 				shortcode,
 				url
 			});
+
+			lastIndex = index + match[0].length;
+		}
+
+		if (lastIndex < token.text.length) {
+			result.push({
+				type: 'text',
+				text: token.text.slice(lastIndex)
+			});
+		}
+	}
+
+	return mergeTextTokens(result);
+}
+
+function parseNostrURITokens(tokens: NostrToken[]): NostrToken[] {
+	const result: NostrToken[] = [];
+
+	for (const token of tokens) {
+		if (token.type !== 'text') {
+			result.push(token);
+			continue;
+		}
+
+		let lastIndex = 0;
+
+		for (const match of token.text.matchAll(NOSTR_URI_RE)) {
+			const uri = match[1];
+			const decodedURI = decodeNostrURI(uri);
+			const index = match.index ?? 0;
+
+			if (!uri) continue;
+
+			if (index > lastIndex) {
+				result.push({
+					type: 'text',
+					text: token.text.slice(lastIndex, index)
+				});
+			}
+
+			if (decodedURI.type === 'nevent') {
+				result.push({
+					type: 'quote',
+					eventId: decodedURI.data.id,
+					raw: match[0]
+				});
+			} else if (decodedURI.type === 'note') {
+				result.push({
+					type: 'quote',
+					eventId: decodedURI.data,
+					raw: match[0]
+				});
+			} else {
+				result.push({
+					type: 'text',
+					text: match[0]
+				});
+			}
 
 			lastIndex = index + match[0].length;
 		}

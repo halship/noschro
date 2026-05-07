@@ -4,6 +4,9 @@ import { createEvent } from '$lib/nostr_type';
 import { appState } from '$lib/state.svelte';
 import { batch, createRxForwardReq, latestEach } from 'rx-nostr';
 import { bufferTime } from 'rxjs';
+import { requestEvents } from './events';
+import { NOSTR_URI_RE } from '$lib/models/token';
+import { decodeNostrURI } from 'nostr-tools/nip19';
 
 const rxReq = createRxForwardReq();
 const batchedReq = rxReq.pipe(bufferTime(1000), batch());
@@ -14,16 +17,30 @@ export function subscribeProfiles() {
 		.pipe(latestEach((packet) => packet.event.pubkey))
 		.subscribe((packet) => {
 			const event = createEvent(packet.event);
-			const pubkeys = [event.pubkey, ...event.replyToPubkeys].filter(
-				(pubkey) => !(pubkey in appState.profilesByPubkey)
-			);
 
 			const profile = toProfile(event);
-			if (profile !== null) {
-				appState.profilesByPubkey = { ...appState.profilesByPubkey, [event.pubkey]: profile };
-			}
+			if (!profile) return;
 
-			requestProfiles(pubkeys);
+			appState.profilesByPubkey = { ...appState.profilesByPubkey, [event.pubkey]: profile };
+
+			if (!profile.about) return;
+
+			const decodedCodes = profile.about
+				.matchAll(NOSTR_URI_RE)
+				.map((match) => decodeNostrURI(match[1]))
+				.toArray();
+
+			const quotedIds = decodedCodes
+				.filter((code) => code.type === 'nevent' || code.type === 'note')
+				.map((code) => {
+					if (code.type === 'nevent') {
+						return code.data.id;
+					} else {
+						return code.data;
+					}
+				});
+
+			requestEvents(quotedIds);
 		});
 
 	return () => {

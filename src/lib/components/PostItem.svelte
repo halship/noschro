@@ -7,15 +7,17 @@
 	import { parseContent } from '$lib/models/token';
 	import { resolve } from '$app/paths';
 	import { npubEncode, neventEncode } from 'nostr-tools/nip19';
-	import type { NostrUser } from '$lib/models/timeline';
+	import type { NostrUser } from '$lib/models/user';
+	import type { Quote } from '$lib/models/quote';
 
 	type Props = {
 		post: Post;
 		profile?: Profile;
 		replyToUsers: NostrUser[];
+		quotes?: Record<string, Quote>;
 	};
 
-	let { post, profile, replyToUsers }: Props = $props();
+	let { post, profile, replyToUsers, quotes }: Props = $props();
 
 	let iconColor = $derived(pubkeyToColor(post.pubkey));
 
@@ -85,7 +87,7 @@
 		{/if}
 
 		<p class="mb-1 wrap-anywhere break-all whitespace-pre-wrap">
-			<Content tokens={parseContent(post.content, post.tags)} />
+			<Content tokens={post.contentTokens} {quotes} />
 		</p>
 	</div>
 </div>
