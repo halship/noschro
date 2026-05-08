@@ -6,13 +6,15 @@
 
 	type TabId = 'timeline' | 'notifications';
 
+	type Props = {
+		handleOpenSettings: () => void;
+	};
+
+	let { handleOpenSettings }: Props = $props();
+
 	let activeTab: TabId = $derived.by(() => {
 		return 'timeline';
 	});
-
-	function handleSetting() {
-		appState.isOpenedSetting = !appState.isOpenedSetting;
-	}
 
 	function handleClickTimelineTab() {
 		if (appState.timelineIds.length > LOAD_LIMIT) {
@@ -33,9 +35,7 @@
 			onclick={handleClickTimelineTab}>タイムライン</a
 		>
 	</div>
-	<div>
-		<button class="flex-none p-3 dark:hover:text-gray-300" onclick={handleSetting}
-			><Settings /></button
-		>
-	</div>
+	<button class="flex-none p-3 dark:hover:text-gray-300" onclick={handleOpenSettings}
+		><Settings /></button
+	>
 </header>
