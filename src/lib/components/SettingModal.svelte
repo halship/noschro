@@ -33,16 +33,26 @@
 	<div class="flex border-b border-gray-400 bg-gray-300 dark:border-gray-700 dark:bg-gray-800">
 		<div class="m-2 flex-1">設定</div>
 		<button
-			class="block flex-none border-l border-gray-400 p-2 dark:border-gray-700"
+			class="block flex-none cursor-pointer border-l border-gray-400 p-2 dark:border-gray-700"
 			onclick={handleOpenSettings}><X /></button
 		>
 	</div>
 
 	<div class="flex items-center p-2">
+		<div class="mr-3">認証</div>
+		<button
+			class="cursor-pointer rounded-md border border-gray-400 bg-gray-300 p-2 dark:border-gray-700 dark:bg-gray-800"
+			>ログイン</button
+		>
+	</div>
+
+	<hr class="my-2 dark:text-gray-700" />
+
+	<div class="flex items-center p-2">
 		<div class="mr-3">テーマ</div>
 		<select
 			bind:value={selectedTheme}
-			class="bg-gray-200 dark:bg-gray-900 dark:text-gray-400"
+			class="rounded-md bg-gray-200 dark:bg-gray-900 dark:text-gray-400"
 			onchange={handleChangeTheme}
 		>
 			<option value="system">システム</option>

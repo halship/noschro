@@ -35,7 +35,7 @@
 			onclick={handleClickTimelineTab}>タイムライン</a
 		>
 	</div>
-	<button class="flex-none p-3 dark:hover:text-gray-300" onclick={handleOpenSettings}
+	<button class="flex-none cursor-pointer p-3 dark:hover:text-gray-300" onclick={handleOpenSettings}
 		><Settings /></button
 	>
 </header>
