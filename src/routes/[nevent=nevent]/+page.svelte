@@ -4,7 +4,6 @@
 	import { onMount } from 'svelte';
 	import type { PageProps } from './$types';
 	import { initNostr } from '$lib/client';
-	import { GLOBAL_RELAY } from '$lib/constants';
 	import { requestEvents, subscribeEvents } from '$lib/subscriptions/events';
 	import { toTimelineItem, type TimelineItem } from '$lib/models/timeline';
 	import { subscribeProfiles } from '$lib/subscriptions/profiles';
@@ -36,9 +35,9 @@
 	});
 
 	onMount(() => {
-		initNostr([...GLOBAL_RELAY]);
-		const unsubscribeEvents = subscribeEvents();
-		const unsubscribeProfiles = subscribeProfiles();
+		const rxNostr = initNostr();
+		const unsubscribeEvents = subscribeEvents(rxNostr);
+		const unsubscribeProfiles = subscribeProfiles(rxNostr);
 
 		if (!(data.id in appState.eventsById)) {
 			requestEvents([data.id]);

@@ -7,7 +7,6 @@
 	import { parseContent } from '$lib/models/token';
 	import { onMount } from 'svelte';
 	import { initNostr } from '$lib/client';
-	import { GLOBAL_RELAY } from '$lib/constants';
 	import { requestProfiles, subscribeProfiles } from '$lib/subscriptions/profiles';
 	import { getContentUsers, getQuotes } from '$lib/models/common';
 	import { subscribeEvents } from '$lib/subscriptions/events';
@@ -23,9 +22,9 @@
 	let users = $derived(getContentUsers(appState.profilesByPubkey, profile.contentPubkeys));
 
 	onMount(() => {
-		initNostr([...GLOBAL_RELAY]);
-		const unsubscribeProfiles = subscribeProfiles();
-		const unsubscribeEvents = subscribeEvents();
+		const rxNostr = initNostr();
+		const unsubscribeProfiles = subscribeProfiles(rxNostr);
+		const unsubscribeEvents = subscribeEvents(rxNostr);
 
 		if (!(data.pubkey in appState.profilesByPubkey)) {
 			requestProfiles([data.pubkey]);

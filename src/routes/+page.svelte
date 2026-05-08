@@ -2,7 +2,7 @@
 	import { initNostr } from '$lib/client';
 	import PostItem from '$lib/components/PostItem.svelte';
 	import ReplyPreview from '$lib/components/ReplyPreview.svelte';
-	import { GLOBAL_RELAY, LOAD_LIMIT, TIMELINE_LIMIT } from '$lib/constants';
+	import { LOAD_LIMIT, TIMELINE_LIMIT } from '$lib/constants';
 	import { toTimelineItem } from '$lib/models/timeline';
 	import { appState } from '$lib/state.svelte';
 	import { subscribeEvents } from '$lib/subscriptions/events';
@@ -24,11 +24,11 @@
 	);
 
 	onMount(() => {
-		initNostr([...GLOBAL_RELAY]);
+		const rxNostr = initNostr();
 
-		const unsubscribeTimeline = subscribeGlobalTimeline();
-		const unsubscribeEvents = subscribeEvents();
-		const unsubscribeProfiles = subscribeProfiles();
+		const unsubscribeTimeline = subscribeGlobalTimeline(rxNostr);
+		const unsubscribeEvents = subscribeEvents(rxNostr);
+		const unsubscribeProfiles = subscribeProfiles(rxNostr);
 
 		return () => {
 			unsubscribeTimeline();

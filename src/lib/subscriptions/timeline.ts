@@ -1,5 +1,11 @@
-import { createRxBackwardReq, createRxForwardReq, now, uniq, type EventPacket } from 'rx-nostr';
-import { rxNostr } from '$lib/client';
+import {
+	createRxBackwardReq,
+	createRxForwardReq,
+	now,
+	uniq,
+	type EventPacket,
+	type RxNostr
+} from 'rx-nostr';
 import { createEvent, type NostrEvent } from '$lib/nostr_type';
 import { appState } from '$lib/state.svelte';
 import { LOAD_LIMIT, TIMELINE_LIMIT } from '$lib/constants';
@@ -11,7 +17,7 @@ const rxReq = createRxForwardReq();
 const rxReqBack = createRxBackwardReq();
 const flushes$ = new Subject<void>();
 
-export function subscribeGlobalTimeline() {
+export function subscribeGlobalTimeline(rxNostr: RxNostr) {
 	const subBack = rxNostr.use(rxReqBack).pipe(uniq(flushes$)).subscribe(handlePacket);
 	const sub = rxNostr.use(rxReq).pipe(uniq(flushes$)).subscribe(handlePacket);
 	const nowTimestamp = now();
