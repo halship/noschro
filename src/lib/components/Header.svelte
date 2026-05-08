@@ -2,6 +2,7 @@
 	import { Settings } from '@lucide/svelte';
 	import { resolve } from '$app/paths';
 	import { appState } from '$lib/state.svelte';
+	import { LOAD_LIMIT } from '$lib/constants';
 
 	type TabId = 'timeline' | 'notifications';
 
@@ -11,6 +12,12 @@
 
 	function handleSetting() {
 		appState.isOpenedSetting = !appState.isOpenedSetting;
+	}
+
+	function handleClickTimelineTab() {
+		if (appState.timelineIds.length > LOAD_LIMIT) {
+			appState.timelineIds = appState.timelineIds.slice(0, LOAD_LIMIT);
+		}
 	}
 </script>
 
@@ -22,7 +29,8 @@
 			href={resolve('/')}
 			class="flex-none border-gray-400 p-3 dark:border-gray-600"
 			class:border-b-5={activeTab === 'timeline'}
-			class:font-bold={activeTab === 'timeline'}>タイムライン</a
+			class:font-bold={activeTab === 'timeline'}
+			onclick={handleClickTimelineTab}>タイムライン</a
 		>
 	</div>
 	<div>
