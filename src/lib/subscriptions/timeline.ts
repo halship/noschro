@@ -71,9 +71,10 @@ function handlePacket(packet: EventPacket) {
 
 	const event = createEvent(packet.event);
 
-	const ids = (event.replyToId ? [event.replyToId, ...event.quotedIds] : event.quotedIds).filter(
-		(id) => !(id in appState.eventsById)
-	);
+	const ids = event.tags
+		.filter((tag) => tag[0] === 'e')
+		.map((tag) => tag[1])
+		.filter((id) => !(id in appState.eventsById));
 	const pubkeys = [event.pubkey, ...event.replyToPubkeys].filter(
 		(pubkey) => !(pubkey in appState.profilesByPubkey)
 	);

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { initNostr } from '$lib/client';
-	import PostItem from '$lib/components/PostItem.svelte';
+	import PostView from '$lib/components/PostView.svelte';
 	import ReplyPreview from '$lib/components/ReplyPreview.svelte';
 	import { LOAD_LIMIT, TIMELINE_LIMIT } from '$lib/constants';
 	import { toTimelineItem } from '$lib/models/timeline';
@@ -24,7 +24,7 @@
 	let canLoadOldTimeline = $derived(timelineItems.length < TIMELINE_LIMIT);
 
 	let lastTimestamp = $derived(
-		timelineItems.length > 0 ? timelineItems[timelineItems.length - 1].post.createdAt : now()
+		timelineItems.length > 0 ? timelineItems[timelineItems.length - 1].createdAt : now()
 	);
 
 	onMount(async () => {
@@ -51,16 +51,18 @@
 </svelte:head>
 
 {#each timelineItems as item (item.id)}
-	{#if item.replyToEvent}
-		<ReplyPreview post={item.replyToEvent.post} />
-	{/if}
+	{#if item.kind === 'post'}
+		{#if item.replyToEvent}
+			<ReplyPreview post={item.replyToEvent.post} />
+		{/if}
 
-	<PostItem
-		post={item.post}
-		profile={item.profile}
-		replyToUsers={item.replyToUsers}
-		quotes={item.quotes}
-	/>
+		<PostView
+			post={item.post}
+			profile={item.profile}
+			replyToUsers={item.replyToUsers}
+			quotes={item.quotes}
+		/>
+	{/if}
 {/each}
 
 {#if canLoadOldTimeline}
