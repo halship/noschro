@@ -1,16 +1,10 @@
 <script lang="ts">
 	import { Settings } from '@lucide/svelte';
 	import { resolve } from '$app/paths';
-	import { appState } from '$lib/state.svelte';
+	import { appState, uiState } from '$lib/state.svelte';
 	import { LOAD_LIMIT } from '$lib/constants';
 
 	type TabId = 'timeline' | 'notifications';
-
-	type Props = {
-		handleOpenSettings: () => void;
-	};
-
-	let { handleOpenSettings }: Props = $props();
 
 	let activeTab: TabId = $derived.by(() => {
 		return 'timeline';
@@ -20,6 +14,10 @@
 		if (appState.timelineIds.length > LOAD_LIMIT) {
 			appState.timelineIds = appState.timelineIds.slice(0, LOAD_LIMIT);
 		}
+	}
+
+	function handleToggleSettings() {
+		uiState.isOpendedSettings = !uiState.isOpendedSettings;
 	}
 </script>
 
@@ -35,7 +33,8 @@
 			onclick={handleClickTimelineTab}>タイムライン</a
 		>
 	</div>
-	<button class="flex-none cursor-pointer p-3 dark:hover:text-gray-300" onclick={handleOpenSettings}
-		><Settings /></button
+	<button
+		class="flex-none cursor-pointer p-3 dark:hover:text-gray-300"
+		onclick={handleToggleSettings}><Settings /></button
 	>
 </header>

@@ -5,12 +5,18 @@ export type AppState = {
 	eventsById: Record<string, NostrEvent>;
 	profilesByPubkey: Record<string, Profile>;
 	timelineIds: string[];
-	isSigned: boolean;
 };
 
 export const appState = $state<AppState>({
 	eventsById: {},
 	profilesByPubkey: {},
-	timelineIds: [],
-	isSigned: false
+	timelineIds: []
+});
+
+export type UiState = {
+	isOpendedSettings: boolean;
+};
+
+export const uiState = $state<UiState>({
+	isOpendedSettings: false
 });

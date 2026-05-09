@@ -1,14 +1,16 @@
 import { createEvent } from '$lib/nostr_type';
 import { appState } from '$lib/state.svelte';
-import { batch, createRxBackwardReq, type RxNostr } from 'rx-nostr';
-import { bufferTime } from 'rxjs';
+import { batch, createRxBackwardReq } from 'rx-nostr';
+import { bufferTime, Subscription } from 'rxjs';
 import { requestProfiles } from './profiles';
+import type { Client } from '$lib/client';
 
 const rxReq = createRxBackwardReq();
 const batchedReq = rxReq.pipe(bufferTime(1000), batch());
+let sub: Subscription | null = null;
 
-export function subscribeEvents(rxNostr: RxNostr) {
-	const sub = rxNostr.use(batchedReq).subscribe((packet) => {
+export function subscribeEvents(client: Client) {
+	sub = client.rxNostr.use(batchedReq).subscribe((packet) => {
 		const event = createEvent(packet.event);
 		const ids = (event.replyToId ? [event.replyToId, ...event.quotedIds] : event.quotedIds).filter(
 			(id) => !(id in appState.eventsById)
@@ -22,10 +24,10 @@ export function subscribeEvents(rxNostr: RxNostr) {
 		requestEvents(ids);
 		requestProfiles(pubkeys);
 	});
+}
 
-	return () => {
-		sub.unsubscribe();
-	};
+export function unsubscribeEvents() {
+	sub?.unsubscribe();
 }
 
 export function requestEvents(ids: string[]) {

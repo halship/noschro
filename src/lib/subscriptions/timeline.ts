@@ -1,46 +1,64 @@
-import {
-	createRxBackwardReq,
-	createRxForwardReq,
-	now,
-	uniq,
-	type EventPacket,
-	type RxNostr
-} from 'rx-nostr';
+import { createRxBackwardReq, createRxForwardReq, now, uniq, type EventPacket } from 'rx-nostr';
 import { createEvent, type NostrEvent } from '$lib/nostr_type';
 import { appState } from '$lib/state.svelte';
 import { LOAD_LIMIT, TIMELINE_LIMIT } from '$lib/constants';
 import { requestProfiles } from './profiles';
 import { requestEvents } from './events';
-import { Subject } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
+import type { Client } from '$lib/client';
 
 const rxReq = createRxForwardReq();
 const rxReqBack = createRxBackwardReq();
 const flushes$ = new Subject<void>();
+let subBack: Subscription | null = null;
+let sub: Subscription | null = null;
 
-export function subscribeGlobalTimeline(rxNostr: RxNostr) {
-	const subBack = rxNostr.use(rxReqBack).pipe(uniq(flushes$)).subscribe(handlePacket);
-	const sub = rxNostr.use(rxReq).pipe(uniq(flushes$)).subscribe(handlePacket);
-	const nowTimestamp = now();
+export function subscribeTimeline(client: Client) {
+	subBack = client.rxNostr.use(rxReqBack).pipe(uniq(flushes$)).subscribe(handlePacket);
+	sub = client.rxNostr.use(rxReq).pipe(uniq(flushes$)).subscribe(handlePacket);
+	const nowTime = now();
 
-	requestOldGlobalTimeline(nowTimestamp, LOAD_LIMIT);
-
-	rxReq.emit({
-		kinds: [1],
-		since: nowTimestamp
-	});
-
-	return () => {
-		sub.unsubscribe();
-		subBack.unsubscribe();
-	};
+	requestNewTimeline(client, nowTime);
+	requestOldTimeline(client, nowTime, LOAD_LIMIT);
 }
 
-export function requestOldGlobalTimeline(until: number, limit: number) {
-	rxReqBack.emit({
-		kinds: [1],
-		until: until,
-		limit: limit
-	});
+export function unsubscribeTimeline() {
+	sub?.unsubscribe();
+	subBack?.unsubscribe();
+	appState.timelineIds = [];
+	flushes$.next();
+}
+
+export function requestNewTimeline(client: Client, since: number) {
+	if (client.pubkey) {
+		rxReq.emit({
+			kinds: [1],
+			authors: client.followees,
+			since
+		});
+	} else {
+		rxReq.emit({
+			kinds: [1],
+			since
+		});
+	}
+}
+
+export function requestOldTimeline(client: Client, until: number, limit: number) {
+	if (client.pubkey) {
+		rxReqBack.emit({
+			kinds: [1],
+			authors: client.followees,
+			until,
+			limit
+		});
+	} else {
+		rxReqBack.emit({
+			kinds: [1],
+			until,
+			limit
+		});
+	}
 }
 
 export function resetTimeline() {

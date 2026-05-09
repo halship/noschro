@@ -1,12 +1,12 @@
 <script lang="ts">
 	import PostItem from '$lib/components/PostItem.svelte';
 	import { appState } from '$lib/state.svelte';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import type { PageProps } from './$types';
 	import { initNostr } from '$lib/client';
-	import { requestEvents, subscribeEvents } from '$lib/subscriptions/events';
+	import { requestEvents, subscribeEvents, unsubscribeEvents } from '$lib/subscriptions/events';
 	import { toTimelineItem, type TimelineItem } from '$lib/models/timeline';
-	import { subscribeProfiles } from '$lib/subscriptions/profiles';
+	import { subscribeProfiles, unsubscribeProfiles } from '$lib/subscriptions/profiles';
 
 	let { data }: PageProps = $props();
 
@@ -34,19 +34,19 @@
 		return result;
 	});
 
-	onMount(() => {
-		const rxNostr = initNostr();
-		const unsubscribeEvents = subscribeEvents(rxNostr);
-		const unsubscribeProfiles = subscribeProfiles(rxNostr);
+	onMount(async () => {
+		const client = await initNostr();
+		subscribeEvents(client);
+		subscribeProfiles(client);
 
 		if (!(data.id in appState.eventsById)) {
 			requestEvents([data.id]);
 		}
+	});
 
-		return () => {
-			unsubscribeEvents();
-			unsubscribeProfiles();
-		};
+	onDestroy(() => {
+		unsubscribeEvents();
+		unsubscribeProfiles();
 	});
 </script>
 

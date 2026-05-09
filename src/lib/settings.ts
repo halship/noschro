@@ -11,3 +11,9 @@ export function setSetting(key: SettingsKey, value: string) {
 		localStorage.setItem(key, value);
 	}
 }
+
+export function removeSetting(key: SettingsKey) {
+	if (browser) {
+		localStorage.removeItem(key);
+	}
+}

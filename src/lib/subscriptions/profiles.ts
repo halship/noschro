@@ -1,15 +1,17 @@
 import { toProfile } from '$lib/models/profile';
 import { createEvent } from '$lib/nostr_type';
 import { appState } from '$lib/state.svelte';
-import { batch, createRxForwardReq, latestEach, type RxNostr } from 'rx-nostr';
-import { bufferTime } from 'rxjs';
+import { batch, createRxForwardReq, latestEach } from 'rx-nostr';
+import { bufferTime, Subscription } from 'rxjs';
 import { requestEvents } from './events';
+import type { Client } from '$lib/client';
 
 const rxReq = createRxForwardReq();
 const batchedReq = rxReq.pipe(bufferTime(1000), batch());
+let sub: Subscription | null = null;
 
-export function subscribeProfiles(rxNostr: RxNostr) {
-	const sub = rxNostr
+export function subscribeProfiles(client: Client) {
+	sub = client.rxNostr
 		.use(batchedReq)
 		.pipe(latestEach((packet) => packet.event.pubkey))
 		.subscribe((packet) => {
@@ -26,10 +28,10 @@ export function subscribeProfiles(rxNostr: RxNostr) {
 			requestEvents(ids);
 			requestProfiles(pubkeys);
 		});
+}
 
-	return () => {
-		sub.unsubscribe();
-	};
+export function unsubscribeProfiles() {
+	sub?.unsubscribe();
 }
 
 export function requestProfiles(pubkeys: string[]) {

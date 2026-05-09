@@ -1,39 +1,62 @@
-import { createRxNostr, nip07Signer, type RxNostr } from 'rx-nostr';
+import { createRxNostr, nip07Signer, type EventSigner, type RxNostr } from 'rx-nostr';
 import { verifier } from '@rx-nostr/crypto';
 import { getSetting } from './settings';
-import { appState } from './state.svelte';
-import { GLOBAL_RELAY } from './constants';
+import { GLOBAL_RELAYS, TEMP_RELAYS } from './constants';
+import { fetchRelayList } from './subscriptions/relay_list';
+import type { NostrRelay } from './nostr_type';
+import { fetchFollowList } from './subscriptions/follow_list';
 
-export let rxNostr: RxNostr | null = null;
+export type Client = {
+	rxNostr: RxNostr;
+	relays: NostrRelay[];
+	signer?: EventSigner;
+	pubkey?: string;
+	followees?: string[];
+};
 
-export function initNostr(): RxNostr {
-	if (rxNostr !== null) return rxNostr;
+let client: Client | null = null;
+
+export async function initNostr(): Promise<Client> {
+	if (client !== null) return client;
 
 	if (getSetting('login') === '<NIP-07>') {
-		rxNostr = signin();
-		return rxNostr;
+		return await signin();
 	}
 
-	rxNostr = signout();
-	return rxNostr;
+	return signout();
 }
 
-export function signin(): RxNostr {
+export async function signin(): Promise<Client> {
+	const signer = nip07Signer();
+	const pubkey = await signer.getPublicKey();
 	const rxNostr = createRxNostr({
 		verifier,
-		signer: nip07Signer()
+		signer
 	});
-	appState.isSigned = true;
+	rxNostr.setDefaultRelays([...TEMP_RELAYS]);
 
-	return rxNostr;
+	const relays = await fetchRelayList(rxNostr, pubkey);
+	const followees = await fetchFollowList(rxNostr, pubkey);
+
+	client = {
+		rxNostr,
+		signer,
+		pubkey,
+		relays,
+		followees
+	};
+
+	return client;
 }
 
-export function signout(): RxNostr {
+export function signout(): Client {
 	const rxNostr = createRxNostr({
 		verifier
 	});
-	rxNostr.setDefaultRelays([...GLOBAL_RELAY]);
-	appState.isSigned = false;
+	rxNostr.setDefaultRelays([...GLOBAL_RELAYS]);
+	const relays = [...GLOBAL_RELAYS];
 
-	return rxNostr;
+	client = { rxNostr, relays };
+
+	return client;
 }

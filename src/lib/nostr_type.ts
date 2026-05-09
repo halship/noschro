@@ -1,6 +1,12 @@
-import type * as Nostr from 'nostr-typedef';
+import * as Nostr from 'nostr-typedef';
 import { NOSTR_URI_RE } from './models/token';
 import { decodeNostrURI } from 'nostr-tools/nip19';
+
+export type NostrRelay = {
+	url: string;
+	read: boolean;
+	write: boolean;
+};
 
 export type NostrEvent = Nostr.Event & {
 	replyToId?: string;
