@@ -18,17 +18,17 @@
 		if (currentItem?.kind !== 'post') return [];
 
 		let item: PostItem | undefined = currentItem as PostItem;
-		if (!item?.replyToEvent) return [];
+		if (!item?.replyToItem) return [];
 
 		let result: PostItem[] = [];
-		item = toPostItem(appState.eventsById, appState.profilesByPubkey, item?.replyToEvent?.id);
+		item = toPostItem(appState.eventsById, appState.profilesByPubkey, item?.replyToItem?.id);
 
 		while (item) {
 			result = [item, ...result];
 
 			if (item.kind === 'post') {
-				item = item.replyToEvent
-					? toPostItem(appState.eventsById, appState.profilesByPubkey, item.replyToEvent.id)
+				item = item.replyToItem
+					? toPostItem(appState.eventsById, appState.profilesByPubkey, item.replyToItem.id)
 					: undefined;
 			} else {
 				break;

@@ -23,6 +23,15 @@ export function parseContent(content: string, tags: string[][]): NostrToken[] {
 	return tokens;
 }
 
+export function parseName(name: string, tags: string[][]): NostrToken[] {
+	const emojiMap = getEmojiMap(tags);
+
+	let tokens: NostrToken[] = [{type: 'text', text: name}];
+	tokens = parseEmojiTokens(tokens, emojiMap);
+
+	return tokens;
+}
+
 export function parseUrlContent(content: string): NostrToken[] {
 	const tokens: NostrToken[] = [];
 	let lastIndex = 0;

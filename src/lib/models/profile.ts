@@ -1,6 +1,6 @@
 import type { NostrEvent } from '$lib/nostr_type';
 import type * as Nostr from 'nostr-typedef';
-import { NOSTR_URI_RE } from './token';
+import { NOSTR_URI_RE, parseName, type NostrToken } from './token';
 import { decodeNostrURI } from 'nostr-tools/nip19';
 import { appState } from '$lib/state.svelte';
 
@@ -16,6 +16,7 @@ export type Profile = {
 	tags: string[][];
 	quoteIds: string[];
 	contentPubkeys: string[];
+	nameTokens?: NostrToken[];
 };
 
 export function toProfile(event: NostrEvent): Profile | null {
@@ -52,6 +53,8 @@ export function toProfile(event: NostrEvent): Profile | null {
 		.map((code) => code.data)
 		.filter((pubkey) => !(pubkey in appState.profilesByPubkey));
 
+	const nameTokens = metadata.display_name ? parseName(metadata.display_name, event.tags) : undefined;
+
 	return {
 		id: event.id,
 		pubkey: event.pubkey,
@@ -63,6 +66,7 @@ export function toProfile(event: NostrEvent): Profile | null {
 		about: metadata.about,
 		tags: event.tags,
 		quoteIds,
-		contentPubkeys
+		contentPubkeys,
+		nameTokens
 	};
 }

@@ -14,6 +14,7 @@
 	import { now } from 'rx-nostr';
 	import { subscribeProfiles, unsubscribeProfiles } from '$lib/subscriptions/profiles';
 	import { subscribeEvents, unsubscribeEvents } from '$lib/subscriptions/events';
+	import RepostPreview from '$lib/components/RepostPreview.svelte';
 
 	let timelineItems = $derived(
 		appState.timelineIds
@@ -52,8 +53,8 @@
 
 {#each timelineItems as item (item.id)}
 	{#if item.kind === 'post'}
-		{#if item.replyToEvent}
-			<ReplyPreview post={item.replyToEvent.post} />
+		{#if item.replyToItem?.item}
+			<ReplyPreview post={item.replyToItem.item.post} />
 		{/if}
 
 		<PostView
@@ -61,7 +62,22 @@
 			profile={item.profile}
 			replyToUsers={item.replyToUsers}
 			quotes={item.quotes}
+			contentUsers={item.contentUsers}
 		/>
+	{:else if item.kind === 'repost'}
+		<RepostPreview pubkey={item.pubkey} profile={item.profile} />
+
+		{#if item.repostTo.item}
+			<PostView
+				post={item.repostTo.item.post}
+				profile={item.repostTo.item.profile}
+				replyToUsers={item.repostTo.item.replyToUsers}
+				quotes={item.repostTo.item.quotes}
+				contentUsers={item.repostTo.item.contentUsers}
+			/>
+		{:else}
+			<div class="flex border-b border-gray-400 p-2 dark:border-gray-700">取得中</div>
+		{/if}
 	{/if}
 {/each}
 

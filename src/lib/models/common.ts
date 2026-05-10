@@ -1,27 +1,20 @@
 import type { NostrEvent } from '$lib/nostr_type';
-import { toPost } from './post';
 import type { Profile } from './profile';
-import type { Quote } from './quote';
+import { toPostItem, type PostItem } from './timeline';
 import type { NostrUser } from './user';
 
 export function getQuotes(
 	eventsById: Record<string, NostrEvent>,
 	profilesByPubkey: Record<string, Profile>,
 	quotedIds: string[]
-): Record<string, Quote> | undefined {
-	const quotes = quotedIds
-		.filter((id) => id in eventsById)
-		.map((id) => {
-			const event = eventsById[id];
-			const post = toPost(event);
-			const profile = profilesByPubkey[post.pubkey];
-			const quotes = getQuotes(eventsById, profilesByPubkey, event.quotedIds);
-			return { post, profile, quotes };
-		});
+): Record<string, PostItem> | undefined {
+	const quotes: PostItem[] = quotedIds
+		.map((id) => toPostItem(eventsById, profilesByPubkey, id))
+		.filter((item) => item !== undefined);
 
 	return quotes.length > 0
 		? quotes.reduce((result, quote) => {
-				return { ...result, [quote.post.id]: quote };
+				return { ...result, [quote.id]: quote };
 			}, {})
 		: undefined;
 }

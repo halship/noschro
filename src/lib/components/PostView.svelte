@@ -4,17 +4,16 @@
 	import type { Profile } from '$lib/models/profile';
 	import { User } from '@lucide/svelte';
 	import Content from './Content.svelte';
-	import { parseContent } from '$lib/models/token';
 	import { resolve } from '$app/paths';
 	import { npubEncode, neventEncode } from 'nostr-tools/nip19';
 	import type { NostrUser } from '$lib/models/user';
-	import type { Quote } from '$lib/models/quote';
+	import type { PostItem } from '$lib/models/timeline';
 
 	type Props = {
 		post: Post;
 		profile?: Profile;
 		replyToUsers: NostrUser[];
-		quotes?: Record<string, Quote>;
+		quotes?: Record<string, PostItem>;
 		contentUsers?: Record<string, NostrUser>;
 	};
 
@@ -54,8 +53,8 @@
 	<div class="m-2 flex flex-1 flex-col">
 		<div class="mb-1 flex flex-wrap gap-x-2">
 			<div class="flex-none font-bold break-all">
-				{#if profile?.displayName}
-					<Content tokens={parseContent(profile.displayName, profile.tags)} />
+				{#if profile?.nameTokens}
+					<Content tokens={profile.nameTokens} />
 				{:else if profile?.name}
 					{profile.name}
 				{:else}

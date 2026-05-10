@@ -32,7 +32,7 @@ export function unsubscribeTimeline() {
 export function requestNewTimeline(client: Client, since: number) {
 	if (client.pubkey) {
 		rxReq.emit({
-			kinds: [1],
+			kinds: [1, 6],
 			authors: client.followees,
 			since
 		});
@@ -47,7 +47,7 @@ export function requestNewTimeline(client: Client, since: number) {
 export function requestOldTimeline(client: Client, until: number, limit: number) {
 	if (client.pubkey) {
 		rxReqBack.emit({
-			kinds: [1],
+			kinds: [1, 6],
 			authors: client.followees,
 			until,
 			limit

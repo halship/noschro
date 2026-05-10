@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { formatLink, formatPubkey } from '$lib/formatter';
-	import type { Quote } from '$lib/models/quote';
 	import type { NostrToken } from '$lib/models/token';
 	import type { NostrUser } from '$lib/models/user';
 	import { npubEncode } from 'nostr-tools/nip19';
 	import QuoteItem from './QuoteItem.svelte';
+	import type { PostItem } from '$lib/models/timeline';
 
 	type Props = {
 		tokens: NostrToken[];
-		quotes?: Record<string, Quote>;
+		quotes?: Record<string, PostItem>;
 		users?: Record<string, NostrUser>;
 	};
 
@@ -32,7 +32,9 @@
 			<QuoteItem
 				post={quotes[token.eventId].post}
 				profile={quotes[token.eventId].profile}
+				replyToUsers={quotes[token.eventId].replyToUsers}
 				quotes={quotes[token.eventId].quotes}
+				contentUsers={quotes[token.eventId].contentUsers}
 			/>
 		{:else}
 			<span>{token.raw}</span>

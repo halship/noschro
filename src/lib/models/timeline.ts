@@ -2,7 +2,6 @@ import type { NostrEvent } from '$lib/nostr_type';
 import { getContentUsers, getQuotes } from './common';
 import { toPost, type Post } from './post';
 import { type Profile } from './profile';
-import type { Quote } from './quote';
 import type { NostrUser } from './user';
 
 export type PostItem = {
@@ -10,13 +9,12 @@ export type PostItem = {
 	id: string;
 	post: Post;
 	profile?: Profile;
-	replyToEvent?: {
+	replyToItem?: {
 		id: string;
-		post?: Post;
-		profile?: Profile;
+		item?: PostItem;
 	};
 	replyToUsers: NostrUser[];
-	quotes?: Record<string, Quote>;
+	quotes?: Record<string, PostItem>;
 	contentUsers?: Record<string, NostrUser>;
 	createdAt: number;
 };
@@ -24,11 +22,11 @@ export type PostItem = {
 export type RepostItem = {
 	kind: 'repost';
 	id: string;
+	pubkey: string;
 	profile?: Profile;
 	repostTo: {
 		id: string;
-		post?: Post;
-		profile?: Profile;
+		item?: PostItem;
 	};
 	createdAt: number;
 };
@@ -45,10 +43,10 @@ export function toPostItem(
 
 	const post = toPost(event);
 	const profile = profilesByPubkey[post.pubkey];
-	const replyToEvent = event.replyToId
-		? getReplyToEvent(eventsById, profilesByPubkey, event.replyToId)
+	const replyToItem = event.replyToId
+		? getReplyToItem(eventsById, profilesByPubkey, event.replyToId)
 		: undefined;
-	const replyToUsers = event.replyToPubkeys.map((pubkey) => {
+	const replyToUsers: NostrUser[] = event.replyToPubkeys.map((pubkey) => {
 		if (pubkey in profilesByPubkey) {
 			const profile = profilesByPubkey[pubkey];
 			return { pubkey, name: profile.name, displayName: profile.displayName };
@@ -64,7 +62,7 @@ export function toPostItem(
 		id: event.id,
 		post,
 		profile,
-		replyToEvent,
+		replyToItem,
 		replyToUsers,
 		quotes,
 		contentUsers,
@@ -82,18 +80,15 @@ export function toRepostItem(
 
 	const profile = profilesByPubkey[event.pubkey];
 	const repostToId = event.tags.filter((tag) => tag[0] === 'e').map((tag) => tag[1])[0];
-	const repostToEvent = eventsById[repostToId];
-	const repostToPost = repostToEvent ? toPost(repostToEvent) : undefined;
-	const repostToProfile = repostToEvent ? profilesByPubkey[repostToEvent.pubkey] : undefined;
 
 	return {
 		kind: 'repost',
 		id: event.id,
+		pubkey: event.pubkey,
 		profile,
 		repostTo: {
 			id: repostToId,
-			post: repostToPost,
-			profile: repostToProfile
+			item: toPostItem(eventsById, profilesByPubkey, repostToId)
 		},
 		createdAt: event.created_at
 	};
@@ -117,25 +112,20 @@ export function toTimelineItem(
 	return undefined;
 }
 
-function getReplyToEvent(
+function getReplyToItem(
 	eventsById: Record<string, NostrEvent>,
 	profilesByPubkey: Record<string, Profile>,
 	replyToId: string
 ): {
 	id: string;
-	post?: Post;
-	profile?: Profile;
+	item?: PostItem;
 } {
 	if (!(replyToId in eventsById)) {
 		return { id: replyToId };
 	}
 
-	const replyToPost = toPost(eventsById[replyToId]);
-	const replyToProfile = profilesByPubkey[replyToPost.pubkey];
-
 	return {
 		id: replyToId,
-		post: replyToPost,
-		profile: replyToProfile
+		item: toPostItem(eventsById, profilesByPubkey, replyToId)
 	};
 }
