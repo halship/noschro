@@ -1,21 +1,20 @@
-import { createRxBackwardReq, createRxForwardReq, now, uniq, type EventPacket } from 'rx-nostr';
+import { createRxBackwardReq, createRxForwardReq, now, type EventPacket } from 'rx-nostr';
 import { createEvent, type NostrEvent } from '$lib/nostr_type';
 import { appState } from '$lib/state.svelte';
 import { LOAD_LIMIT, TIMELINE_LIMIT } from '$lib/constants';
 import { requestProfiles } from './profiles';
 import { requestEvents } from './events';
-import { Subject, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import type { Client } from '$lib/client';
 
 const rxReq = createRxForwardReq();
 const rxReqBack = createRxBackwardReq();
-const flushes$ = new Subject<void>();
 let subBack: Subscription | null = null;
 let sub: Subscription | null = null;
 
 export function subscribeTimeline(client: Client) {
-	subBack = client.rxNostr.use(rxReqBack).pipe(uniq(flushes$)).subscribe(handlePacket);
-	sub = client.rxNostr.use(rxReq).pipe(uniq(flushes$)).subscribe(handlePacket);
+	subBack = client.rxNostr.use(rxReqBack).subscribe(handlePacket);
+	sub = client.rxNostr.use(rxReq).subscribe(handlePacket);
 	const nowTime = now();
 
 	requestNewTimeline(client, nowTime);
@@ -26,7 +25,6 @@ export function unsubscribeTimeline() {
 	sub?.unsubscribe();
 	subBack?.unsubscribe();
 	appState.timelineIds = [];
-	flushes$.next();
 }
 
 export function requestNewTimeline(client: Client, since: number) {
@@ -63,7 +61,6 @@ export function requestOldTimeline(client: Client, until: number, limit: number)
 
 export function resetTimeline() {
 	appState.timelineIds = [];
-	flushes$.next();
 }
 
 function handlePacket(packet: EventPacket) {

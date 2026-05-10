@@ -76,7 +76,7 @@
 		{#if replyToUsers.length > 0}
 			<div class="mb-1 wrap-anywhere break-all">
 				<span>To:</span>
-				{#each replyToUsers as user (user.pubkey)}
+				{#each replyToUsers as user, i (i)}
 					<a
 						href={resolve('/[npub=npub]', { npub: npubEncode(user.pubkey) })}
 						class="ml-1 text-gray-500"
