@@ -1,6 +1,12 @@
 import { createRxBackwardReq, createRxForwardReq, now, type EventPacket } from 'rx-nostr';
-import { createEvent, type NostrEvent } from '$lib/nostr_type';
-import { appState } from '$lib/state.svelte';
+import { createEvent } from '$lib/nostr_type';
+import {
+	addEventToTimeline,
+	getMissingEventIds,
+	getMissingProfilePubkeys,
+	hasTimelineEvent,
+	resetTimelineIds
+} from '$lib/state-actions';
 import { LOAD_LIMIT, TIMELINE_LIMIT } from '$lib/constants';
 import { requestProfiles } from './profiles';
 import { requestEvents } from './events';
@@ -24,7 +30,7 @@ export function subscribeTimeline(client: Client) {
 export function unsubscribeTimeline() {
 	sub?.unsubscribe();
 	subBack?.unsubscribe();
-	appState.timelineIds = [];
+	resetTimelineIds();
 }
 
 export function requestNewTimeline(client: Client, since: number) {
@@ -60,48 +66,19 @@ export function requestOldTimeline(client: Client, until: number, limit: number)
 }
 
 export function resetTimeline() {
-	appState.timelineIds = [];
+	resetTimelineIds();
 }
 
 function handlePacket(packet: EventPacket) {
-	if (appState.timelineIds.includes(packet.event.id)) return;
+	if (hasTimelineEvent(packet.event.id)) return;
 
 	const event = createEvent(packet.event);
 
-	const ids = event.tags
-		.filter((tag) => tag[0] === 'e')
-		.map((tag) => tag[1])
-		.filter((id) => !(id in appState.eventsById));
-	const pubkeys = [event.pubkey, ...event.replyToPubkeys].filter(
-		(pubkey) => !(pubkey in appState.profilesByPubkey)
-	);
+	const ids = getMissingEventIds(event.tags.filter((tag) => tag[0] === 'e').map((tag) => tag[1]));
+	const pubkeys = getMissingProfilePubkeys([event.pubkey, ...event.replyToPubkeys]);
 
 	requestEvents(ids);
 	requestProfiles(pubkeys);
 
-	addEventToTimeline(event);
-}
-
-function addEventToTimeline(event: NostrEvent) {
-	appState.eventsById = { ...appState.eventsById, [event.id]: event };
-
-	const createdAt = appState.eventsById[event.id].created_at;
-
-	const index = appState.timelineIds.findIndex((id) => {
-		return appState.eventsById[id].created_at < createdAt;
-	});
-
-	if (index === -1) {
-		appState.timelineIds = [...appState.timelineIds, event.id];
-	} else {
-		appState.timelineIds = [
-			...appState.timelineIds.slice(0, index),
-			event.id,
-			...appState.timelineIds.slice(index)
-		];
-	}
-
-	if (appState.timelineIds.length > TIMELINE_LIMIT) {
-		appState.timelineIds = appState.timelineIds.slice(0, TIMELINE_LIMIT);
-	}
+	addEventToTimeline(event, TIMELINE_LIMIT);
 }

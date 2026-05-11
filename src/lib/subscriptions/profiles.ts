@@ -1,6 +1,6 @@
 import { toProfile } from '$lib/models/profile';
 import { createEvent } from '$lib/nostr_type';
-import { appState } from '$lib/state.svelte';
+import { getMissingEventIds, getMissingProfilePubkeys, upsertProfile } from '$lib/state-actions';
 import { batch, createRxForwardReq, latestEach } from 'rx-nostr';
 import { bufferTime, Subscription } from 'rxjs';
 import { requestEvents } from './events';
@@ -20,12 +20,10 @@ export function subscribeProfiles(client: Client) {
 			const profile = toProfile(event);
 			if (!profile) return;
 
-			appState.profilesByPubkey = { ...appState.profilesByPubkey, [event.pubkey]: profile };
+			upsertProfile(profile);
 
-			const ids = profile.quoteIds.filter((id) => !(id in appState.eventsById));
-			const pubkeys = profile.contentPubkeys.filter(
-				(pubkey) => !(pubkey in appState.profilesByPubkey)
-			);
+			const ids = getMissingEventIds(profile.quoteIds);
+			const pubkeys = getMissingProfilePubkeys(profile.contentPubkeys);
 
 			requestEvents(ids);
 			requestProfiles(pubkeys);

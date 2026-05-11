@@ -1,5 +1,5 @@
 import { createEvent } from '$lib/nostr_type';
-import { appState } from '$lib/state.svelte';
+import { getMissingEventIds, getMissingProfilePubkeys, upsertEvent } from '$lib/state-actions';
 import { batch, createRxBackwardReq } from 'rx-nostr';
 import { bufferTime, Subscription } from 'rxjs';
 import { requestProfiles } from './profiles';
@@ -12,14 +12,14 @@ let sub: Subscription | null = null;
 export function subscribeEvents(client: Client) {
 	sub = client.rxNostr.use(batchedReq).subscribe((packet) => {
 		const event = createEvent(packet.event);
-		const ids = (event.replyToId ? [event.replyToId, ...event.quotedIds] : event.quotedIds).filter(
-			(id) => !(id in appState.eventsById)
+		const ids = getMissingEventIds(
+			event.replyToId ? [event.replyToId, ...event.quotedIds] : event.quotedIds
 		);
-		const pubkeys = [
+		const pubkeys = getMissingProfilePubkeys([
 			...new Set([event.pubkey, ...event.replyToPubkeys, ...event.contentPubkeys])
-		].filter((pubkey) => !(pubkey in appState.profilesByPubkey));
+		]);
 
-		appState.eventsById = { ...appState.eventsById, [event.id]: event };
+		upsertEvent(event);
 
 		requestEvents(ids);
 		requestProfiles(pubkeys);
