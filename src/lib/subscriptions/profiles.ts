@@ -11,6 +11,8 @@ const batchedReq = rxReq.pipe(bufferTime(1000), batch());
 let sub: Subscription | null = null;
 
 export function subscribeProfiles(client: Client) {
+	unsubscribeProfiles();
+
 	sub = client.rxNostr
 		.use(batchedReq)
 		.pipe(latestEach((packet) => packet.event.pubkey))
@@ -32,6 +34,7 @@ export function subscribeProfiles(client: Client) {
 
 export function unsubscribeProfiles() {
 	sub?.unsubscribe();
+	sub = null;
 }
 
 export function requestProfiles(pubkeys: string[]) {

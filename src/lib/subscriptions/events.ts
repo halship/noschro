@@ -10,6 +10,8 @@ const batchedReq = rxReq.pipe(bufferTime(1000), batch());
 let sub: Subscription | null = null;
 
 export function subscribeEvents(client: Client) {
+	unsubscribeEvents();
+
 	sub = client.rxNostr.use(batchedReq).subscribe((packet) => {
 		const event = createEvent(packet.event);
 		const ids = getMissingEventIds(
@@ -28,9 +30,12 @@ export function subscribeEvents(client: Client) {
 
 export function unsubscribeEvents() {
 	sub?.unsubscribe();
+	sub = null;
 }
 
 export function requestEvents(ids: string[]) {
+	if (ids.length === 0) return;
+
 	rxReq.emit({
 		kinds: [1],
 		ids: ids,

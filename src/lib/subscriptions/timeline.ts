@@ -19,6 +19,9 @@ let subBack: Subscription | null = null;
 let sub: Subscription | null = null;
 
 export function subscribeTimeline(client: Client) {
+	sub?.unsubscribe();
+	subBack?.unsubscribe();
+
 	subBack = client.rxNostr.use(rxReqBack).subscribe(handlePacket);
 	sub = client.rxNostr.use(rxReq).subscribe(handlePacket);
 	const nowTime = now();
@@ -30,6 +33,8 @@ export function subscribeTimeline(client: Client) {
 export function unsubscribeTimeline() {
 	sub?.unsubscribe();
 	subBack?.unsubscribe();
+	sub = null;
+	subBack = null;
 	resetTimelineIds();
 }
 
