@@ -1,10 +1,8 @@
-import { decodeNostrURI } from 'nostr-tools/nip19';
+import { NOSTR_URI_RE, safeDecodeNostrURI } from './nostr-uri';
 
 const URL_RE = /https?:\/\/[a-zA-Z0-9?&#./=\-_~%:@+,]+/g;
 const IMAGE_EXT_RE = /\.(png|jpe?g|gif|webp|avif)(\?.*)?$/;
 const EMOJI_RE = /:([a-zA-Z0-9_\\+\\-]+):/g;
-export const NOSTR_URI_RE: RegExp = /nostr:([a-z0-9]+)/g;
-
 export type NostrToken =
 	| { type: 'text'; text: string }
 	| { type: 'link'; url: string }
@@ -130,10 +128,10 @@ function parseNostrURITokens(tokens: NostrToken[]): NostrToken[] {
 
 		for (const match of token.text.matchAll(NOSTR_URI_RE)) {
 			const uri = match[1];
-			const decodedURI = decodeNostrURI(uri);
+			const decodedURI = safeDecodeNostrURI(uri);
 			const index = match.index ?? 0;
 
-			if (!uri) continue;
+			if (!decodedURI) continue;
 
 			if (index > lastIndex) {
 				result.push({

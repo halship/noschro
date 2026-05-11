@@ -1,8 +1,8 @@
 import type { NostrEvent } from '$lib/nostr_type';
 import type * as Nostr from 'nostr-typedef';
-import { NOSTR_URI_RE, parseName, type NostrToken } from './token';
-import { decodeNostrURI } from 'nostr-tools/nip19';
+import { parseName, type NostrToken } from './token';
 import { appState } from '$lib/state.svelte';
+import { extractContentPubkeys, extractQuoteIds } from './nostr-uri';
 
 export type Profile = {
 	id: string;
@@ -30,30 +30,19 @@ export function toProfile(event: NostrEvent): Profile | null {
 		return null;
 	}
 
-	const decodedCodes = metadata.about
-		? metadata.about
-				.matchAll(NOSTR_URI_RE)
-				.map((match) => decodeNostrURI(match[1]))
-				.toArray()
+	const quoteIds = metadata.about
+		? extractQuoteIds(metadata.about).filter((id) => !(id in appState.eventsById))
 		: [];
 
-	const quoteIds = decodedCodes
-		.filter((code) => code.type === 'nevent' || code.type === 'note')
-		.map((code) => {
-			if (code.type === 'nevent') {
-				return code.data.id;
-			} else {
-				return code.data;
-			}
-		})
-		.filter((id) => !(id in appState.eventsById));
+	const contentPubkeys = metadata.about
+		? extractContentPubkeys(metadata.about).filter(
+				(pubkey) => !(pubkey in appState.profilesByPubkey)
+			)
+		: [];
 
-	const contentPubkeys = decodedCodes
-		.filter((code) => code.type === 'npub')
-		.map((code) => code.data)
-		.filter((pubkey) => !(pubkey in appState.profilesByPubkey));
-
-	const nameTokens = metadata.display_name ? parseName(metadata.display_name, event.tags) : undefined;
+	const nameTokens = metadata.display_name
+		? parseName(metadata.display_name, event.tags)
+		: undefined;
 
 	return {
 		id: event.id,
