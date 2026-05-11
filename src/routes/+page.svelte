@@ -5,15 +5,9 @@
 	import { LOAD_LIMIT, TIMELINE_LIMIT } from '$lib/constants';
 	import { toTimelineItem } from '$lib/models/timeline';
 	import { appState } from '$lib/state.svelte';
-	import {
-		requestOldTimeline,
-		subscribeTimeline,
-		unsubscribeTimeline
-	} from '$lib/subscriptions/timeline';
-	import { onDestroy, onMount } from 'svelte';
+	import { requestOldTimeline } from '$lib/subscriptions/timeline';
 	import { now } from 'rx-nostr';
-	import { subscribeProfiles, unsubscribeProfiles } from '$lib/subscriptions/profiles';
-	import { subscribeEvents, unsubscribeEvents } from '$lib/subscriptions/events';
+	import { useNostrSubscriptions } from '$lib/subscriptions/lifecycle';
 	import RepostPreview from '$lib/components/RepostPreview.svelte';
 
 	let timelineItems = $derived(
@@ -28,18 +22,7 @@
 		timelineItems.length > 0 ? timelineItems[timelineItems.length - 1].createdAt : now()
 	);
 
-	onMount(async () => {
-		const client = await initNostr();
-		subscribeEvents(client);
-		subscribeProfiles(client);
-		subscribeTimeline(client);
-	});
-
-	onDestroy(() => {
-		unsubscribeTimeline();
-		unsubscribeProfiles();
-		unsubscribeEvents();
-	});
+	useNostrSubscriptions(['events', 'profiles', 'timeline']);
 
 	async function handleLoadMore() {
 		const client = await initNostr();

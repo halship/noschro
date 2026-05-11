@@ -4,15 +4,9 @@
 	import Content from '$lib/components/Content.svelte';
 	import UserAvatar from '$lib/components/UserAvatar.svelte';
 	import { parseContent } from '$lib/models/token';
-	import { onDestroy, onMount } from 'svelte';
-	import { initNostr } from '$lib/client';
-	import {
-		requestProfiles,
-		subscribeProfiles,
-		unsubscribeProfiles
-	} from '$lib/subscriptions/profiles';
+	import { requestProfiles } from '$lib/subscriptions/profiles';
 	import { getContentUsers, getQuotes } from '$lib/models/common';
-	import { subscribeEvents, unsubscribeEvents } from '$lib/subscriptions/events';
+	import { useNostrSubscriptions } from '$lib/subscriptions/lifecycle';
 
 	let { data }: PageProps = $props();
 
@@ -24,19 +18,12 @@
 
 	let users = $derived(getContentUsers(appState.profilesByPubkey, profile.contentPubkeys));
 
-	onMount(async () => {
-		const client = await initNostr();
-		subscribeProfiles(client);
-		subscribeEvents(client);
-
-		if (!(data.pubkey in appState.profilesByPubkey)) {
-			requestProfiles([data.pubkey]);
+	useNostrSubscriptions(['profiles', 'events'], {
+		onReady: () => {
+			if (!(data.pubkey in appState.profilesByPubkey)) {
+				requestProfiles([data.pubkey]);
+			}
 		}
-	});
-
-	onDestroy(() => {
-		unsubscribeEvents();
-		unsubscribeProfiles();
 	});
 </script>
 
