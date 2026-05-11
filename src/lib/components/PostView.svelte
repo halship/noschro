@@ -4,6 +4,7 @@
 	import type { Profile } from '$lib/models/profile';
 	import { User } from '@lucide/svelte';
 	import Content from './Content.svelte';
+	import UserName from './UserName.svelte';
 	import { resolve } from '$app/paths';
 	import { npubEncode, neventEncode } from 'nostr-tools/nip19';
 	import type { NostrUser } from '$lib/models/user';
@@ -53,13 +54,7 @@
 	<div class="m-2 flex flex-1 flex-col">
 		<div class="mb-1 flex flex-wrap gap-x-2">
 			<div class="flex-none font-bold break-all">
-				{#if profile?.nameTokens}
-					<Content tokens={profile.nameTokens} />
-				{:else if profile?.name}
-					{profile.name}
-				{:else}
-					{formatPubkey(post.pubkey)}
-				{/if}
+				<UserName pubkey={post.pubkey} {profile} />
 			</div>
 
 			{#if profile?.displayName !== undefined && profile.displayName.trim() !== '' && profile?.name !== undefined}
