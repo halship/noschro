@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { formatPubkey, formatTimestamp } from '$lib/formatter';
+	import { formatTimestamp } from '$lib/formatter';
 	import type { Post } from '$lib/models/post';
 	import type { Profile } from '$lib/models/profile';
 	import Content from './Content.svelte';
+	import ReplyToUsers from './ReplyToUsers.svelte';
 	import UserAvatar from './UserAvatar.svelte';
 	import UserName from './UserName.svelte';
 	import { resolve } from '$app/paths';
@@ -60,18 +61,7 @@
 			</div>
 		</div>
 
-		{#if replyToUsers.length > 0}
-			<div class="mb-1 wrap-anywhere break-all">
-				<span>To:</span>
-				{#each replyToUsers as user, i (i)}
-					<a
-						href={resolve('/[npub=npub]', { npub: npubEncode(user.pubkey) })}
-						class="ml-1 text-gray-500"
-						>@{user.displayName ?? user.name ?? formatPubkey(user.pubkey)}</a
-					>
-				{/each}
-			</div>
-		{/if}
+		<ReplyToUsers users={replyToUsers} />
 
 		<p class="mb-1 wrap-anywhere break-all whitespace-pre-wrap">
 			<Content tokens={post.contentTokens} {quotes} users={contentUsers} />
