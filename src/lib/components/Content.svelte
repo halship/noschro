@@ -41,11 +41,7 @@
 		{/if}
 	{:else if token.type === 'user'}
 		<a href={resolve('/[npub=npub]', { npub: npubEncode(token.pubkey) })} class="text-gray-500">
-			{#if users}
-				@{users[token.pubkey].displayName ?? users[token.pubkey].name ?? formatPubkey(token.pubkey)}
-			{:else}
-				@{formatPubkey(token.pubkey)}
-			{/if}
+			@{users?.[token.pubkey]?.displayName ?? users?.[token.pubkey]?.name ?? formatPubkey(token.pubkey)}
 		</a>
 	{/if}
 {/each}

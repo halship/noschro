@@ -23,7 +23,9 @@ export function subscribeProfiles(client: Client) {
 			appState.profilesByPubkey = { ...appState.profilesByPubkey, [event.pubkey]: profile };
 
 			const ids = profile.quoteIds.filter((id) => !(id in appState.eventsById));
-			const pubkeys = profile.contentPubkeys.filter((pubkey) => !(pubkey in appState.eventsById));
+			const pubkeys = profile.contentPubkeys.filter(
+				(pubkey) => !(pubkey in appState.profilesByPubkey)
+			);
 
 			requestEvents(ids);
 			requestProfiles(pubkeys);

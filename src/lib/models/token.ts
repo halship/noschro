@@ -1,7 +1,7 @@
 import { decodeNostrURI } from 'nostr-tools/nip19';
 
 const URL_RE = /https?:\/\/[a-zA-Z0-9?&#./=\-_~%:@+,]+/g;
-const IMAGE_EXT_RE = /\.(png|jpe?g|git|webp|avif)(\?.*)?$/;
+const IMAGE_EXT_RE = /\.(png|jpe?g|gif|webp|avif)(\?.*)?$/;
 const EMOJI_RE = /:([a-zA-Z0-9_\\+\\-]+):/g;
 export const NOSTR_URI_RE: RegExp = /nostr:([a-z0-9]+)/g;
 
@@ -26,7 +26,7 @@ export function parseContent(content: string, tags: string[][]): NostrToken[] {
 export function parseName(name: string, tags: string[][]): NostrToken[] {
 	const emojiMap = getEmojiMap(tags);
 
-	let tokens: NostrToken[] = [{type: 'text', text: name}];
+	let tokens: NostrToken[] = [{ type: 'text', text: name }];
 	tokens = parseEmojiTokens(tokens, emojiMap);
 
 	return tokens;
