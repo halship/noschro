@@ -39,39 +39,35 @@ export function unsubscribeTimeline() {
 }
 
 export function requestNewTimeline(client: Client, since: number) {
-	if (client.pubkey) {
-		rxReq.emit({
-			kinds: [1, 6],
-			authors: client.followees,
-			since
-		});
-	} else {
-		rxReq.emit({
-			kinds: [1],
-			since
-		});
-	}
+	rxReq.emit({
+		...createTimelineFilter(client),
+		since
+	});
 }
 
 export function requestOldTimeline(client: Client, until: number, limit: number) {
-	if (client.pubkey) {
-		rxReqBack.emit({
-			kinds: [1, 6],
-			authors: client.followees,
-			until,
-			limit
-		});
-	} else {
-		rxReqBack.emit({
-			kinds: [1],
-			until,
-			limit
-		});
-	}
+	rxReqBack.emit({
+		...createTimelineFilter(client),
+		until,
+		limit
+	});
 }
 
 export function resetTimeline() {
 	resetTimelineIds();
+}
+
+function createTimelineFilter(client: Client) {
+	if (client.pubkey) {
+		return {
+			kinds: [1, 6],
+			authors: client.followees
+		};
+	}
+
+	return {
+		kinds: [1]
+	};
 }
 
 function handlePacket(packet: EventPacket) {
