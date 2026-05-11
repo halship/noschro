@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { pubkeyToColor } from '$lib/formatter';
 	import { appState } from '$lib/state.svelte';
-	import { User } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import Content from '$lib/components/Content.svelte';
+	import UserAvatar from '$lib/components/UserAvatar.svelte';
 	import { parseContent } from '$lib/models/token';
 	import { onDestroy, onMount } from 'svelte';
 	import { initNostr } from '$lib/client';
@@ -53,21 +52,12 @@
 		<div class="h-60 w-full border-b"></div>
 	{/if}
 
-	{#if profile?.picture}
-		<img
-			src={profile.picture}
-			aria-hidden="true"
-			alt="User picture"
-			class="absolute bottom-2 left-2 h-30 w-30 rounded-full border-2"
-		/>
-	{:else}
-		<div
-			class="absolute bottom-2 left-2 h-30 w-30 rounded-full border-2"
-			style:background-color={pubkeyToColor(data.pubkey)}
-		>
-			<User class="text-app-text h-full w-full rounded-full" />
-		</div>
-	{/if}
+	<UserAvatar
+		pubkey={data.pubkey}
+		picture={profile?.picture}
+		alt="User picture"
+		class="absolute bottom-2 left-2 h-30 w-30 rounded-full border-2"
+	/>
 </div>
 
 {#if profile?.displayName}

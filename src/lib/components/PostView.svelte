@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { formatPubkey, formatTimestamp, pubkeyToColor } from '$lib/formatter';
+	import { formatPubkey, formatTimestamp } from '$lib/formatter';
 	import type { Post } from '$lib/models/post';
 	import type { Profile } from '$lib/models/profile';
-	import { User } from '@lucide/svelte';
 	import Content from './Content.svelte';
+	import UserAvatar from './UserAvatar.svelte';
 	import UserName from './UserName.svelte';
 	import { resolve } from '$app/paths';
 	import { npubEncode, neventEncode } from 'nostr-tools/nip19';
@@ -20,8 +20,6 @@
 
 	let { post, profile, replyToUsers, quotes, contentUsers }: Props = $props();
 
-	let iconColor = $derived(pubkeyToColor(post.pubkey));
-
 	let userNpub = $derived(npubEncode(post.pubkey));
 
 	let postNevent = $derived(
@@ -36,18 +34,12 @@
 <div class="flex border-b border-gray-400 dark:border-gray-700">
 	<div class="m-2">
 		<a href={resolve('/[npub=npub]', { npub: userNpub })}>
-			{#if profile && profile.picture}
-				<img
-					src={profile.picture}
-					aria-hidden="true"
-					alt="profile picture"
-					class="h-12 w-12 rounded-full"
-				/>
-			{:else}
-				<div class="default-icon" style:background-color={iconColor}>
-					<User class="text-app-text size-full rounded-full" />
-				</div>
-			{/if}
+			<UserAvatar
+				pubkey={post.pubkey}
+				picture={profile?.picture}
+				alt="profile picture"
+				class="h-12 w-12 rounded-full"
+			/>
 		</a>
 	</div>
 
@@ -86,11 +78,3 @@
 		</p>
 	</div>
 </div>
-
-<style>
-	.default-icon {
-		width: 48px;
-		height: 48px;
-		border-radius: 50%;
-	}
-</style>
