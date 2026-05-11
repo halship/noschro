@@ -13,10 +13,14 @@
 	let profile = $derived(appState.profilesByPubkey[data.pubkey]);
 
 	let quotes = $derived(
-		getQuotes(appState.eventsById, appState.profilesByPubkey, profile.quoteIds)
+		profile
+			? getQuotes(appState.eventsById, appState.profilesByPubkey, profile.quoteIds)
+			: undefined
 	);
 
-	let users = $derived(getContentUsers(appState.profilesByPubkey, profile.contentPubkeys));
+	let users = $derived(
+		profile ? getContentUsers(appState.profilesByPubkey, profile.contentPubkeys) : undefined
+	);
 
 	useNostrSubscriptions(['profiles', 'events'], {
 		onReady: () => {
