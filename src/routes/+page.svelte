@@ -35,7 +35,22 @@
 <PageHeader title="タイムライン" />
 
 {#if isLogin}
-	<p>仮</p>
+	<div class="m-2">
+		<div class="border-b py-2">
+			<p class="font-bold">
+				<span class="mr-1">display_name</span><span>@name</span>
+			</p>
+			<p>2026-06-03 23:37:15</p>
+			<p class="mt-2">投稿内容。投稿内容。投稿内容。投稿内容。</p>
+		</div>
+		<div class="border-b py-2">
+			<p class="font-bold">
+				<span class="mr-1">display_name</span><span>@name</span>
+			</p>
+			<p>2026-06-03 23:37:15</p>
+			<p class="mt-2">投稿内容。投稿内容。投稿内容。投稿内容。</p>
+		</div>
+	</div>
 {:else}
 	<div class="m-2">
 		<button class="cursor-pointer rounded-lg border bg-gray-100 p-2" onclick={handleNip07Login}
