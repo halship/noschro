@@ -35,7 +35,7 @@
 <PageHeader title="タイムライン" />
 
 {#if isLogin}
-	<div class="m-2">
+	<div class="mx-2">
 		<div class="border-b py-2">
 			<p class="font-bold">
 				<span class="mr-1">display_name</span><span>@name</span>
