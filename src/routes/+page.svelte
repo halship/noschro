@@ -1,34 +1,26 @@
 <script lang="ts">
 	import { login } from '$lib/client';
 	import PageHeader from '$lib/components/PageHeader.svelte';
-	import { getSetting, removeSetting, setSetting } from '$lib/settings';
-	import { onMount } from 'svelte';
+	import { getSetting, setSetting } from '$lib/settings';
+	import { subscribeTimeline, unsubscribeTimeline } from '$lib/subscriptions/timeline';
+	import { onDestroy, onMount } from 'svelte';
 
 	let isLogin: boolean = $state(getSetting('login') !== null);
 
 	onMount(async () => {
-		if (isLogin) {
-			const result = await login();
+		if (!isLogin) return;
 
-			if (!result) {
-				removeSetting('login');
-				isLogin = false;
-				return;
-			}
-		}
+		isLogin = await login();
+		subscribeTimeline();
+	});
+
+	onDestroy(() => {
+		unsubscribeTimeline();
 	});
 
 	async function handleNip07Login() {
 		setSetting('login', '<NIP-07>');
-		const result = await login();
-
-		if (!result) {
-			removeSetting('login');
-			isLogin = false;
-			return;
-		}
-
-		isLogin = true;
+		isLogin = await login();
 	}
 </script>
 
